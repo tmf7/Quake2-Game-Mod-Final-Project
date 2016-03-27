@@ -341,7 +341,7 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 
 	G_FreeEdict (self);
 }
-
+/*
 void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
 {
 	edict_t	*bolt;
@@ -359,19 +359,19 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 	VectorCopy (start, bolt->s.origin);
 	VectorCopy (start, bolt->s.old_origin);
 	vectoangles (dir, bolt->s.angles);
-	VectorScale (dir, speed, bolt->velocity);
+	VectorScale (dir, speed, bolt->velocity);			//TMF7 speed UNIFORMLY amplifies all direction components...weird results if big
 	bolt->movetype = MOVETYPE_FLYMISSILE;
 	bolt->clipmask = MASK_SHOT;
 	bolt->solid = SOLID_BBOX;
 	bolt->s.effects |= effect;
 	VectorClear (bolt->mins);
 	VectorClear (bolt->maxs);
-	bolt->s.modelindex = gi.modelindex ("models/objects/laser/tris.md2");
+	bolt->s.modelindex = gi.modelindex ("models/objects/grenade/tris.md2");	//gi.modelindex ("models/objects/laser/tris.md2");
 	bolt->s.sound = gi.soundindex ("misc/lasfly.wav");
 	bolt->owner = self;
 	bolt->touch = blaster_touch;
 	bolt->nextthink = level.time + 2;
-	bolt->think = G_FreeEdict;
+	bolt->think = G_FreeEdict;					//TMF7 this checks the state/behavior of the bolt projectile over time
 	bolt->dmg = damage;
 	bolt->classname = "bolt";
 	if (hyper)
@@ -388,7 +388,7 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 		bolt->touch (bolt, tr.ent, NULL, NULL);
 	}
 }	
-
+*/
 
 /*
 =================
@@ -916,3 +916,43 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 
 	gi.linkentity (bfg);
 }
+
+
+//TMF7 BEGIN PLAY
+void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
+{
+	//void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)
+	//fire_grenade (ent, start, forward, damage, 600, 2.5, radius);
+	edict_t	*grenade;
+	vec3_t	angles;
+	vec3_t	forward, right, up;
+
+	vectoangles (dir, angles);
+	AngleVectors (angles, forward, right, up);
+
+	grenade = G_Spawn();
+	VectorCopy (start, grenade->s.origin);
+	VectorScale (dir, speed, grenade->velocity);
+	VectorMA (grenade->velocity, 200 + crandom() * 10.0, up, grenade->velocity);
+	VectorMA (grenade->velocity, crandom() * 10.0, right, grenade->velocity);
+	VectorSet (grenade->avelocity, 300, 300, 300);
+	grenade->movetype = MOVETYPE_BOUNCE;
+	grenade->clipmask = MASK_SHOT;
+	grenade->solid = SOLID_BBOX;
+	grenade->s.effects |= EF_GRENADE;
+	VectorClear (grenade->mins);
+	VectorClear (grenade->maxs);
+	grenade->s.modelindex = gi.modelindex ("models/objects/grenade/tris.md2");
+	grenade->owner = self;
+	grenade->touch = Grenade_Touch;
+	grenade->nextthink = level.time + 2.5;
+	grenade->think = Grenade_Explode;
+	grenade->dmg = damage;
+	grenade->dmg_radius = 120;
+	grenade->classname = "grenade";
+
+	gi.linkentity (grenade);
+
+
+}	
+//TMF7 END PLAY

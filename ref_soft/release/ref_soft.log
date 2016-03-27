@@ -1,0 +1,235 @@
+﻿Build started 3/26/2016 4:03:44 PM.
+     1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\ref_soft.vcxproj" on node 2 (build target(s)).
+     1>PrepareForBuild:
+         Creating directory ".\..\release\".
+       InitializeBuildStatus:
+         Creating ".\release\ref_soft.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       CustomBuild:
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_aclipa.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_draw16.asm
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_drawa.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_edgea.asm
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_polysa.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_scana.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_spr8.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_surf8.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_varsa.asm
+       ClCompile:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt ..\game\q_shared.c ..\win32\q_shwin.c r_aclip.c r_alias.c r_bsp.c r_draw.c r_edge.c r_image.c r_light.c r_main.c r_misc.c r_model.c r_part.c r_poly.c r_polyse.c r_rast.c r_scan.c r_sprite.c r_surf.c ..\win32\rw_ddraw.c ..\win32\rw_dib.c ..\win32\rw_imp.c
+         q_shared.c
+     1>..\game\q_shared.c(266): warning C4100: 'f' : unreferenced formal parameter
+     1>..\game\q_shared.c(418): warning C4100: 'p' : unreferenced formal parameter
+     1>..\game\q_shared.c(418): warning C4100: 'emaxs' : unreferenced formal parameter
+     1>..\game\q_shared.c(418): warning C4100: 'emins' : unreferenced formal parameter
+     1>..\game\q_shared.c(876): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>..\game\q_shared.c(897): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>..\game\q_shared.c(923): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>..\game\q_shared.c(1056): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>..\game\q_shared.c(1112): warning C4127: conditional expression is constant
+     1>..\game\q_shared.c(1230): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>..\game\q_shared.c(1234): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>..\game\q_shared.c(1264): warning C4127: conditional expression is constant
+     1>..\game\q_shared.c(1308): warning C4127: conditional expression is constant
+     1>..\game\q_shared.c(1334): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+         q_shwin.c
+         r_aclip.c
+         r_alias.c
+     1>r_alias.c(108): warning C4189: 'minz' : local variable is initialized but not referenced
+     1>r_alias.c(1005): warning C4100: 'pmdl' : unreferenced formal parameter
+     1>r_alias.c(1052): warning C4210: nonstandard extension used : function given file scope
+     1>r_alias.c(1053): warning C4210: nonstandard extension used : function given file scope
+     1>r_alias.c(1054): warning C4210: nonstandard extension used : function given file scope
+     1>r_alias.c(1055): warning C4210: nonstandard extension used : function given file scope
+     1>r_alias.c(1056): warning C4210: nonstandard extension used : function given file scope
+         r_bsp.c
+         r_draw.c
+         r_edge.c
+         r_image.c
+     1>r_image.c(422): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>r_image.c(463): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+         r_light.c
+         r_main.c
+     1>r_main.c(674): warning C4127: conditional expression is constant
+     1>r_main.c(1097): warning C4210: nonstandard extension used : function given file scope
+     1>r_main.c(1095): warning C4100: 'camera_separation' : unreferenced formal parameter
+     1>r_main.c(1303): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>r_main.c(1404): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>r_main.c(1416): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'vsprintf'
+         r_misc.c
+     1>r_misc.c(53): warning C4210: nonstandard extension used : function given file scope
+     1>r_misc.c(55): warning C4210: nonstandard extension used : function given file scope
+     1>r_misc.c(226): warning C4100: 'vout' : unreferenced formal parameter
+     1>r_misc.c(226): warning C4100: 'vin' : unreferenced formal parameter
+     1>r_misc.c(601): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+     1>r_misc.c(635): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>r_misc.c(642): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+         r_model.c
+     1>r_model.c(131): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>r_model.c(198): warning C4127: conditional expression is constant
+         r_part.c
+         r_poly.c
+         r_polyse.c
+     1>r_polyse.c(1122): warning C4127: conditional expression is constant
+         r_rast.c
+     1>r_rast.c(601): warning C4389: '==' : signed/unsigned mismatch
+     1>r_rast.c(645): warning C4389: '==' : signed/unsigned mismatch
+         r_scan.c
+         r_sprite.c
+         r_surf.c
+         rw_ddraw.c
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(292): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(301): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(307): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(314): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(355): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(370): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(717): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(726): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(739): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(746): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(754): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(773): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(779): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2234): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2241): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2266): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2271): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2278): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2294): warning C4201: nonstandard extension used : nameless struct/union
+         Generating Code...
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_polyse.c(465): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_part.c(208): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(328): warning C4701: potentially uninitialized local variable 'blue' used
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(327): warning C4701: potentially uninitialized local variable 'green' used
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(326): warning C4701: potentially uninitialized local variable 'red' used
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(329): warning C4701: potentially uninitialized local variable 'alphabyte' used
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(683): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(434): warning C4740: flow in or out of inline asm code suppresses global optimization
+     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(434): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
+     1>c:\users\tom\desktop\code\quake2-project\game\q_shared.c(33): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
+         Compiling...
+         rw_dib.c
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(292): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(301): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(307): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(314): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(355): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(370): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(717): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(726): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(739): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(746): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(754): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(773): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(779): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2234): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2241): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2266): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2271): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2278): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2294): warning C4201: nonstandard extension used : nameless struct/union
+     1>..\win32\rw_dib.c(366): warning C4057: 'function' : 'const COLORREF *' differs in indirection to slightly different base types from 'int [19]'
+         rw_imp.c
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(292): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(301): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(307): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(314): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(355): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(370): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(717): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(726): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(739): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(746): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(754): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(773): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(779): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2234): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2241): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2266): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2271): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2278): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2286): warning C4201: nonstandard extension used : nameless struct/union
+     1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2294): warning C4201: nonstandard extension used : nameless struct/union
+     1>..\win32\rw_imp.c(64): warning C4055: 'type cast' : from data pointer 'void *' to function pointer 'WNDPROC'
+         Generating Code...
+       Link:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\..\release\ref_soft.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ref_soft.def" /MANIFEST /ManifestFile:".\release\ref_soft.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Project\release\ref_soft.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\..\release\ref_soft.lib" /MACHINE:X86 /DLL .\..\release\\.obj
+         .\release\q_shared.obj
+         .\release\q_shwin.obj
+         .\release\r_aclip.obj
+         .\release\r_alias.obj
+         .\release\r_bsp.obj
+         .\release\r_draw.obj
+         .\release\r_edge.obj
+         .\release\r_image.obj
+         .\release\r_light.obj
+         .\release\r_main.obj
+         .\release\r_misc.obj
+         .\release\r_model.obj
+         .\release\r_part.obj
+         .\release\r_poly.obj
+         .\release\r_polyse.obj
+         .\release\r_rast.obj
+         .\release\r_scan.obj
+         .\release\r_sprite.obj
+         .\release\r_surf.obj
+         .\release\rw_ddraw.obj
+         .\release\rw_dib.obj
+         .\release\rw_imp.obj
+     1>LINK : fatal error LNK1181: cannot open input file '.\..\release\\.obj'
+     1>Done Building Project "C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\ref_soft.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:02.39

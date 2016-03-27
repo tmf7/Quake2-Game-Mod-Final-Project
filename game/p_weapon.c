@@ -508,7 +508,7 @@ void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 		}
 	}
 
-	if (ent->client->weaponstate == WEAPON_FIRING)
+	if (ent->client->weaponstate == WEAPON_FIRING)		//TMF7 START HERE
 	{
 		for (n = 0; fire_frames[n]; n++)
 		{
@@ -821,15 +821,17 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 
 	if (is_quad)
 		damage *= 4;
-	AngleVectors (ent->client->v_angle, forward, right, NULL);
-	VectorSet(offset, 24, 8, ent->viewheight-8);
-	VectorAdd (offset, g_offset, offset);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+	AngleVectors (ent->client->v_angle, forward, right, NULL);				//TMF7 sets the launch angles based on playerview angles
+	VectorSet(offset, 24, 8, ent->viewheight-8);							//TMF7 regualar offset based on player/gun dimensions					
+	VectorAdd (offset, g_offset, offset);	
+	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);	//TMF7 sets the muzzle firing POSITION
 
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
-
-	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	
+	//TMF7 HARD CODED SPEED 1000? mult by 5 makes crazy angles, div by 5 works fine (fuse runs out)
+	//TMF7 essently: don't mess with the speed too much on any weapon because the view angle sin/cos cycles and amplifies weird
+	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);		
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -851,7 +853,7 @@ void Weapon_Blaster_Fire (edict_t *ent)
 	if (deathmatch->value)
 		damage = 15;
 	else
-		damage = 10;
+		damage = 10000;			//TMF7 HARDCODED DAMAGE VALUE (this worked great in-game)
 	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
 	ent->client->ps.gunframe++;
 }
