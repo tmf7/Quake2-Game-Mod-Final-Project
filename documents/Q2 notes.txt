@@ -1,0 +1,43 @@
+what's the difference between g_weapon.c and p_weapon.c ( game v player? ):
+g_weapon.c handles the specifics of weapon fire, etc EG:
+void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
+
+this might be useful for changing items ( in g_items.c ):
+gitem_t	itemlist[] = 
+and typedef struct gitem_s ( in g_local.c )
+
+
+struct edict_s ( holds all general entity info in g_local.h )
+typedef struct edict_s edict_t; ( is the type used when using an entity, in game.h )
+
+//  g_local.h  
+int	light_level;
+
+
+// a function pointer chan be assigned to any function that takes these same parameters, function pointers can be passed into functions as parameters, but must be defined with their parameters there too
+void		(*touch)(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);
+
+_________________________________________________________________________________
+building the quake2 project produces the .exe
+building the game project produces the .dll\
+BOTH go the the "release" folder in the top project directory
+
+a mod directory needs more then the .dll past a certain level ...or did my game just randomly corrupt at the 5th level?
+		->the error says that "function pointers have moved"
+
+
+__________________________________________________________________________
+
+The 5th item down in gitem_t is the weaponthink function pointer -> which is set to Weapon_Blaster in itemlist[] -> 
+	which calls Weapon_Generic ( with the function pointer Weapon_Blaster_Fire AND the ent [player/client/monster firing] )
+	->Weapon_Blaster_Fire calls Blaster_Fire -> which calls fire_blaster in g_weapon.c
+
+void ClientBeginServerFrame (edict_t *ent) calls Think_weapon (once for each SERVER frame)
+void ClientThink (edict_t *ent, usercmd_t *ucmd) calls Think_Weapon (once for each CLIENT frame, mutiple client frames/server frame)
+
+void Think_Weapon (edict_t *ent) is called every frame -> which calls ent->client->pers.weapon->weaponthink (ent);
+
+____________________________________________________________________
+ORDER MATTERS in C in terms of function declarations and calls ( hence why #includes and fuction headers are at the top )
+	->I found this out with blaster_fire trying to call Grenade_Touch (which was declared+defined below it)
+	->I moved blaster_fire to the bottom and it all compiled fine
