@@ -371,7 +371,7 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 	bolt->owner = self;
 	bolt->touch = blaster_touch;
 	bolt->nextthink = level.time + 2;
-	bolt->think = G_FreeEdict;					//TMF7 this checks the state/behavior of the bolt projectile over time
+	bolt->think = G_FreeEdict;					//TMF7 this removes the bolt the next time it thinks
 	bolt->dmg = damage;
 	bolt->classname = "bolt";
 	if (hyper)
@@ -918,7 +918,7 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 }
 
 
-//TMF7 BEGIN PLAY
+//TMF7 BEGIN ROCKET PARTY
 void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
 {
 	//void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)
@@ -955,4 +955,4 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 
 
 }	
-//TMF7 END PLAY
+//TMF7 END ROCKETPARTY

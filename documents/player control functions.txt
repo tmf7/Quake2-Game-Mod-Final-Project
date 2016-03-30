@@ -1,0 +1,106 @@
+GOAL: to posses an enemy -> ie control their movement (jump, crouch, run, walk, swim, fly) and attack
+			-> NOT switch weapons or pickup items
+			-> have a button that blows them up
+			-> third person possesion easier? (due to first person gun position and look)
+***NEVER SET A FUNCTION POINTER  FOR A LIVE ENT TO NULL****
+
+________________________
+
+
+
+player's gun position, gun selection, inventory
+
+<g_main.c>
+void RunEntity (edict_t *ent);
+void G_RunFrame (void);
+void ClientThink (edict_t *ent, usercmd_t *cmd);
+void ClientUserinfoChanged (edict_t *ent, char *userinfo);
+void ClientCommand (edict_t *ent);
+void ClientBegin (edict_t *ent);
+
+<p_client.c>
+qboolean ClientConnect (edict_t *ent, char *userinfo)
+	InitClientPersistant (ent->client);
+
+void ClientBegin (edict_t *ent)
+	PutClientInServer (ent);
+
+void PutClientInServer (edict_t *ent)
+	SelectSpawnPoint (ent, spawn_origin, spawn_angles);
+
+item = FindItem("Blaster");
+gi.linkentity (ent); ( entity must be relinked for collision detection if its size, POSITION, or solidity changes)
+
+void ClientBeginServerFrame (edict_t *ent)
+
+globals.ClientThink = ClientThink; //the player always has the same think function
+Think_Weapon			//the player always has the same Think_Weapon, but different pointer weaponthink functions
+
+__________________________________________________________
+<sv_main.c in quake2 project>
+gotnewcl:	// this is the only place a client_t is ever initialized
+	if (!(ge->ClientConnect (ent, userinfo)))
+
+[eventually follwed by a call to ] void SV_Begin_f (void)
+						ge->ClientBegin (sv_player);
+______________________________________________________________
+<client.h>
+cl_sustain_t //contains when the next think will take place, the client#, position, direction, the *think func pointer	
+
+<cl_tent.c> //handles almost all of the effects and when they happen as well as:
+void CL_ProcessSustain ()
+	s->think (s);		//for all active entities
+
+cl.time 	//client time (similar to gameLocal.time OVERALL)
+level.time	//level time (handles the particular level's time -> the primarily used time for most game code)
+
+MAX_SUSTAINS	//similar to max_entities or num_entities (except the num is constant?)
+cl_sustains	//similar to gameLocal.entities[]
+
+__________________________________________________
+
+
+<g_spawn.c>
+void ED_CallSpawn (edict_t *ent)
+spawn_t	spawns[] = {	//similar to the itemlist[] except for entities
+
+<g_misc.c>
+G_FreeEdict (self); (removes an entity from the map)
+
+->>does setting the function pointer actually call that function right away???
+	->reference: calling a spawn function which sets various function pointers (eg: light_use)
+
+
+___________________________________________
+How is a instance of a player initialized:
+
+
+
+How is a instance of a monster initialized:
+<g_monster.c>
+[specific spawn function for a monster as per <g_spawn.c>]
+void SP_monster_gunner (edict_t *self)
+	walkmonster_start (self);
+
+
+void walkmonster_start (edict_t *self)
+{
+	self->think = walkmonster_start_go;
+	monster_start (self);
+}
+
+qboolean monster_start (edict_t *self)		//initializes the variables (including next think time)
+
+
+void walkmonster_start_go (edict_t *self)
+	monster_start_go (self);
+
+void monster_start_go (edict_t *self)
+	self->think = monster_think;
+
+
+___________________________________
+
+semi-turn based game (like azure dreams):
+-enemies that have spotted the user lock into moving only when the player moves, at exactly the player's speed
+-attacks can only occur at close range (face to face) (melee, magic, etc)

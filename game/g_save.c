@@ -366,7 +366,7 @@ void ReadField (FILE *f, field_t *field, byte *base)
 		if ( index == -1 )
 			*(gitem_t **)p = NULL;
 		else
-			*(gitem_t **)p = &itemlist[index];
+			*(gitem_t **)p = &itemlist[index];			//TMF7 is this what handles the invulnerability impulse? 'i'
 		break;
 
 	//relative to code segment

@@ -181,6 +181,18 @@ void Cmd_Give_f (edict_t *ent)
 			return;
 	}
 
+//TMF7 BEGIN HACKY NEW KEY BIND
+	// 'f' is bound to ghost mode toggle
+	if ( Q_stricmp(gi.argv(1), "ghost") == 0 )
+	{
+		gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->client->ghost ? "TRUE" : "FALSE" );
+		//Com_sprintf (text, sizeof(text), "(%s): ", ent->client->pers.netname);
+		ent->client->ghost = !ent->client->ghost;
+		return;
+	}
+//TMF7 END HACKY NEW KEY BIND
+
+
 	if (give_all || Q_stricmp(name, "weapons") == 0)
 	{
 		for (i=0 ; i<game.num_items ; i++)

@@ -840,8 +840,8 @@ void Key_Event (int key, qboolean down, unsigned time)
 //
 	if (!down)
 	{
-		kb = keybindings[key];
-		if (kb && kb[0] == '+')
+		kb = keybindings[key];				
+		if (kb && kb[0] == '+')	
 		{
 			Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", kb+1, key, time);
 			Cbuf_AddText (cmd);
@@ -868,14 +868,14 @@ void Key_Event (int key, qboolean down, unsigned time)
 		kb = keybindings[key];
 		if (kb)
 		{
-			if (kb[0] == '+')
+			if (kb[0] == '+')		//TMF7 this handles movement/looking keybindings
 			{	// button commands add keynum and time as a parm
 				Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
 				Cbuf_AddText (cmd);
 			}
 			else
 			{
-				Cbuf_AddText (kb);
+				Cbuf_AddText (kb);	//TMF7 this handles powerups and grenades and such keybindings
 				Cbuf_AddText ("\n");
 			}
 		}

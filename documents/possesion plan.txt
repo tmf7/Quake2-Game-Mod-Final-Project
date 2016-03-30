@@ -1,0 +1,123 @@
+print the "lightlevel" value (and see what it does)
+__________________________________________________________________________
+
+find the "impulse" code (for using grenades and invulnerability, etc)
+	->looking through the code FOREVER, and looking at the .cfg file for the binds seems to indicate the "impulses" are actually
+		just "use" "invulnerability" equivalent console commands and I think it may be unlikely that I'll find an explicitly
+		defined switch (impulse) statement
+	->confirmed via bind f "give rocket launcher"
+	->find the code that calls functions based on parsed button presses and passes args (non-explicit...ugh)
+	->something uses keybindings[i] to execute commands contained therein [<keys.c> kb = keybindings[key]; Cbuf_AddText (kb);]
+	->	<g_cmds.c>	void ClientCommand (edict_t *ent) //pulls the commands out of the buffer for a client..maybe
+	->cl_main.c(1505):	Cmd_AddCommand ("quit", CL_Quit_f);		//TRY ADDING MY OWN COMMAND FUNCTION
+		->I just commondeered the Cmd_Give_f function instead (because it's currently just a bool toggle)
+		->however it seems #include client.h allows AddCommand( "derp", funcDerp );
+
+print current player command to console (walk, run, shoot, jump, crouch, alt_shoot?)  
+	// Com_DPrintf ("stufftext: %s\n", s);
+	// Com_Printf ("think %d %d %d\n", cl.time, s->nextthink, s->thinkinterval);
+	// gi.cprintf (ent, PRINT_HIGH, msg);
+
+find the code for chase cam, spectator, third person
+
+print *every enemy* movement choice, attack choice to the console (enemies don't jump, but they walk, fly, swim)
+
+add a boolean flag for player in "ghost mode"
+
+add a boolean flag for player in "possession mode"
+
+add a boolean flag for enemy "possesed" (suppant think commands)
+
+POSSESSION MODE key-binds:
+"inhabit" [ eg 'r' ] -> explode/gib inhabited enemy
+"ghost" [ eg 'f' ]   -> leave inhabited enemy (instead of going to player)
+
+GHOST MODE key-binds:
+"inhabit" [ eg 'r' ] -> inhabit the nearest enemy
+"ghost" [ eg 'f' ]   -> return to player
+
+NORMAL MODE key-binds:
+"inhabit" [ eg 'r' ] -> nothing
+"ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls)
+
+_______________________________________
+GENERAL:
+
+->check the bfg code for nearby enemies/entities list (its green lasers)
+
+->ALSO: inhabit an enemy that's collded with/touched (touch function pointer?)
+
+->if the currently inhabited enemy dies, return to ghost mode
+
+______________________________________________
+
+<q_shared.h>
+typedef struct usercmd_s	// usercmd_t is sent to the server each client frame	
+
+entity_state_t;
+player_state_t;
+
+pmove_t;
+
+<p_client.c>
+	if (level.intermissiontime)
+	{
+		client->ps.pmove.pm_type = PM_FREEZE;			//this
+		// can exit intermission after five seconds
+		if (level.time > level.intermissiontime + 5.0 
+			&& (ucmd->buttons & BUTTON_ANY) )		//THIS MOSTLY
+			level.exitintermission = true;
+		return;
+	}
+
+ucmd->buttons
+client->oldbuttons
+client->buttons
+client->latched_buttons
+
+<cl_input.c>
+void IN_KLookUp (void) {KeyUp(&in_klook);}
+
+<sv_user.c>
+SV_ClientThink (cl, &newcmd);
+
+<cl_inv.c>
+void CL_DrawInventory (void)
+	// search for a binding
+	Com_sprintf (binding, sizeof(binding), "use %s", cl.configstrings[CS_ITEMS+item]);
+
+_______________________________________________________
+<cl_fx.c>
+		dl->color[0] = 1;dl->color[1] = 1;dl->color[2] = 0;
+		S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound("weapons/shotgf1b.wav"), volume, ATTN_NORM, 0);
+		S_StartSound (NULL, i, CHAN_AUTO,   S_RegisterSound("weapons/shotgr1b.wav"), volume, ATTN_NORM, 0.1);
+<cl_tent.c>	//useful for screen fx too
+
+<cl_inv.c>
+		// search for a binding	//item is an array of ints MAX_ITEMS long, as is binding, keybindings is char* array and global in <keys.c>
+		Com_sprintf (binding, sizeof(binding), "use %s", cl.configstrings[CS_ITEMS+item]);
+		bind = "";
+		for (j=0 ; j<256 ; j++)
+			if (keybindings[j] && !Q_stricmp (keybindings[j], binding))
+			{
+				bind = Key_KeynumToString(j);
+				break;
+			}
+
+
+	re.DrawPic (x, y+8, "inventory");
+		else	// draw a blinky cursor by the selected item
+		{
+			if ( (int)(cls.realtime*10) & 1)
+				re.DrawChar (x-8, y, 15);
+		}
+		Inv_DrawString (x, y, string);
+
+<keys.c>
+void Key_Bind_f (void)		//contains the loop that checks the .cfg [b = Key_StringToKeynum (Cmd_Argv(1));]
+void Key_SetBinding (int keynum, char *binding)	//sets the keynum (eg atoi('f') ) in the array to the string in the .cfg file
+
+<cl_input.c>
+When a key event issues a button command (+forward, +attack, etc), it appends
+its key number as a parameter to the command so it can be matched up with
+the release.

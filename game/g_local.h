@@ -884,6 +884,8 @@ struct gclient_s
 	player_state_t	ps;				// communicated by server to clients
 	int				ping;
 
+	qboolean		ghost;			//TMF7 GHOST MODE
+
 	// private to game
 	client_persistant_t	pers;
 	client_respawn_t	resp;

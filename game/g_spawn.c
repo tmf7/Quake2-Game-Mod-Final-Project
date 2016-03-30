@@ -288,7 +288,7 @@ void ED_CallSpawn (edict_t *ent)
 	}
 
 	// check item spawn functions
-	for (i=0,item=itemlist ; i<game.num_items ; i++,item++)
+	for (i=0,item=itemlist ; i<game.num_items ; i++,item++)		//TMF7 the item list and num_items MUST be in alignment
 	{
 		if (!item->classname)
 			continue;

@@ -604,7 +604,7 @@ This is only called when the game first initializes in single player,
 but is called after each death and level change in deathmatch
 ==============
 */
-void InitClientPersistant (gclient_t *client)
+void InitClientPersistant (gclient_t *client)		//TMF7 set initial weapons
 {
 	gitem_t		*item;
 
@@ -1172,13 +1172,15 @@ void PutClientInServer (edict_t *ent)
 	ent->deadflag = DEAD_NO;
 	ent->air_finished = level.time + 12;
 	ent->clipmask = MASK_PLAYERSOLID;
-	ent->model = "players/male/tris.md2";
+	ent->model = "players/male/tris.md2";			//TMF7 change the player model for ghost mode?...or a second player with notarget?
 	ent->pain = player_pain;
 	ent->die = player_die;
 	ent->waterlevel = 0;
 	ent->watertype = 0;
 	ent->flags &= ~FL_NO_KNOCKBACK;
 	ent->svflags &= ~SVF_DEADMONSTER;
+
+	ent->client->ghost = true;					//TMF7 GHOST MODE
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1330,7 +1332,7 @@ void ClientBegin (edict_t *ent)
 		// a spawn point will completely reinitialize the entity
 		// except for the persistant data that was initialized at
 		// ClientConnect() time
-		G_InitEdict (ent);
+		G_InitEdict (ent);						//TMF7 these lines sets the client/player info upon spawning
 		ent->classname = "player";
 		InitClientResp (ent->client);
 		PutClientInServer (ent);
@@ -1577,12 +1579,14 @@ This will be called once for each client frame, which will
 usually be a couple times for each server frame.
 ==============
 */
-void ClientThink (edict_t *ent, usercmd_t *ucmd)
+void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling?
 {
 	gclient_t	*client;
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
+	float length;			//TMF7 GHOST MODE
+	vec3_t dir, vel;		//TMF7 GHOST MODE
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1639,17 +1643,51 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		pm.trace = PM_trace;	// adds default parms
 		pm.pointcontents = gi.pointcontents;
 
+
+//TMF7 BEGIN GHOST MODE 
+		if ( client->ghost ) {
+			//(print out current player movement direction && amount, and "freeze" the player) IMMEDIATLY PRIOR TO THE MOVE
+			//NOTE: setting the velocity = 0 or s = FREEZE doesn't work here
+
+			vel[0] = (float)pm.s.velocity[0];
+			vel[1] = (float)pm.s.velocity[1];
+			vel[2] = (float)pm.s.velocity[2];
+			VectorNormalize2( vel, dir );
+			
+			length = VectorLength( vel );
+
+			if ( length ) {
+				//IMPORTANT: velocity is essentially ZERO in all directions if the player is only looking around (no move|jump)
+				//crouch counts as looking around (it only changes the view height, not the ent origin)
+				
+				gi.cprintf (ent, PRINT_HIGH, "direction = %f %f %f\n", dir[0], dir[1], dir[2] );
+				gi.cprintf (ent, PRINT_HIGH, "speed = %f\n", length );
+
+				//view properties not set by this point
+				//gi.cprintf (ent, PRINT_HIGH, "viewAngles = %f %f %f\n", pm.viewangles[0], pm.viewangles[1], pm.viewangles[2] );
+				//gi.cprintf (ent, PRINT_HIGH, "viewHeight = %f\n", pm.viewheight );
+
+			}
+
+			//ultimately transfer the entire unfrozen pm to the moster
+			//as well as attack stuff
+		}
+//TMF7 END GHOST MODE
+
 		// perform a pmove
-		gi.Pmove (&pm);
+		gi.Pmove (&pm);	
 
 		// save results of pmove
 		client->ps.pmove = pm.s;
 		client->old_pmove = pm.s;
 
-		for (i=0 ; i<3 ; i++)
-		{
-			ent->s.origin[i] = pm.s.origin[i]*0.125;
-			ent->velocity[i] = pm.s.velocity[i]*0.125;
+		if ( !client->ghost ) {		//TMF7 GHOST MODE (this works to freeze the player, but zeros the velocity overall => no print)
+
+			for (i=0 ; i<3 ; i++)
+			{
+				ent->s.origin[i] = pm.s.origin[i]*0.125;
+				ent->velocity[i] = pm.s.velocity[i]*0.125;
+			}
 		}
 
 		VectorCopy (pm.mins, ent->mins);
@@ -1714,7 +1752,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	ent->light_level = ucmd->lightlevel;
 
 	// fire weapon from final position if needed
-	if (client->latched_buttons & BUTTON_ATTACK)
+	if (client->latched_buttons & BUTTON_ATTACK)			//TMF7 GHOST MODE
 	{
 		if (client->resp.spectator) {
 
