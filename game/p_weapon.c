@@ -853,7 +853,7 @@ void Weapon_Blaster_Fire (edict_t *ent)
 	if (deathmatch->value)
 		damage = 15;
 	else
-		damage = 10000;			//TMF7 HARDCODED DAMAGE VALUE (this worked great in-game)
+		damage = 100;			//TMF7 HARDCODED DAMAGE VALUE
 	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
 	ent->client->ps.gunframe++;
 }

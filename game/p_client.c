@@ -175,6 +175,41 @@ void SP_info_player_intermission(void)
 
 //=======================================================================
 
+//TMF7 BEGIN MuzzleTrace
+trace_t MuzzleTrace ( edict_t *ent , float *dist) {
+
+	trace_t tr;
+	vec3_t dir, look;	
+	vec3_t fromPos, toPos, targ;
+
+	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
+	AngleVectors( ent->s.angles, look, NULL, NULL );
+	VectorNormalize2( look, dir );
+
+	gi.centerprintf( ent, "" );	//clear the screen to only display the current info
+	gi.cprintf (ent, PRINT_HIGH, "looking = %f %f %f\n", dir[0], dir[1], dir[2] );
+
+	//print the distance to a really long trace's first hit along the view direction from the player origin
+	VectorCopy (ent->s.origin, fromPos);
+	fromPos[2] += ent->viewheight;
+
+	//EQUIVALENT TO:	toPos = fromPos + dir * 4096.0f;
+	VectorScale( dir, 4096.0f, dir );
+	VectorAdd( dir, fromPos, toPos );
+
+	tr = gi.trace( fromPos, NULL, NULL, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
+			
+	if ( tr.fraction < 1 && dist ) { 
+		VectorSubtract( tr.endpos, fromPos, targ );
+		*dist = VectorLength( targ );
+
+		gi.cprintf (ent, PRINT_HIGH, "DISTANCE = %f\n", *dist ); 
+
+	} else if ( dist ) { *dist = 99999; }
+
+	return tr;
+}
+//TMF7 END MuzzleTrace
 
 void player_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
@@ -1180,7 +1215,8 @@ void PutClientInServer (edict_t *ent)
 	ent->flags &= ~FL_NO_KNOCKBACK;
 	ent->svflags &= ~SVF_DEADMONSTER;
 
-	ent->client->ghost = true;					//TMF7 GHOST MODE
+	ent->ghostmode = false;					//TMF7 GHOST MODE
+	ent->hostmode = false;					//TMF7 GHOST MODE
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1585,14 +1621,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
-
-//TMF7 BEGIN GHOST MODE
-	float length;	
-	vec3_t vdir, vel;	
-	vec3_t ldir, look;	
-	vec3_t fromPos, toPos, targ;
-	trace_t tr;						
-//TMF7 END GHOST MODE
+	trace_t tr;			//TMF7 GHOST MODE
+	edict_t *tempgoal;	//TMF7 GHOST MODE
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1651,62 +1681,83 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 
 //TMF7 BEGIN GHOST MODE 
-		if ( client->ghost ) {
-			//(print out current player movement direction && amount, and "freeze" the player) IMMEDIATLY PRIOR TO THE MOVE
-			//NOTE: setting the velocity = 0 or s = FREEZE doesn't work here
-			/*
-			vel[0] = (float)pm.s.velocity[0];
-			vel[1] = (float)pm.s.velocity[1];
-			vel[2] = (float)pm.s.velocity[2];
+		if ( ent->ghostmode ) {
 
-			VectorNormalize2( vel, vdir );
-			length = VectorLength( vel );
+			//see if passing NULL to a float *dist crashes the game (instead of float distance; &distance)
+			//only perform capture traces in ghost mode
+			tr = MuzzleTrace( ent, NULL );
 
-			if ( length ) {
-				//IMPORTANT: velocity is essentially ZERO in all directions if the player is only looking around (no move|jump)
-				//crouch counts as looking around (it only changes the view height, not the ent origin)
-				
-				gi.cprintf (ent, PRINT_HIGH, "direction = %f %f %f\n", vdir[0], vdir[1], vdir[2] );
-				gi.cprintf (ent, PRINT_HIGH, "speed = %f\n", length );
+//TMF7 BEGIN HOST MODE
+			if ( tr.fraction < 1 && tr.ent ) {
+				//items and debris aren't entities..or at least dont have bounding boxes big enough to intersect with my trace
 
+				//grab the clicked-upon monster for manipulation
+				if ( !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) && ( client->latched_buttons & BUTTON_ATTACK ) ) {
+
+					//centerprint overrides whatever's printed to the screen
+					//gi.centerprintf (ent, "MONSTER = %s\n", tr.ent->classname ); 
+					gi.cprintf (ent, PRINT_HIGH, "MONSTER = %s\n", tr.ent->classname );
+					ent->host = tr.ent;
+					ent->host->possesed = true;
+
+					//transferring to host mode protocols
+					ent->ghostmode = false;
+					ent->hostmode = true;
+
+					//prevent (all) enemies from targeting the player
+					//ent->flags |= FL_NOTARGET;
+				}
+//TMF7 END HOST MODE
 			}
-			*/
-
-//TMF7 BEGIN tmfDistanceToPoint VERIFIED
-	// BUG: A (grenade) that hits a barrel, even without the player looking causes a temporary render lockup
-	// but the player still moves through the world, and it eventually resolves fine
-
-			//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
-			AngleVectors( ent->s.angles, look, NULL, NULL );
-			VectorNormalize2( look, ldir );
-
-			gi.cprintf (ent, PRINT_HIGH, "looking = %f %f %f\n", ldir[0], ldir[1], ldir[2] );
-
-			//print the distance to a really long trace's first hit along the view direction from the player origin
-			VectorCopy (ent->s.origin, fromPos);
-			fromPos[2] += ent->viewheight;
-
-			//EQUIVALENT TO:	toPos = fromPos + dir * 4096.0f;		//possible issue with muzzle direction
-			VectorScale( ldir, 4096.0f, ldir );
-			VectorAdd( ldir, fromPos, toPos );
-
-			tr = gi.trace( fromPos, NULL, NULL, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
-			
-			if ( tr.fraction < 1 ) { 
-				VectorSubtract( tr.endpos, fromPos, targ );
-				length = VectorLength( targ );
-
-				gi.cprintf (ent, PRINT_HIGH, "DISTANCE = %f\n", length ); 
-			}
-//TMF7 END tmfDistanceToPoint VERIFIED
-
-			//ultimately transfer the entire unfrozen pm to the moster?
-			//as well as attack stuff?
 
 			//currently freezes player at chase position
 			//need to spawn a second, notarget client to chase the player
-			SetChaseTarget(ent);	//TMF7 THIRD PERSON (get rid of the chase cam stuff at the end of this function)
+			//SetChaseTarget(ent);	//TMF7 THIRD PERSON (get rid of the chase cam stuff at the end of this function???)
 		}
+
+		//latched_buttons arent necessarily set by this point in clientThink
+		if ( ent->hostmode && ent->host ) {
+
+			if ( client->latched_buttons & BUTTON_ATTACK ) {
+
+				//only perform position traces in host mode
+				tr = MuzzleTrace( ent, NULL );
+
+				//set the movement goal, and enemy, based on the muzzle trace
+				if ( tr.fraction < 1 ) { 
+
+					ent->host->monsterinfo.aiflags |= AI_COMBAT_POINT;
+
+					if ( tr.ent ) {
+						ent->host->goalentity = tr.ent;
+						ent->host->enemy = tr.ent; 
+
+					} else {
+						tempgoal = G_Spawn();
+						ent->host->goalentity = tempgoal;
+
+						VectorCopy (tr.endpos, ent->host->goalentity->s.origin);
+					}
+
+					//still have to disable the monster's executive action when possesed
+					if ( ent->host->monsterinfo.run ) { ent->host->monsterinfo.run( ent->host ); }
+
+					//don't overburden memory with a bunch of temp entities
+					if ( tempgoal ) { G_FreeEdict( tempgoal ); }
+				}
+
+				//perform monsterinfo.func calls based on muzzle clicks
+				//disable monsterinfo.func calls in g_ai.c if possesed
+
+				//eventually return here, after setting the chase cam on the monster
+				//return;
+
+				//if player isn't providing input, and the host has reached its previous goal
+			} else if ( !(ent->host->monsterinfo.aiflags & AI_COMBAT_POINT) && ent->host->monsterinfo.stand ) { 
+				ent->host->monsterinfo.stand( ent->host );
+			}
+		}
+
 //TMF7 END GHOST MODE
 
 		// perform a pmove
@@ -1716,14 +1767,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		client->ps.pmove = pm.s;
 		client->old_pmove = pm.s;
 
-		//if ( !client->ghost ) {		//TMF7 GHOST MODE (this works to freeze the player, but zeros the velocity overall => no print)
+		for (i=0 ; i<3 ; i++)
+		{
+			ent->s.origin[i] = pm.s.origin[i]*0.125;
+			ent->velocity[i] = pm.s.velocity[i]*0.125;
+		}
 
-			for (i=0 ; i<3 ; i++)
-			{
-				ent->s.origin[i] = pm.s.origin[i]*0.125;
-				ent->velocity[i] = pm.s.velocity[i]*0.125;
-			}
-	//	}
 
 		VectorCopy (pm.mins, ent->mins);
 		VectorCopy (pm.maxs, ent->maxs);

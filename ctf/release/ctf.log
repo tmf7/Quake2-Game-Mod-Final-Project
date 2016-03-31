@@ -1,5 +1,5 @@
-﻿Build started 3/26/2016 4:04:39 PM.
-     1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\ctf\ctf.vcxproj" on node 2 (build target(s)).
+﻿Build started 3/31/2016 2:27:52 PM.
+     1>Project "C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\ctf.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\ctf.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
@@ -435,12 +435,12 @@
      1>p_client.c(1367): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
          Generating Code...
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_utils.c(215): warning C4706: assignment within conditional expression
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_utils.c(234): warning C4706: assignment within conditional expression
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_func.c(859): warning C4706: assignment within conditional expression
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_ctf.c(695): warning C4701: potentially uninitialized local variable 'carrier' used
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_combat.c(249): warning C4701: potentially uninitialized local variable 'index' used
-     1>c:\users\tom\desktop\code\quake2-project\ctf\g_combat.c(209): warning C4701: potentially uninitialized local variable 'power' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_utils.c(215): warning C4706: assignment within conditional expression
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_utils.c(234): warning C4706: assignment within conditional expression
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_func.c(859): warning C4706: assignment within conditional expression
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_ctf.c(695): warning C4701: potentially uninitialized local variable 'carrier' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_combat.c(249): warning C4701: potentially uninitialized local variable 'index' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\g_combat.c(209): warning C4701: potentially uninitialized local variable 'power' used
          Compiling...
          p_hud.c
      1>p_hud.c(246): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
@@ -489,12 +489,12 @@
      1>q_shared.c(1309): warning C4127: conditional expression is constant
      1>q_shared.c(1335): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
          Generating Code...
-     1>c:\users\tom\desktop\code\quake2-project\ctf\q_shared.c(33): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
-     1>c:\users\tom\desktop\code\quake2-project\ctf\p_hud.c(441): warning C4701: potentially uninitialized local variable 'cells' used
-     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\ctf\.\release\ctf.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\ctf\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\q_shared.c(33): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ctf\p_hud.c(441): warning C4701: potentially uninitialized local variable 'cells' used
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\.\release\ctf.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(ctf) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\release\gamex86.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ctf.def" /MANIFEST /ManifestFile:".\release\ctf.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Project\ctf\release\ctf.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\release\gamex86.lib" /MACHINE:X86 /DLL .\release\g_ai.obj
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\release\gamex86.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ctf.def" /MANIFEST /ManifestFile:".\release\ctf.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\release\ctf.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\release\gamex86.lib" /MACHINE:X86 /DLL .\release\g_ai.obj
          .\release\g_chase.obj
          .\release\g_cmds.obj
          .\release\g_combat.obj
@@ -521,14 +521,14 @@
          .\release\p_weapon.obj
          .\release\q_shared.obj
             Creating library .\release\gamex86.lib and object .\release\gamex86.exp
-         ctf.vcxproj -> C:\Users\Tom\Desktop\code\Quake2-Project\ctf\.\release\ctf.dll
+         ctf.vcxproj -> C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\.\release\ctf.dll
        Manifest:
          c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:".\release\gamex86.dll;#2" /manifest .\release\ctf.dll.intermediate.manifest
        FinalizeBuildStatus:
          Deleting file ".\release\ctf.unsuccessfulbuild".
          Touching ".\release\ctf.lastbuildstate".
-     1>Done Building Project "C:\Users\Tom\Desktop\code\Quake2-Project\ctf\ctf.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ctf\ctf.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.07
+Time Elapsed 00:00:12.54

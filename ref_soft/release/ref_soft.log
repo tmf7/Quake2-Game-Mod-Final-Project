@@ -1,12 +1,30 @@
-﻿Build started 3/26/2016 4:03:44 PM.
-     1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\ref_soft.vcxproj" on node 2 (build target(s)).
-     1>PrepareForBuild:
-         Creating directory ".\..\release\".
-       InitializeBuildStatus:
-         Creating ".\release\ref_soft.unsuccessfulbuild" because "AlwaysCreate" was specified.
+﻿Build started 3/31/2016 2:25:09 PM.
+     1>Project "C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\ref_soft.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Touching ".\release\ref_soft.unsuccessfulbuild".
        CustomBuild:
          Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_aclipa.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_aclipa.asm
+         Performing Custom Build Tools
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_draw16.asm
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_drawa.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_edgea.asm
+         Microsoft (R) Macro Assembler Version 10.00.30319.01
+         Copyright (C) Microsoft Corporation.  All rights reserved.
+         
+         Performing Custom Build Tools
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_polysa.asm
          Microsoft (R) Macro Assembler Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
@@ -14,9 +32,9 @@
          Microsoft (R) Macro Assembler Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_draw16.asm
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_scana.asm
          Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_drawa.asm
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_spr8.asm
          Microsoft (R) Macro Assembler Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
@@ -24,32 +42,12 @@
          Microsoft (R) Macro Assembler Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_edgea.asm
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_surf8.asm
          Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_polysa.asm
+          Assembling: C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\r_varsa.asm
          Microsoft (R) Macro Assembler Version 10.00.30319.01
          Copyright (C) Microsoft Corporation.  All rights reserved.
          
-         Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_scana.asm
-         Microsoft (R) Macro Assembler Version 10.00.30319.01
-         Copyright (C) Microsoft Corporation.  All rights reserved.
-         
-         Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_spr8.asm
-         Microsoft (R) Macro Assembler Version 10.00.30319.01
-         Copyright (C) Microsoft Corporation.  All rights reserved.
-         
-         Performing Custom Build Tools
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_surf8.asm
-         Microsoft (R) Macro Assembler Version 10.00.30319.01
-         Copyright (C) Microsoft Corporation.  All rights reserved.
-         
-         Performing Custom Build Tools
-         Microsoft (R) Macro Assembler Version 10.00.30319.01
-         Copyright (C) Microsoft Corporation.  All rights reserved.
-         
-          Assembling: C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\r_varsa.asm
        ClCompile:
          c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt ..\game\q_shared.c ..\win32\q_shwin.c r_aclip.c r_alias.c r_bsp.c r_draw.c r_edge.c r_image.c r_light.c r_main.c r_misc.c r_model.c r_part.c r_poly.c r_polyse.c r_rast.c r_scan.c r_sprite.c r_surf.c ..\win32\rw_ddraw.c ..\win32\rw_dib.c ..\win32\rw_imp.c
          q_shared.c
@@ -145,16 +143,16 @@
      1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2286): warning C4201: nonstandard extension used : nameless struct/union
      1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(2294): warning C4201: nonstandard extension used : nameless struct/union
          Generating Code...
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_polyse.c(465): warning C4725: instruction may be inaccurate on some Pentiums
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_part.c(208): warning C4725: instruction may be inaccurate on some Pentiums
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(328): warning C4701: potentially uninitialized local variable 'blue' used
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(327): warning C4701: potentially uninitialized local variable 'green' used
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(326): warning C4701: potentially uninitialized local variable 'red' used
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_image.c(329): warning C4701: potentially uninitialized local variable 'alphabyte' used
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(683): warning C4725: instruction may be inaccurate on some Pentiums
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(434): warning C4740: flow in or out of inline asm code suppresses global optimization
-     1>c:\users\tom\desktop\code\quake2-project\ref_soft\r_alias.c(434): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
-     1>c:\users\tom\desktop\code\quake2-project\game\q_shared.c(33): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_polyse.c(465): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_part.c(208): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_image.c(328): warning C4701: potentially uninitialized local variable 'blue' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_image.c(327): warning C4701: potentially uninitialized local variable 'green' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_image.c(326): warning C4701: potentially uninitialized local variable 'red' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_image.c(329): warning C4701: potentially uninitialized local variable 'alphabyte' used
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_alias.c(683): warning C4725: instruction may be inaccurate on some Pentiums
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_alias.c(434): warning C4740: flow in or out of inline asm code suppresses global optimization
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\ref_soft\r_alias.c(434): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
+     1>c:\users\tom\desktop\code\quake2-game-mod-final-project\game\q_shared.c(33): warning C4748: /GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function
          Compiling...
          rw_dib.c
      1>c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\ddraw.h(286): warning C4201: nonstandard extension used : nameless struct/union
@@ -204,7 +202,7 @@
      1>..\win32\rw_imp.c(64): warning C4055: 'type cast' : from data pointer 'void *' to function pointer 'WNDPROC'
          Generating Code...
        Link:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\..\release\ref_soft.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ref_soft.def" /MANIFEST /ManifestFile:".\release\ref_soft.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Project\release\ref_soft.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\..\release\ref_soft.lib" /MACHINE:X86 /DLL .\..\release\\.obj
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\..\release\ref_soft.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ref_soft.def" /MANIFEST /ManifestFile:".\release\ref_soft.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\release\ref_soft.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\..\release\ref_soft.lib" /MACHINE:X86 /DLL .\..\release\\.obj
          .\release\q_shared.obj
          .\release\q_shwin.obj
          .\release\r_aclip.obj
@@ -228,8 +226,8 @@
          .\release\rw_dib.obj
          .\release\rw_imp.obj
      1>LINK : fatal error LNK1181: cannot open input file '.\..\release\\.obj'
-     1>Done Building Project "C:\Users\Tom\Desktop\code\Quake2-Project\ref_soft\ref_soft.vcxproj" (build target(s)) -- FAILED.
+     1>Done Building Project "C:\Users\Tom\Desktop\code\Quake2-Game-Mod-Final-Project\ref_soft\ref_soft.vcxproj" (build target(s)) -- FAILED.
 
 Build FAILED.
 
-Time Elapsed 00:00:02.39
+Time Elapsed 00:00:12.79

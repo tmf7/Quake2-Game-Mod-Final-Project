@@ -577,6 +577,9 @@ qboolean monster_start (edict_t *self)
 	if (self->monsterinfo.currentmove)
 		self->s.frame = self->monsterinfo.currentmove->firstframe + (rand() % (self->monsterinfo.currentmove->lastframe - self->monsterinfo.currentmove->firstframe + 1));
 
+	self->ghostmode = false;		//TMF7 GHOST MODE
+	self->hostmode = false;			//TMF7 GHOST MODE
+
 	return true;
 }
 

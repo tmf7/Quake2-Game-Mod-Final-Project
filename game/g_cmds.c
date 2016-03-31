@@ -183,11 +183,14 @@ void Cmd_Give_f (edict_t *ent)
 
 //TMF7 BEGIN HACKY NEW KEY BIND
 	// 'f' is bound to ghost mode toggle
-	if ( Q_stricmp(gi.argv(1), "ghost") == 0 )
+	if ( Q_stricmp(gi.argv(1), "ghostmode") == 0 )
 	{
-		gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->client->ghost ? "TRUE" : "FALSE" );
-		//Com_sprintf (text, sizeof(text), "(%s): ", ent->client->pers.netname);
-		ent->client->ghost = !ent->client->ghost;
+		if ( !( ent->hostmode ) ) {
+			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
+			ent->ghostmode = !ent->ghostmode;
+		} else {
+			gi.centerprintf (ent, "HOST MODE, CANNOT GHOST (yet)\n" );	
+		}
 		return;
 	}
 //TMF7 END HACKY NEW KEY BIND

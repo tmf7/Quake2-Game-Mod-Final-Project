@@ -885,8 +885,6 @@ struct gclient_s
 	player_state_t	ps;				// communicated by server to clients
 	int				ping;
 
-	qboolean		ghost;			//TMF7 GHOST MODE
-
 	// private to game
 	client_persistant_t	pers;
 	client_respawn_t	resp;
@@ -1113,5 +1111,12 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+
+//TMF7 BEGIN GHOST MODE
+	qboolean		ghostmode;
+	qboolean		hostmode;
+	qboolean		possesed;
+	edict_t			*host;
+//TMF7 END GHOST MODE
 };
 
