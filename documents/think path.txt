@@ -1,0 +1,77 @@
+<sys_win.c>
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+	Qcommon_Frame (time);
+
+_______________________________________________
+<common.c>
+void Qcommon_Frame (int msec)
+	SV_Frame (msec);
+
+_______________________________________________
+<sv_main.c>
+void SV_Frame (int msec)
+	// let everything in the world think and move
+	SV_RunGameFrame ();
+
+
+void SV_RunGameFrame (void)
+	ge->RunFrame ();
+
+____________________________________________________START HERE_________________
+<g_main.c>
+void G_RunFrame (void)
+	for (i=0 ; i<globals.num_edicts ; i++, ent++)
+	if (i > 0 && i <= maxclients->value)
+		ClientBeginServerFrame (ent);
+	G_RunEntity (ent);
+____________________________________________________
+<p_client.c>
+void ClientBeginServerFrame (edict_t *ent)
+	Think_Weapon (ent);
+	(no calls to any other think functions)
+
+____________________________________________________
+<g_physics.c>
+void G_RunEntity (edict_t *ent)
+	ent->prethink (ent);
+	SV_Physics_Step (ent);
+		SV_RunThink (ent);
+
+qboolean SV_RunThink (edict_t *ent)
+	ent->think (ent);
+
+NOTE: for most monsters (and sometimes the player) WHAT function is pointed to by "think" changes every so often
+
+
+_______________________________________MONSTER BEHAVIOR______________
+<g_local.h>
+typedef struct
+{
+	void	(*aifunc)(edict_t *self, float dist);
+	float	dist;
+	void	(*thinkfunc)(edict_t *self);
+} mframe_t;
+
+
+NOTE: every mframe has an ai func call, a dist(?) and a thinkfunc call
+
+<m_mutant.c>
+mframe_t mutant_frames_jump [] =
+{ ....
+ai_charge,	15,	mutant_jump_takeoff,
+...}
+
+->these frames are called according to:
+mmove_t mutant_move_jump = {FRAME_attack01, FRAME_attack08, mutant_frames_jump, mutant_run};
+
+->which is set according to:
+void mutant_jump (edict_t *self)
+{
+	self->monsterinfo.currentmove = &mutant_move_jump;
+}
+
+->which is set upon spawing in:
+void SP_monster_mutant (edict_t *self)
+	self->monsterinfo.attack = mutant_jump;
+
+THE KEY IS "monsterinfo" function calls

@@ -1585,8 +1585,14 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
-	float length;			//TMF7 GHOST MODE
-	vec3_t dir, vel;		//TMF7 GHOST MODE
+
+//TMF7 BEGIN GHOST MODE
+	float length;	
+	vec3_t vdir, vel;	
+	vec3_t ldir, look;	
+	vec3_t fromPos, toPos, targ;
+	trace_t tr;						
+//TMF7 END GHOST MODE
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1648,29 +1654,58 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		if ( client->ghost ) {
 			//(print out current player movement direction && amount, and "freeze" the player) IMMEDIATLY PRIOR TO THE MOVE
 			//NOTE: setting the velocity = 0 or s = FREEZE doesn't work here
-
+			/*
 			vel[0] = (float)pm.s.velocity[0];
 			vel[1] = (float)pm.s.velocity[1];
 			vel[2] = (float)pm.s.velocity[2];
-			VectorNormalize2( vel, dir );
-			
+
+			VectorNormalize2( vel, vdir );
 			length = VectorLength( vel );
 
 			if ( length ) {
 				//IMPORTANT: velocity is essentially ZERO in all directions if the player is only looking around (no move|jump)
 				//crouch counts as looking around (it only changes the view height, not the ent origin)
 				
-				gi.cprintf (ent, PRINT_HIGH, "direction = %f %f %f\n", dir[0], dir[1], dir[2] );
+				gi.cprintf (ent, PRINT_HIGH, "direction = %f %f %f\n", vdir[0], vdir[1], vdir[2] );
 				gi.cprintf (ent, PRINT_HIGH, "speed = %f\n", length );
 
-				//view properties not set by this point
-				//gi.cprintf (ent, PRINT_HIGH, "viewAngles = %f %f %f\n", pm.viewangles[0], pm.viewangles[1], pm.viewangles[2] );
-				//gi.cprintf (ent, PRINT_HIGH, "viewHeight = %f\n", pm.viewheight );
-
 			}
+			*/
 
-			//ultimately transfer the entire unfrozen pm to the moster
-			//as well as attack stuff
+//TMF7 BEGIN tmfDistanceToPoint VERIFIED
+	// BUG: A (grenade) that hits a barrel, even without the player looking causes a temporary render lockup
+	// but the player still moves through the world, and it eventually resolves fine
+
+			//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
+			AngleVectors( ent->s.angles, look, NULL, NULL );
+			VectorNormalize2( look, ldir );
+
+			gi.cprintf (ent, PRINT_HIGH, "looking = %f %f %f\n", ldir[0], ldir[1], ldir[2] );
+
+			//print the distance to a really long trace's first hit along the view direction from the player origin
+			VectorCopy (ent->s.origin, fromPos);
+			fromPos[2] += ent->viewheight;
+
+			//EQUIVALENT TO:	toPos = fromPos + dir * 4096.0f;		//possible issue with muzzle direction
+			VectorScale( ldir, 4096.0f, ldir );
+			VectorAdd( ldir, fromPos, toPos );
+
+			tr = gi.trace( fromPos, NULL, NULL, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
+			
+			if ( tr.fraction < 1 ) { 
+				VectorSubtract( tr.endpos, fromPos, targ );
+				length = VectorLength( targ );
+
+				gi.cprintf (ent, PRINT_HIGH, "DISTANCE = %f\n", length ); 
+			}
+//TMF7 END tmfDistanceToPoint VERIFIED
+
+			//ultimately transfer the entire unfrozen pm to the moster?
+			//as well as attack stuff?
+
+			//currently freezes player at chase position
+			//need to spawn a second, notarget client to chase the player
+			SetChaseTarget(ent);	//TMF7 THIRD PERSON (get rid of the chase cam stuff at the end of this function)
 		}
 //TMF7 END GHOST MODE
 
@@ -1681,14 +1716,14 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		client->ps.pmove = pm.s;
 		client->old_pmove = pm.s;
 
-		if ( !client->ghost ) {		//TMF7 GHOST MODE (this works to freeze the player, but zeros the velocity overall => no print)
+		//if ( !client->ghost ) {		//TMF7 GHOST MODE (this works to freeze the player, but zeros the velocity overall => no print)
 
 			for (i=0 ; i<3 ; i++)
 			{
 				ent->s.origin[i] = pm.s.origin[i]*0.125;
 				ent->velocity[i] = pm.s.velocity[i]*0.125;
 			}
-		}
+	//	}
 
 		VectorCopy (pm.mins, ent->mins);
 		VectorCopy (pm.maxs, ent->maxs);

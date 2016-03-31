@@ -85,7 +85,7 @@ void UpdateChaseCam(edict_t *ent)
 		goal[2] += 6;
 	}
 
-	if (targ->deadflag)
+	if (targ->deadflag)								//TMF7 if player chases itself, player cant move
 		ent->client->ps.pmove.pm_type = PM_DEAD;
 	else
 		ent->client->ps.pmove.pm_type = PM_FREEZE;
@@ -173,3 +173,11 @@ void GetChaseTarget(edict_t *ent)
 	gi.centerprintf(ent, "No other players to chase.");
 }
 
+//TMF7 BEGIN THIRD PERSON
+void SetChaseTarget(edict_t *ent)
+{
+	ent->client->chase_target = ent;
+	ent->client->update_chase = true;
+	UpdateChaseCam(ent);
+}
+//TMF7 END THIRD PERSON

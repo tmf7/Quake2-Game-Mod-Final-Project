@@ -814,6 +814,7 @@ void UpdateChaseCam(edict_t *ent);
 void ChaseNext(edict_t *ent);
 void ChasePrev(edict_t *ent);
 void GetChaseTarget(edict_t *ent);
+void SetChaseTarget(edict_t *ent);	//TMF7 THIRD PERSON
 
 //============================================================================
 

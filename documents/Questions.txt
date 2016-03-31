@@ -1,0 +1,27 @@
+<g_main.c>
+
+declares:
+void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
+
+only includes:
+"g_local.h"
+
+__________________________________
+<g_local.h>
+
+only includes:
+"q_shared.h"
+"game.h"
+
+->neither includes g_spawn.c/h
+___________________________________
+<g_spawn.c>
+
+defines:
+void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+
+only includes:
+"g_local.h"
+
+
+HOW CAN g_main.c declare and use the defined code for SpawnEntities???
