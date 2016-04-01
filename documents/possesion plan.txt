@@ -29,15 +29,15 @@ add a boolean flag for player in "possession mode"
 add a boolean flag for enemy "possesed" (suppant think commands)
 
 POSSESSION MODE key-binds:
-"host" [ eg 'r' ] -> explode/gib inhabited enemy
+"inhabit" [ eg 'r' ] -> explode/gib inhabited enemy
 "ghost" [ eg 'f' ]   -> leave inhabited enemy (instead of going to player)
 
 GHOST MODE key-binds:
-"host" [ eg 'r' ] -> inhabit the nearest enemy
+"inhabit" [ eg 'r' ] -> inhabit the nearest enemy
 "ghost" [ eg 'f' ]   -> return to player
 
 NORMAL MODE key-binds:
-"host" [ eg 'r' ] -> nothing
+"inhabit" [ eg 'r' ] -> nothing
 "ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls)
 
 _______________________________________
@@ -60,6 +60,15 @@ player_state_t;
 pmove_t;
 
 <p_client.c>
+	if (level.intermissiontime)
+	{
+		client->ps.pmove.pm_type = PM_FREEZE;			//this
+		// can exit intermission after five seconds
+		if (level.time > level.intermissiontime + 5.0 
+			&& (ucmd->buttons & BUTTON_ANY) )		//THIS MOSTLY
+			level.exitintermission = true;
+		return;
+	}
 
 ucmd->buttons
 client->oldbuttons

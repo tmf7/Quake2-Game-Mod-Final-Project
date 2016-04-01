@@ -418,7 +418,9 @@ void M_MoveFrame (edict_t *self)
 
 void monster_think (edict_t *self)
 {
-	M_MoveFrame (self);
+	M_MoveFrame (self);			//TMF7 this resolves the monsterinfo.currentmove aifunc and thinkfunc
+								//which are set according to  g_ai.c's monsterinfo.run (etc) calls
+								//NOTE: a monter's currentmove could easily swap out before completing its mframe set
 	if (self->linkcount != self->monsterinfo.linkcount)
 	{
 		self->monsterinfo.linkcount = self->linkcount;

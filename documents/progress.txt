@@ -1,5 +1,0 @@
-->initialized ghost for <p_client.c> PutClientInServer and <g_monster.c> monster_start
-
-->printed distance from muzzle to world intersection (trace)
-
-->disabled ghost mode if in host mode (change this to different behavior)

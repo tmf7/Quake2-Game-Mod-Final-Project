@@ -471,7 +471,7 @@ qboolean FindTarget (edict_t *self)
 		if (client->flags & FL_NOTARGET)
 			return false;
 	}
-	else if (client->svflags & SVF_MONSTER)
+	else if (client->svflags & SVF_MONSTER)			//TMF7 is this preventing a monter from hunting monsters?
 	{
 		if (!client->enemy)
 			return false;
@@ -495,7 +495,7 @@ qboolean FindTarget (edict_t *self)
 
 // this is where we would check invisibility
 
-		// is client in an spot too dark to be seen?
+		// is client in an spot too dark to be seen?		//TMF7 LIGHT LEVELS and INVISIBILITY
 		if (client->light_level <= 5)
 			return false;
 

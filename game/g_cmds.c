@@ -188,9 +188,19 @@ void Cmd_Give_f (edict_t *ent)
 		if ( !( ent->hostmode ) ) {
 			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
 			ent->ghostmode = !ent->ghostmode;
+		} else if ( ent->hostmode /*ent->host && ent->host->deadflag*/ ){	//doesn't quite work with && ent->host->deadflag I think because the host is freed
+			ent->host->die ( ent->host, NULL, NULL, 0, vec3_origin );
+			gi.centerprintf (ent, "HOST DIED, GHOST MODE ENABLED\n" );
+			ent->hostmode = false;
+			ent->ghostmode = true;	//should it just jump back to the player or remain a disembodied ghost?
 		} else {
-			gi.centerprintf (ent, "HOST MODE, CANNOT GHOST (yet)\n" );	
+			gi.centerprintf (ent, "HOST MODE, CANNOT GHOST (yet)\n" );
 		}
+
+		if ( ent->ghostmode || ent->hostmode ) { ent->flags |= FL_NOTARGET; }
+		else { ent->flags &= ~FL_NOTARGET; }
+		//ent->flags ^= FL_NOTARGET;		//this toggles the value regardless of ent->ghostmode's state
+
 		return;
 	}
 //TMF7 END HACKY NEW KEY BIND

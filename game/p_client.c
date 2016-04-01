@@ -186,16 +186,17 @@ trace_t MuzzleTrace ( edict_t *ent , float *dist) {
 	AngleVectors( ent->s.angles, look, NULL, NULL );
 	VectorNormalize2( look, dir );
 
-	gi.centerprintf( ent, "" );	//clear the screen to only display the current info
-	gi.cprintf (ent, PRINT_HIGH, "looking = %f %f %f\n", dir[0], dir[1], dir[2] );
+	//gi.centerprintf( ent, "" );	//clear the screen to only display the current info
+	//gi.cprintf (ent, PRINT_HIGH, "looking = %f %f %f\n", dir[0], dir[1], dir[2] );
 
 	//print the distance to a really long trace's first hit along the view direction from the player origin
 	VectorCopy (ent->s.origin, fromPos);
 	fromPos[2] += ent->viewheight;
 
 	//EQUIVALENT TO:	toPos = fromPos + dir * 4096.0f;
-	VectorScale( dir, 4096.0f, dir );
-	VectorAdd( dir, fromPos, toPos );
+	VectorMA( fromPos, 4096.0f, dir, toPos );
+	//VectorScale( dir, 4096.0f, dir );
+	//VectorAdd( dir, fromPos, toPos );
 
 	tr = gi.trace( fromPos, NULL, NULL, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
 			
@@ -203,7 +204,7 @@ trace_t MuzzleTrace ( edict_t *ent , float *dist) {
 		VectorSubtract( tr.endpos, fromPos, targ );
 		*dist = VectorLength( targ );
 
-		gi.cprintf (ent, PRINT_HIGH, "DISTANCE = %f\n", *dist ); 
+		//gi.cprintf (ent, PRINT_HIGH, "DISTANCE = %f\n", *dist ); 
 
 	} else if ( dist ) { *dist = 99999; }
 
@@ -1621,8 +1622,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
-	trace_t tr;			//TMF7 GHOST MODE
-	edict_t *tempgoal;	//TMF7 GHOST MODE
+	trace_t tr;					//TMF7 GHOST MODE
+	edict_t *tempgoal;			//TMF7 GHOST MODE
+	float distance;				//TMF7 GHOST MODE
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1683,35 +1685,38 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 //TMF7 BEGIN GHOST MODE 
 		if ( ent->ghostmode ) {
 
-			//see if passing NULL to a float *dist crashes the game (instead of float distance; &distance)
 			//only perform capture traces in ghost mode
-			tr = MuzzleTrace( ent, NULL );
+			tr = MuzzleTrace( ent, &distance );
 
 //TMF7 BEGIN HOST MODE
 			if ( tr.fraction < 1 && tr.ent ) {
 				//items and debris aren't entities..or at least dont have bounding boxes big enough to intersect with my trace
 
 				//grab the clicked-upon monster for manipulation
-				if ( !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) && ( client->latched_buttons & BUTTON_ATTACK ) ) {
+				//IMPORTANT: I'm currently assuming that all "monster_" entities have monsterinfo
+				if ( tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
 
 					//centerprint overrides whatever's printed to the screen
 					//gi.centerprintf (ent, "MONSTER = %s\n", tr.ent->classname ); 
-					gi.cprintf (ent, PRINT_HIGH, "MONSTER = %s\n", tr.ent->classname );
-					ent->host = tr.ent;
-					ent->host->possesed = true;
+					//gi.cprintf (ent, PRINT_HIGH, "MONSTER = %s\n", tr.ent->classname );
 
-					//transferring to host mode protocols
-					ent->ghostmode = false;
-					ent->hostmode = true;
+					if ( client->latched_buttons & BUTTON_ATTACK ) {//works
+						ent->host = tr.ent;
+						ent->host->possesed = true;
 
-					//prevent (all) enemies from targeting the player
-					//ent->flags |= FL_NOTARGET;
+						//transferring to host mode protocols
+						ent->ghostmode = false;
+						ent->hostmode = true;
+
+						gi.centerprintf (ent, "HOST = %s\n", ent->host->classname );
+					}
 				}
 //TMF7 END HOST MODE
 			}
 
 			//currently freezes player at chase position
-			//need to spawn a second, notarget client to chase the player
+			//need to spawn a second, notarget client to chase the player? or a dummy entity of some kind?
+			//also note that chase cams don't allow freelook
 			//SetChaseTarget(ent);	//TMF7 THIRD PERSON (get rid of the chase cam stuff at the end of this function???)
 		}
 
@@ -1721,29 +1726,57 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 			if ( client->latched_buttons & BUTTON_ATTACK ) {
 
 				//only perform position traces in host mode
-				tr = MuzzleTrace( ent, NULL );
+				tr = MuzzleTrace( ent, &distance );
 
 				//set the movement goal, and enemy, based on the muzzle trace
 				if ( tr.fraction < 1 ) { 
 
-					ent->host->monsterinfo.aiflags |= AI_COMBAT_POINT;
+					if ( tr.ent && tr.ent->classname )  { gi.centerprintf (ent, "ENTITY = %s", tr.ent->classname ); }
 
-					if ( tr.ent ) {
-						ent->host->goalentity = tr.ent;
-						ent->host->enemy = tr.ent; 
+					if ( tr.ent && (tr.ent != ent->host ) && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 )) {
+						ent->host->goalentity = ent->host->enemy = tr.ent;
+						//self->combattarget
+						//self->goalentity = self->movetarget = G_PickTarget(self->target);
 
 					} else {
-						tempgoal = G_Spawn();
-						ent->host->goalentity = tempgoal;
 
-						VectorCopy (tr.endpos, ent->host->goalentity->s.origin);
-					}
+						gi.centerprintf (ent, "ATTACK THE DARKNESS %s!", vtos( tr.endpos ) ); 
+						
+						//if its not a monster, just copy the trace endpos
+						//POSSIBLE SOURCE OF CRASHES
+						//free up any prior goal point
+						//if ( tempgoal ) { G_FreeEdict( tempgoal ); }
+								
+						//trail[n] = G_Spawn();
+						//trail[n]->classname = "player_trail";
+
+						//ensure host just stands still when the goal is reached
+						//ent->host->enemy = NULL;
+						//ent->host->movetarget = NULL;
+
+						//4/1/2016 3:50am: attacks enemies, but wanders like a SOB, doesn't obey world points, 
+							//muzzlerange too low, occasional dead_host issue (but host doesn't die weirdly...maybe in middle of attack?)
+
+						//why the hell do they still attack me if im FL_NOTARGET (if they've seen be before...playertrail?)
+						tempgoal = G_Spawn();		//MUST BE FREED or the game will eventually shutdown when out of free Edict space
+						tempgoal->classname = "point_combat";
+						ent->host->goalentity = tempgoal;
+						VectorCopy( tr.endpos, ent->host->goalentity->s.origin );
+
+						//VectorCopy( tr.endpos, ent->host->goalentity->s.origin );
+						//VectorCopy( tr.endpos, ent->host->enemy->s.origin );
+						//VectorCopy( tr.endpos, ent->host->movetarget->s.origin );
+						//SP_point_combat ( ent->host );		//currently out of scope
+						//ent->host->monsterinfo.aiflags |= AI_COMBAT_POINT;
+					}  
 
 					//still have to disable the monster's executive action when possesed
-					if ( ent->host->monsterinfo.run ) { ent->host->monsterinfo.run( ent->host ); }
-
-					//don't overburden memory with a bunch of temp entities
-					if ( tempgoal ) { G_FreeEdict( tempgoal ); }
+					//IMPORTANT NOTE: the mframes set the aifunc and the thinkfunc BUT what resolves them...the monster_think
+					//only call this once per player click
+					if ( ent->host->monsterinfo.run ) { //works if a monster is the target
+						ent->host->monsterinfo.aiflags &= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+						ent->host->monsterinfo.run( ent->host ); 
+					} 
 				}
 
 				//perform monsterinfo.func calls based on muzzle clicks
@@ -1753,9 +1786,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 				//return;
 
 				//if player isn't providing input, and the host has reached its previous goal
-			} else if ( !(ent->host->monsterinfo.aiflags & AI_COMBAT_POINT) && ent->host->monsterinfo.stand ) { 
-				ent->host->monsterinfo.stand( ent->host );
-			}
+			} //else if ( 1 && ent->host->monsterinfo.idle ) { ent->host->monsterinfo.idle( ent->host ); }
+
 		}
 
 //TMF7 END GHOST MODE
@@ -1836,7 +1868,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	ent->light_level = ucmd->lightlevel;
 
 	// fire weapon from final position if needed
-	if (client->latched_buttons & BUTTON_ATTACK)			//TMF7 GHOST MODE
+	if (client->latched_buttons & BUTTON_ATTACK && !( ent->hostmode || ent->ghostmode ) )		//TMF7 GHOST MODE? 2of2
 	{
 		if (client->resp.spectator) {
 
@@ -1902,7 +1934,7 @@ void ClientBeginServerFrame (edict_t *ent)
 	}
 
 	// run weapon animations if it hasn't been done by a ucmd_t
-	if (!client->weapon_thunk && !client->resp.spectator)
+	if (!client->weapon_thunk && !client->resp.spectator && !( ent->hostmode || ent->ghostmode ) )	//TMF7 GHOST MODE? 1of2
 		Think_Weapon (ent);
 	else
 		client->weapon_thunk = false;
