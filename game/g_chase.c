@@ -28,9 +28,26 @@ void UpdateChaseCam(edict_t *ent)
 	int i;
 	vec3_t oldgoal;
 	vec3_t angles;
-	/* TMF7 FIXME: this if-statement checks if the target CLIENT is a spectator
+
 	// is our chase target gone?
-	if (!ent->client->chase_target->inuse
+//TMF7 BEGIN GHOST MODE
+	if ( ent->hostmode || ent->ghostmode ) {
+
+		if ( !ent->host ) {
+
+			gi.cprintf( ent, PRINT_HIGH, "HOST LOST, STOPPING CHASE CAM\n" );
+		
+			ent->client->chase_target = NULL;
+			ent->movetype = MOVETYPE_WALK;
+			ent->viewheight = 22;
+			ent->client->ps.pmove.pm_type = PM_NORMAL;	
+			ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+			gi.linkentity( ent );
+			return;
+		}
+	}
+//TMF7 END GHOST MODE
+	else if (!ent->client->chase_target->inuse
 		|| ent->client->chase_target->client->resp.spectator) {
 		edict_t *old = ent->client->chase_target;
 		ChaseNext(ent);
@@ -40,7 +57,7 @@ void UpdateChaseCam(edict_t *ent)
 			return;
 		}
 	}
-	*/
+
 	targ = ent->client->chase_target;
 
 	VectorCopy(targ->s.origin, ownerv);
@@ -48,17 +65,22 @@ void UpdateChaseCam(edict_t *ent)
 
 	ownerv[2] += targ->viewheight;
 
-//TMF7 BEGIN GHOST MODE
-	//cannot posses non-monsters, get the "v_angle" of a monster from its travel direction
-	if ( targ->possesed ) { VectorCopy( targ->s.angles, angles ); } //targ->moveinfo.start_angles;
-//TMF7 END GHOST MODE
-	else { VectorCopy(targ->client->v_angle, angles); }			//TMF7 where the target CLIENT is looking (NOT MONSTERS!!!)*****
+	//cannot posses non-monsters
+	if ( targ->possesed ) { VectorCopy( targ->s.angles, angles ); }	//TMF7 GHOST MODE
+	else { VectorCopy(targ->client->v_angle, angles); }			//TMF7 where the target CLIENT is looking
 
 	if (angles[PITCH] > 56)
 		angles[PITCH] = 56;
 	AngleVectors (angles, forward, right, NULL);
 	VectorNormalize(forward);
-	VectorMA(ownerv, -30, forward, o);
+
+//TMF7 BEGIN GHOST MODE
+	if ( targ->possesed ) { 
+		VectorMA(ownerv, -60, forward, o); 
+		o[2] += 16;
+	}
+//TMF7 END GHOST MODE
+	else { VectorMA(ownerv, -30, forward, o); }
 
 	if (o[2] < targ->s.origin[2] + 20)
 		o[2] = targ->s.origin[2] + 20;
@@ -90,37 +112,26 @@ void UpdateChaseCam(edict_t *ent)
 		goal[2] += 6;
 	}
 
-	if (targ->deadflag)								
+	if ( targ->possesed ) { ent->client->ps.pmove.pm_type = PM_SPECTATOR; } //TMF7  GHOST MODE
+	else if (targ->deadflag)								
 		ent->client->ps.pmove.pm_type = PM_DEAD;
 	else
 		ent->client->ps.pmove.pm_type = PM_FREEZE;	//TMF7 if player chases itself, player cant move
 
 	VectorCopy(goal, ent->s.origin);				//TMF7 this sets where the player is relative to the target
 
-	for (i=0 ; i<3 ; i++) {							//TMF7 player movement direction, reative to the target CLIENT!!!
-//TMF7 BEGIN GHOST MODE
-		if ( targ->possesed ) { 
-			ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(targ->s.angles[i] - ent->client->resp.cmd_angles[i]); 
-		}
-//TMF7 END GHOST MODE	
-		else { ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(targ->client->v_angle[i] - ent->client->resp.cmd_angles[i]); }
+	if ( !targ->possesed ) {						//TMF7 GHOST MODE
+		for (i=0 ; i<3 ; i++)						//TMF7 player movement direction, reative to the target CLIENT
+			 ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(targ->client->v_angle[i] - ent->client->resp.cmd_angles[i]);
 	}
 
-	if (targ->deadflag) {	//TMF7 possibly change this to && !targ->possesed
+	if (targ->deadflag) {
 		ent->client->ps.viewangles[ROLL] = 40;
 		ent->client->ps.viewangles[PITCH] = -15;
 		ent->client->ps.viewangles[YAW] = targ->client->killer_yaw;
-	} else {
-//TMF7 BEGIN GHOST MODE
-		if ( targ->possesed ) { 
-			VectorCopy(targ->s.angles, ent->client->ps.viewangles);
-			VectorCopy(targ->s.angles, ent->client->v_angle);
-		}
-//TMF7 END GHOST MODE
-		else {
-			VectorCopy(targ->client->v_angle, ent->client->ps.viewangles);	//TMF7 where the player looks, relative to the target CLIENT!!!
+	} else if ( !targ->possesed ) {											//TMF7 GHOST MODE
+			VectorCopy(targ->client->v_angle, ent->client->ps.viewangles);	//TMF7 where the player looks, relative to the target CLIENT
 			VectorCopy(targ->client->v_angle, ent->client->v_angle);
-		}
 	}
 
 	ent->viewheight = 0;
@@ -196,17 +207,10 @@ void GetChaseTarget(edict_t *ent)
 //TMF7 BEGIN THIRD PERSON
 void SetChaseTarget( edict_t *self, edict_t *host )
 {
-	if ( !host ) {
-		self->client->chase_target = NULL;
-		self->movetype = MOVETYPE_WALK;
-		self->viewheight = 22;
-		self->client->ps.pmove.pm_type = PM_NORMAL;			//may have to reset to the original ghost position??
-		//self->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-		gi.linkentity( self );
-		return;
-	}
+	if ( !host ) { return; }
+
 	self->client->chase_target = host;
-	self->client->update_chase = true;
+	self->client->update_chase = true;		//only checked in ctf project
 	UpdateChaseCam( self );
 }
 //TMF7 END THIRD PERSON

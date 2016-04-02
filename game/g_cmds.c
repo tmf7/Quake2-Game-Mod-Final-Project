@@ -188,20 +188,16 @@ void Cmd_Give_f (edict_t *ent)
 		if ( !( ent->hostmode ) ) {
 			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
 			ent->ghostmode = !ent->ghostmode;
-		} else if ( ent->hostmode /*ent->host && ent->host->deadflag*/ ){	//doesn't quite work with && ent->host->deadflag I think because the host is freed
-			//if your not gibbed or health < 0 your still alive....hence the reason the grenade glitch can ressurect a recently dieded enemy
-			ent->host->health = -90;		//ensures a gib, I think...
+		} else if ( ent->hostmode ) {
+			//if your not gibbed or health < 0 youre still alive..
+			//..hence the reason the grenade glitch can ressurect a recently dieded enemy
+			ent->host->health = -90;		//ensures a gib
 			ent->host->die ( ent->host, NULL, NULL, 100, vec3_origin );
-			gi.centerprintf (ent, "HOST DIED, GHOST MODE ENABLED\n" );
+			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
+			ent->host = NULL;
 			ent->hostmode = false;
-			ent->ghostmode = true;	//should it just jump back to the player or remain a disembodied ghost?
-		} else {
-			gi.centerprintf (ent, "HOST MODE, CANNOT GHOST (yet)\n" );
-		}
-
-		if ( ent->ghostmode || ent->hostmode ) { ent->flags |= FL_NOTARGET; }
-		else { ent->flags &= ~FL_NOTARGET; }
-		//ent->flags ^= FL_NOTARGET;		//this toggles the value regardless of ent->ghostmode's state
+			ent->ghostmode = true;
+		} 
 
 		return;
 	}

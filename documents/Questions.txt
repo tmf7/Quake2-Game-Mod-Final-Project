@@ -28,5 +28,3 @@ HOW CAN g_main.c declare and use the defined code for SpawnEntities???
 __________________________________________
 BUG:
 ->after making the blaster fire grenades -> the players grenades work just fine, but enemy blaster-grenades GIVE health????
-
-->double check muzzle trace to ensure its actually following the muzzle direction and not just the horizontal in front of the player
