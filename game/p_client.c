@@ -183,7 +183,8 @@ trace_t MuzzleTrace ( edict_t *ent , float *dist) {
 	vec3_t fromPos, toPos, targ;
 
 	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
-	AngleVectors( ent->s.angles, look, NULL, NULL );
+	//AngleVectors( ent->s.angles, look, NULL, NULL );
+	AngleVectors( ent->client->v_angle, look, NULL, NULL );
 	VectorNormalize2( look, dir );
 
 	//gi.centerprintf( ent, "" );	//clear the screen to only display the current info
@@ -198,7 +199,7 @@ trace_t MuzzleTrace ( edict_t *ent , float *dist) {
 	//VectorScale( dir, 4096.0f, dir );
 	//VectorAdd( dir, fromPos, toPos );
 
-	tr = gi.trace( fromPos, NULL, NULL, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
+	tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
 			
 	if ( tr.fraction < 1 && dist ) { 
 		VectorSubtract( tr.endpos, fromPos, targ );
@@ -1216,8 +1217,11 @@ void PutClientInServer (edict_t *ent)
 	ent->flags &= ~FL_NO_KNOCKBACK;
 	ent->svflags &= ~SVF_DEADMONSTER;
 
-	ent->ghostmode = false;					//TMF7 GHOST MODE
-	ent->hostmode = false;					//TMF7 GHOST MODE
+//TMF7 BEGIN GHOST MODE (unsaved)
+	ent->ghostmode = false;	
+	ent->hostmode = false;
+	ent->possesed = false;
+//TMF7 END GHOST MODE (unsaved)
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1623,7 +1627,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	int		i, j;
 	pmove_t	pm;
 	trace_t tr;					//TMF7 GHOST MODE
-	edict_t *tempgoal;			//TMF7 GHOST MODE
 	float distance;				//TMF7 GHOST MODE
 
 	level.current_entity = ent;
@@ -1641,7 +1644,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 	pm_passent = ent;
 
-	if (ent->client->chase_target) {
+	if (ent->client->chase_target) {			//TMF7 chasecam stuff too
 
 		client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
 		client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
@@ -1688,19 +1691,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 			//only perform capture traces in ghost mode
 			tr = MuzzleTrace( ent, &distance );
 
-//TMF7 BEGIN HOST MODE
-			if ( tr.fraction < 1 && tr.ent ) {
-				//items and debris aren't entities..or at least dont have bounding boxes big enough to intersect with my trace
+			if ( tr.fraction < 1.0f && tr.ent ) {
 
 				//grab the clicked-upon monster for manipulation
-				//IMPORTANT: I'm currently assuming that all "monster_" entities have monsterinfo
 				if ( tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
 
-					//centerprint overrides whatever's printed to the screen
-					//gi.centerprintf (ent, "MONSTER = %s\n", tr.ent->classname ); 
-					//gi.cprintf (ent, PRINT_HIGH, "MONSTER = %s\n", tr.ent->classname );
-
-					if ( client->latched_buttons & BUTTON_ATTACK ) {//works
+					if ( client->latched_buttons & BUTTON_ATTACK ) {//works...ENSURE MONSTER ISN'T IN DEATH THROWS (it ressurects them)
 						ent->host = tr.ent;
 						ent->host->possesed = true;
 
@@ -1709,18 +1705,17 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 						ent->hostmode = true;
 
 						gi.centerprintf (ent, "HOST = %s\n", ent->host->classname );
+
+						//need to spawn a second, notarget client to chase the player? or a dummy entity of some kind?
+						//TMF7 THIRD PERSON 
+						//NOTE: chasecam at the end of ClientThink handles THIS as a spectator | someone else following THIS
+						SetChaseTarget( ent, ent->host );
 					}
 				}
-//TMF7 END HOST MODE
 			}
-
-			//currently freezes player at chase position
-			//need to spawn a second, notarget client to chase the player? or a dummy entity of some kind?
-			//also note that chase cams don't allow freelook
-			//SetChaseTarget(ent);	//TMF7 THIRD PERSON (get rid of the chase cam stuff at the end of this function???)
 		}
 
-		//latched_buttons arent necessarily set by this point in clientThink
+		//remove this whole section and replace with a new monster_think override (save the current monster_think, and nextthink?)
 		if ( ent->hostmode && ent->host ) {
 
 			if ( client->latched_buttons & BUTTON_ATTACK ) {
@@ -1729,49 +1724,34 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 				tr = MuzzleTrace( ent, &distance );
 
 				//set the movement goal, and enemy, based on the muzzle trace
-				if ( tr.fraction < 1 ) { 
+				if ( tr.fraction < 1.0f ) { 
 
 					if ( tr.ent && tr.ent->classname )  { gi.centerprintf (ent, "ENTITY = %s", tr.ent->classname ); }
 
 					if ( tr.ent && (tr.ent != ent->host ) && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 )) {
 						ent->host->goalentity = ent->host->enemy = tr.ent;
-						//self->combattarget
-						//self->goalentity = self->movetarget = G_PickTarget(self->target);
 
 					} else {
 
 						gi.centerprintf (ent, "ATTACK THE DARKNESS %s!", vtos( tr.endpos ) ); 
-						
-						//if its not a monster, just copy the trace endpos
-						//POSSIBLE SOURCE OF CRASHES
-						//free up any prior goal point
-						//if ( tempgoal ) { G_FreeEdict( tempgoal ); }
-								
-						//trail[n] = G_Spawn();
-						//trail[n]->classname = "player_trail";
 
 						//ensure host just stands still when the goal is reached
 						//ent->host->enemy = NULL;
 						//ent->host->movetarget = NULL;
+					} 
 
-						//4/1/2016 3:50am: attacks enemies, but wanders like a SOB, doesn't obey world points, 
-							//muzzlerange too low, occasional dead_host issue (but host doesn't die weirdly...maybe in middle of attack?)
+					gi.cprintf (ent, PRINT_HIGH, "HOST INUSE = %s\n", ent->host->inuse ? "TRUE" : "FALSE" );
+					//gi.cprintf (ent, PRINT_HIGH, "HOST DIR = %s\n", vtos( ent->host->s.angles ) );
 
-						//why the hell do they still attack me if im FL_NOTARGET (if they've seen be before...playertrail?)
-						tempgoal = G_Spawn();		//MUST BE FREED or the game will eventually shutdown when out of free Edict space
-						tempgoal->classname = "point_combat";
-						ent->host->goalentity = tempgoal;
-						VectorCopy( tr.endpos, ent->host->goalentity->s.origin );
+					//goalentity = player_noise -> monster_soldier_light -> path_corner
+					//movetarget = path_corner always
+					//enemy = player_noise -> monster_solder_light -> husk
+					//if targeting any entity the movetarget is husk
 
-						//VectorCopy( tr.endpos, ent->host->goalentity->s.origin );
-						//VectorCopy( tr.endpos, ent->host->enemy->s.origin );
-						//VectorCopy( tr.endpos, ent->host->movetarget->s.origin );
-						//SP_point_combat ( ent->host );		//currently out of scope
-						//ent->host->monsterinfo.aiflags |= AI_COMBAT_POINT;
-					}  
+					//also find where the player's bullet explosion is a fakeplayer
 
 					//still have to disable the monster's executive action when possesed
-					//IMPORTANT NOTE: the mframes set the aifunc and the thinkfunc BUT what resolves them...the monster_think
+					//IMPORTANT NOTE: the mframes set the aifunc and the thinkfunc BUT  monster_think resolves them
 					//only call this once per player click
 					if ( ent->host->monsterinfo.run ) { //works if a monster is the target
 						ent->host->monsterinfo.aiflags &= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
@@ -1779,16 +1759,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 					} 
 				}
 
-				//perform monsterinfo.func calls based on muzzle clicks
-				//disable monsterinfo.func calls in g_ai.c if possesed
-
-				//eventually return here, after setting the chase cam on the monster
+				//eventually return here, after setting the chase cam on the monster?
 				//return;
 
 				//if player isn't providing input, and the host has reached its previous goal
 			} //else if ( 1 && ent->host->monsterinfo.idle ) { ent->host->monsterinfo.idle( ent->host ); }
 
-		}
+		} else { SetChaseTarget ( ent, NULL ); }
 
 //TMF7 END GHOST MODE
 
@@ -1902,7 +1879,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	// update chase cam if being followed
 	for (i = 1; i <= maxclients->value; i++) {
 		other = g_edicts + i;
-		if (other->inuse && other->client->chase_target == ent)
+		if (other->inuse && other->client->chase_target == ent)		//TMF7 if the other entity/client(?) is being chased by this player...
 			UpdateChaseCam(other);
 	}
 }

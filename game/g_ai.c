@@ -1043,7 +1043,7 @@ void ai_run (edict_t *self, float dist)
 		dist = d1;
 	}
 
-	VectorCopy (self->monsterinfo.last_sighting, self->goalentity->s.origin);
+	VectorCopy (self->monsterinfo.last_sighting, self->goalentity->s.origin);		//TMF7 tempgoal
 
 	if (new)
 	{
