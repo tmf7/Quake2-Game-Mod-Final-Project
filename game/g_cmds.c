@@ -181,29 +181,6 @@ void Cmd_Give_f (edict_t *ent)
 			return;
 	}
 
-//TMF7 BEGIN HACKY NEW KEY BIND
-	// 'f' is bound to ghost mode toggle
-	if ( Q_stricmp(gi.argv(1), "ghostmode") == 0 )
-	{
-		if ( !( ent->hostmode ) ) {
-			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
-			ent->ghostmode = !ent->ghostmode;
-		} else if ( ent->hostmode ) {
-			//if your not gibbed or health < 0 youre still alive..
-			//..hence the reason the grenade glitch can ressurect a recently dieded enemy
-			ent->host->health = -90;		//ensures a gib
-			ent->host->die ( ent->host, NULL, NULL, 100, vec3_origin );
-			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
-			ent->host = NULL;
-			ent->hostmode = false;
-			ent->ghostmode = true;
-		} 
-
-		return;
-	}
-//TMF7 END HACKY NEW KEY BIND
-
-
 	if (give_all || Q_stricmp(name, "weapons") == 0)
 	{
 		for (i=0 ; i<game.num_items ; i++)
@@ -962,6 +939,29 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
+//TMF7 BEGIN NEW KEY BIND
+	// 'f' is bound to ghost mode toggle
+	if ( Q_stricmp(cmd, "ghostmode") == 0 )
+	{
+		if ( !( ent->hostmode ) ) {
+			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
+			ent->ghostmode = !ent->ghostmode;
+		} else if ( ent->hostmode ) {
+			//if your not gibbed or health < 0 youre still alive..
+			//..hence the reason the grenade glitch can ressurect a recently dieded enemy
+			ent->host->health = -100;		//ensures a gib
+			ent->host->die ( ent->host, NULL, NULL, 100, vec3_origin );
+			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
+			ent->host = NULL;
+
+			ent->hostmode = false;
+			ent->ghostmode = true;
+		} 
+
+		return;
+	}
+//TMF7 END NEW KEY BIND
+
 
 	if (level.intermissiontime)
 		return;

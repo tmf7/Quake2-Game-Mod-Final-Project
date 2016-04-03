@@ -961,6 +961,8 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+
+	edict_t		*host_target;		//TMF7 GHOST MODE ( the intented goal of a possesed host )
 };
 
 
@@ -1117,6 +1119,7 @@ struct edict_s
 	qboolean		hostmode;
 	qboolean		possesed;
 	edict_t			*host;
+	void		(*possesed_think)(edict_t *host, usercmd_t *cmd, const int * const buttons);
 //TMF7 END GHOST MODE
 };
 

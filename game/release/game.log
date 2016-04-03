@@ -1,14 +1,85 @@
-﻿Build started 4/2/2016 3:33:38 AM.
+﻿Build started 4/3/2016 6:38:07 AM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt p_client.c
+         p_client.c
+     1>p_client.c(48): warning C4127: conditional expression is constant
+     1>p_client.c(72): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'damage' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'kick' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'other' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(259): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(549): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(894): warning C4127: conditional expression is constant
+     1>p_client.c(979): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(979): warning C4100: 'attacker' : unreferenced formal parameter
+     1>p_client.c(979): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(1433): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1438): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>p_client.c(1478): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>p_client.c(1627): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1627): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1627): warning C4100: 'self' : unreferenced formal parameter
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(game) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"..\release\gamex86.dll" /INCREMENTAL:NO /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\game.def" /MANIFEST /ManifestFile:".\release\game.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Project\release\game.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /BASE:"0x20000000" /DYNAMICBASE /NXCOMPAT /IMPLIB:".\..\release\gamex86.lib" /MACHINE:X86 /DLL .\release\g_ai.obj
+         .\release\g_chase.obj
+         .\release\g_cmds.obj
+         .\release\g_combat.obj
+         .\release\g_func.obj
+         .\release\g_items.obj
+         .\release\g_main.obj
+         .\release\g_misc.obj
+         .\release\g_monster.obj
+         .\release\g_phys.obj
+         .\release\g_save.obj
+         .\release\g_spawn.obj
+         .\release\g_svcmds.obj
+         .\release\g_target.obj
+         .\release\g_trigger.obj
+         .\release\g_turret.obj
+         .\release\g_utils.obj
+         .\release\g_weapon.obj
+         .\release\m_actor.obj
+         .\release\m_berserk.obj
+         .\release\m_boss2.obj
+         .\release\m_boss3.obj
+         .\release\m_boss31.obj
+         .\release\m_boss32.obj
+         .\release\m_brain.obj
+         .\release\m_chick.obj
+         .\release\m_flash.obj
+         .\release\m_flipper.obj
+         .\release\m_float.obj
+         .\release\m_flyer.obj
+         .\release\m_gladiator.obj
+         .\release\m_gunner.obj
+         .\release\m_hover.obj
+         .\release\m_infantry.obj
+         .\release\m_insane.obj
+         .\release\m_medic.obj
+         .\release\m_move.obj
+         .\release\m_mutant.obj
+         .\release\m_parasite.obj
+         .\release\m_soldier.obj
+         .\release\m_supertank.obj
+         .\release\m_tank.obj
+         .\release\p_client.obj
+         .\release\p_hud.obj
+         .\release\p_trail.obj
+         .\release\p_view.obj
+         .\release\p_weapon.obj
+         .\release\q_shared.obj
+            Creating library .\..\release\gamex86.lib and object .\..\release\gamex86.exp
          game.vcxproj -> C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll
+       Manifest:
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"..\release\gamex86.dll;#2" /manifest .\release\game.dll.intermediate.manifest
        FinalizeBuildStatus:
          Deleting file ".\release\game.unsuccessfulbuild".
          Touching ".\release\game.lastbuildstate".
@@ -16,4 +87,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.06
+Time Elapsed 00:00:00.44

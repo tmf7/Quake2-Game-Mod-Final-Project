@@ -418,9 +418,18 @@ void M_MoveFrame (edict_t *self)
 
 void monster_think (edict_t *self)
 {
+//TMF7 BEGIN GHOST MODE
+	// delay normal think resolution while possesed
+//	if ( self->possesed ) {
+//		self->nextthink = level.time + FRAMETIME;
+//		return; 
+//	}
+//TMF7 END GHOST MODE
+
 	M_MoveFrame (self);			//TMF7 this resolves the monsterinfo.currentmove aifunc and thinkfunc
 								//which are set according to  g_ai.c's monsterinfo.run (etc) calls
 								//NOTE: a monter's currentmove could easily swap out before completing its mframe set
+
 	if (self->linkcount != self->monsterinfo.linkcount)
 	{
 		self->monsterinfo.linkcount = self->linkcount;
@@ -431,6 +440,178 @@ void monster_think (edict_t *self)
 	M_SetEffects (self);
 }
 
+//TMF7 BEGIN GHOST MODE
+void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const buttons)
+{ 
+	//TMF7 START HERE 4/2/2016:
+	/*
+	.Dont use M_MoveFrame anymore
+	.use everything else
+	.Don't use MoveToGoal ever (the bumping around, yeesh)
+
+	.ensure the normal monster_think is never resolved while possesed
+
+	.Dont bother with nextthink, just call monster_think_possesed (after ent->host->possesed_think = monster_think_possesed)
+		EVERY ClientThink, and pass in the pm
+
+	.set PM_NORMAL instead of PM_SPECTATOR (in chasecam)
+
+	.utilize the functions in <m_move.c>...maybe not
+
+	.chasecam sets the player's looking/facing/moving to the monsters, by default
+		=> use the mpm & cmd to determine where the MONSTER will look/face/move ONLY
+		=> may need tweaking due to the player offset behind the host****************************
+
+	IMPORTANT host->s.frame must be set according to whatever action is being taken for proper animation
+			typically first/last/next by the individual monsters, AND incremented by M_MoveFrame(ent);
+	SOLUTION(?) set the current move, grab the first/last frames (eg self->monsterinfo.currentmove = &mutant_move_stand; )
+			=>somehow parse the monster's name into a function pointer eg &*_move_stand
+			=>still doesn't fix the nextFrame issue (eg when exactly the mutant lands, whats it look like)
+
+	even with the bauldur'g gate movements via aifunc (which sets the current move etc) it still doesn't force ATTACK/TYPE or jump
+	--> create a point based on the mpm & cmd then call an aifunc accordingly? (minus the latchedbuttons)
+	--> clear the aiflags and set them to what I need
+	--> force a particular attack...how? stop and attack...how?
+
+	force the monster to look (s.angles) where the player looks/turns...have to relink both of us
+
+	set the <g_monster.c> weapon_fire function to call based on the monster type...and possibly weapon selection (on hud?)
+		for starters just make them all fire the same weapon
+	*/
+
+///////////////how a player uses the pm info///////////////////////
+	/*
+	edict_t	*other;				//may include lasers, water?, buttons, other monsters, triggers, ***level swaps***
+	int		i, j;
+	pmove_t	mpm;
+
+	level.current_entity = host;
+
+	pm_passent = host;			//global? originally declared in <p_client.c>
+
+	// set up for pmove (prevent overload crash)
+	memset (&mpm, 0, sizeof(mpm));
+
+	client->ps.pmove.pm_type = PM_NORMAL;			//set the host
+
+	client->ps.pmove.gravity = sv_gravity->value;	//set the host
+	mpm.s = client->ps.pmove;						//set the host
+
+	for (i=0 ; i<3 ; i++)	//hosts originally always have zero velocity (only their origin changes)
+	{
+		mpm.s.origin[i] = host->s.origin[i]*8;
+		mpm.s.velocity[i] = host->velocity[i]*8;
+	}
+
+	if (memcmp(&client->old_pmove, &mpm.s, sizeof(mpm.s)))		//set the host
+	{
+		mpm.snapinitial = true;
+//		gi.dprintf ("pmove changed!\n");
+	}
+
+	mpm.cmd = *cmd;
+
+	mpm.trace = PM_trace;	// adds default parms			//declare this in <g_monster.c>???
+	mpm.pointcontents = gi.pointcontents;
+
+	// perform a pmove
+	gi.Pmove (&mpm);	
+
+	// save results of pmove					//put this in edict_t????
+	client->ps.pmove = pm.s;
+	client->old_pmove = pm.s;
+
+	for (i=0 ; i<3 ; i++)
+	{
+		host->s.origin[i] = mpm.s.origin[i]*0.125;
+		host->velocity[i] = mpm.s.velocity[i]*0.125;
+	}
+
+	VectorCopy (mpm.mins, host->mins);
+	VectorCopy (mpm.maxs, host->maxs);
+
+	client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);		//set the host???
+	client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);		//set the host???
+	client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);		//set the host???
+
+	if (host->groundentity && !mpm.groundentity && (mpm.cmd.upmove >= 10) && (mpm.waterlevel == 0))
+	{
+		gi.sound(host, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);	//make a different noise?
+		PlayerNoise(host, host->s.origin, PNOISE_SELF);				//declare this in <g_monster.c>???
+	}
+
+	host->viewheight = mpm.viewheight;
+	host->waterlevel = mpm.waterlevel;
+	host->watertype = mpm.watertype;
+	host->groundentity = mpm.groundentity;
+	if (mpm.groundentity)
+		host->groundentity_linkcount = mpm.groundentity->linkcount;
+
+	VectorCopy (mpm.viewangles, client->v_angle);				//set the host
+	VectorCopy (mpm.viewangles, client->ps.viewangles);			//set the host
+
+	gi.linkentity (host);
+
+	if (host->movetype != MOVETYPE_NOCLIP)		//trigger events, finding secrets, jump scares, etc
+		G_TouchTriggers (host);
+
+	// touch other objects => allows activation of other monsters and buttons (ending of levels)
+	for (i=0 ; i<mpm.numtouch ; i++)
+	{
+		other = mpm.touchents[i];
+		for (j=0 ; j<i ; j++)
+			if (mpm.touchents[j] == other)
+				break;
+		if (j != i)
+			continue;	// duplicated
+		if (!other->touch)
+			continue;
+		other->touch (other, host, NULL, NULL);
+	}
+	///////////////////
+
+	// save light level the player is standing on for
+	// monster sighting AI
+	host->light_level = mpm->cmd.lightlevel;
+
+	// fire weapon from final position if needed
+	if (buttons & BUTTON_ATTACK )		//ugh???
+	{
+		if (!client->weapon_thunk) {
+			client->weapon_thunk = true;
+			ent->client->pers.weapon->weaponthink (ent);
+		}
+	}
+
+
+
+	///////////////NOW DECIDE WHICH OF THESE TO DO///////////////
+	void		(*stand)(edict_t *self);
+	void		(*idle)(edict_t *self);
+	void		(*search)(edict_t *self);
+	void		(*walk)(edict_t *self);
+	void		(*run)(edict_t *self);
+	void		(*dodge)(edict_t *self, edict_t *other, float eta);
+	void		(*attack)(edict_t *self);
+	void		(*melee)(edict_t *self);
+	void		(*sight)(edict_t *self, edict_t *other);
+	qboolean	(*checkattack)(edict_t *self);				//maybe not this if forcing a particular attack
+
+	*/
+/////////////////////////////////////
+
+
+	if (host->linkcount != host->monsterinfo.linkcount)
+	{
+		host->monsterinfo.linkcount = host->linkcount;
+		M_CheckGround (host);
+	}
+	M_CatagorizePosition (host);
+	M_WorldEffects (host);
+	M_SetEffects (host);
+}
+
+//TMF7 END GHOST MODE
 
 /*
 ================
