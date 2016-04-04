@@ -22,10 +22,6 @@ building the quake2 project produces the .exe
 building the game project produces the .dll\
 BOTH go the the "release" folder in the top project directory
 
-a mod directory needs more then the .dll past a certain level ...or did my game just randomly corrupt at the 5th level?
-		->the error says that "function pointers have moved"
-
-
 __________________________________________________________________________
 
 The 5th item down in gitem_t is the weaponthink function pointer -> which is set to Weapon_Blaster in itemlist[] -> 

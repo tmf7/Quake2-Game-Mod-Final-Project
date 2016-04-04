@@ -90,6 +90,13 @@ void P_DamageFeedback (edict_t *player)
 
 	// total points of damage shot at the player this frame
 	count = (client->damage_blood + client->damage_armor + client->damage_parmor);
+
+//TMF7 BEGIN GHOST MODE (add in husk damage)
+	if ( client->player_husk ) {
+	//count += (client->player_husk->damage_armor + client->player_husk->damage_armor + client->player_husk->damage_parmor); 
+	}
+//TMF7 END GHOST MODE
+
 	if (count == 0)
 		return;		// didn't take any damage
 
@@ -957,6 +964,8 @@ and right after spawning
 */
 void ClientEndServerFrame (edict_t *ent)
 {
+	vec3_t forward, view_origin;	//TMF7 THIRD PERSON
+
 	float	bobtime;
 	int		i;
 
@@ -971,9 +980,10 @@ void ClientEndServerFrame (edict_t *ent)
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
 	//
+
 	for (i=0 ; i<3 ; i++)
 	{
-		current_client->ps.pmove.origin[i] = ent->s.origin[i]*8.0;
+		current_client->ps.pmove.origin[i] =  ent->s.origin[i]*8.0;
 		current_client->ps.pmove.velocity[i] = ent->velocity[i]*8.0;
 	}
 
@@ -1000,12 +1010,12 @@ void ClientEndServerFrame (edict_t *ent)
 	// the world can tell which direction you are looking
 	//
 	if (ent->client->v_angle[PITCH] > 180)
-		ent->s.angles[PITCH] = (-360 + ent->client->v_angle[PITCH])/3;
+		ent->s.angles[PITCH] = (-360 + ent->client->v_angle[PITCH])/3;	
 	else
-		ent->s.angles[PITCH] = ent->client->v_angle[PITCH]/3;
-	ent->s.angles[YAW] = ent->client->v_angle[YAW];
+		ent->s.angles[PITCH] = ent->client->v_angle[PITCH]/3;	
+	ent->s.angles[YAW] = ent->client->v_angle[YAW];		
 	ent->s.angles[ROLL] = 0;
-	ent->s.angles[ROLL] = SV_CalcRoll (ent->s.angles, ent->velocity)*4;
+	ent->s.angles[ROLL] = SV_CalcRoll (ent->s.angles, ent->velocity)*4;	
 
 	//
 	// calculate speed and cycle to be used for

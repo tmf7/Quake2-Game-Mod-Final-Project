@@ -31,9 +31,9 @@ void UpdateChaseCam(edict_t *ent)
 
 	// is our chase target gone?
 //TMF7 BEGIN GHOST MODE
-	if ( ent->hostmode || ent->ghostmode ) {
+	if ( ent->client->hostmode || ent->client->ghostmode ) {
 
-		if ( !ent->host ) {
+		if ( !ent->client->host ) {
 
 			gi.cprintf( ent, PRINT_HIGH, "HOST LOST, STOPPING CHASE CAM\n" );
 		

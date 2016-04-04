@@ -1,12 +1,3 @@
-GOAL: to posses an enemy -> ie control their movement (jump, crouch, run, walk, swim, fly) and attack
-			-> NOT switch weapons or pickup items
-			-> have a button that blows them up
-			-> third person possesion easier? (due to first person gun position and look)
-***NEVER SET A FUNCTION POINTER  FOR A LIVE ENT TO NULL****
-
-________________________
-
-
 
 player's gun position, gun selection, inventory
 
@@ -65,16 +56,9 @@ void ED_CallSpawn (edict_t *ent)
 spawn_t	spawns[] = {	//similar to the itemlist[] except for entities
 
 <g_misc.c>
-G_FreeEdict (self); (removes an entity from the map)
-
-->>does setting the function pointer actually call that function right away???
-	->reference: calling a spawn function which sets various function pointers (eg: light_use)
-
+G_FreeEdict (self); (removes an entity from the map, but saves the memory block)
 
 ___________________________________________
-How is a instance of a player initialized:
-
-
 
 How is a instance of a monster initialized:
 <g_monster.c>
@@ -98,9 +82,3 @@ void walkmonster_start_go (edict_t *self)
 void monster_start_go (edict_t *self)
 	self->think = monster_think;
 
-
-___________________________________
-
-semi-turn based game (like azure dreams):
--enemies that have spotted the user lock into moving only when the player moves, at exactly the player's speed
--attacks can only occur at close range (face to face) (melee, magic, etc)

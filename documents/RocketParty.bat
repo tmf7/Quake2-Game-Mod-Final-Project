@@ -2,8 +2,6 @@ echo off
 
 
 
-
-
 ::empty the mod directory for updating
 
 del "C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\rocketparty\*"	/q
@@ -11,10 +9,11 @@ del "C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\rocketparty\*"	/q
 
 
 
-
 ::copy over the relevant files to the mod directory
 
 copy "C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll" "C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\rocketparty\"
+
+
 
 
 ::run quake2 with the mod

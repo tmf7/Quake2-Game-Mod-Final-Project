@@ -22,11 +22,13 @@ find the code for chase cam, spectator, third person
 
 print *every enemy* movement choice, attack choice to the console (enemies don't jump, but they walk, fly, swim)
 
+_______________________________________________
+
 add a boolean flag for player in "ghost mode"
 
 add a boolean flag for player in "possession mode"
 
-add a boolean flag for enemy "possesed" (suppant think commands)
+add a boolean flag for enemy "possesed" (supplant think commands)
 
 POSSESSION MODE key-binds:
 "inhabit" [ eg 'r' ] -> explode/gib inhabited enemy
@@ -40,14 +42,8 @@ NORMAL MODE key-binds:
 "inhabit" [ eg 'r' ] -> nothing
 "ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls)
 
-_______________________________________
-GENERAL:
 
 ->check the bfg code for nearby enemies/entities list (its green lasers)
-
-->ALSO: inhabit an enemy that's collded with/touched (touch function pointer?)
-
-->if the currently inhabited enemy dies, return to ghost mode
 
 ______________________________________________
 

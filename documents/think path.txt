@@ -74,4 +74,7 @@ void mutant_jump (edict_t *self)
 void SP_monster_mutant (edict_t *self)
 	self->monsterinfo.attack = mutant_jump;
 
-THE KEY IS "monsterinfo" function calls
+THE KEY IS "monsterinfo" function calls:
+monsterinfo.attack
+monsterinfo.run
+etc

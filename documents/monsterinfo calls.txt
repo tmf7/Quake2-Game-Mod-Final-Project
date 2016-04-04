@@ -43,7 +43,7 @@ void SP_monster_gunner (edict_t *self)
 
 	walkmonster_start (self);
 
-//////////////////////////POSSIBLY///UNLIKLY//////
+//////////////////////////POSSIBLY///UNLIKELY//////
 self->monsterinfo.currentmove is monster specific (not currently in g_ai.c)
 use player input to set the currentmove, goal, and target (like bauldur's gate: where the player clicks on the screen)
 	somehow check the depth to the point clicked on/pointed at
@@ -80,10 +80,8 @@ POSSESION PLAN:
 
 ->leave function pointer SETTING alone, only look for function CALLS
 
-->prevent ai decision points if possesed flag is set if ( !possesed ){}
-
 ->FORCE ai decision points if possesed flag is set AND player inputs a cmd
 	->pass the movement direction (crouch, jump?, walk, run)
 
 
-debug_drawline(self.origin, self.last_sighting, 152);
+debug_drawline(self.origin, self.last_sighting, 152);		//not actually defined anywhere, weird

@@ -1,0 +1,82 @@
+TODO:
+
+->make the monster_possesed_think generate an untouchable/invisible point for the host to go to (potentially the player, follow the leader style)
+	-->if SHIFT then run, not then walk, if nothing stand
+	-->if button_attack then attack along the v_angles using current weapon
+	-->if keybind switch weapons based on monster class
+	-->if jump ??? write a new (no animation) jump function in <g_ai.c> ???
+	-->possibly make a bigass class that groups all the monster animations I want to use into certain arrays (pain in the ass too, but maybe more accurate)
+
+
+
+
+->create a new branch
+
+->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
+
+HALF-DONE -> ghostmode spawns a husk entity with the player's model (and cycles through predefined animations for the player.md2 according to 
+hostmode function s.frame++)	
+
+DONE-DONE -> ghostmode sets the player model to translucent ( renderfx )
+
+HALF-DONE -> allow the husk entity to be targeted and attacked (husk health = players health, if it dies, force the player back to the husk, free it, and force die)
+
+HALF-DONE -> ghostmode/hostmode disables player from being attacked
+
+->at the end of ClientThink: if the player is in ghostmode
+	->if the touched thing is a monster (or player used radius_grab) -> set hostmode 
+	-->move the player into the host, freeze the player(?), lock its origin to the host(?), set the chasecam to the host, disable the player model/gunmodel
+	->if the touched thing is the husk -> disable ghost mode (move the player into the husk, disable translucent, free the husk)
+
+DONE-DONE -> make hostmode and ghostmode two different functions conditionally called in <p_client.c> from ClientThink
+
+->test to see how the third person chasecam affects possesed monsters (will they turn/animate properly when player simply looks around? set their yaw only)
+
+->handle host death/obliteration/escape
+
+->handle spirit callback
+
+
+_______________________________________________
+
+add a boolean flag for player in "ghost mode"
+
+add a boolean flag for player in "possession mode"
+
+add a boolean flag for enemy "possesed" (supplant think commands)
+
+POSSESSION MODE key-binds:
+"inhabit" [ eg 'r' ] -> explode/gib inhabited enemy
+"ghost" [ eg 'f' ]   -> leave inhabited enemy (instead of going to player)
+
+GHOST MODE key-binds:
+"inhabit" [ eg 'r' ] -> inhabit the nearest enemy
+"ghost" [ eg 'f' ]   -> return to player
+
+NORMAL MODE key-binds:
+"inhabit" [ eg 'r' ] -> nothing
+"ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls)
+
+
+->check the bfg code for nearby enemies/entities list (its green lasers)
+////////////////////////////////////////////////////////////////////////
++	edict_t	*blip = NULL;
++
++	while ((blip = findradius(blip, ent->s.origin, 1000)) != NULL)
++	{
++		if (!strcmp(blip->classname, "detpipe") && blip->owner == ent)
++		{
++			blip->think = Grenade_Explode;
++			blip->nextthink = level.time + .1;
++		}
++	}
+
+////////////////////////////////////////////////////////////////////////
+
+->prevent ai decision points if possesed flag is set if ( !possesed ){}
+
+______________________________________________
+
+EXTRA:
+
+->if the leader is the player, continue to handle touch and allow host persistance between levels

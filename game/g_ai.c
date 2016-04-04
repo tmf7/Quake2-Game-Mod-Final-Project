@@ -471,7 +471,7 @@ qboolean FindTarget (edict_t *self)
 		if (client->flags & FL_NOTARGET)
 			return false;
 	}
-	else if (client->svflags & SVF_MONSTER)			//TMF7 is this preventing a monter from hunting monsters?
+	else if (client->svflags & SVF_MONSTER)	
 	{
 		if (!client->enemy)
 			return false;

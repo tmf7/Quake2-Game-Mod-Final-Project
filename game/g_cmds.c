@@ -943,19 +943,19 @@ void ClientCommand (edict_t *ent)
 	// 'f' is bound to ghost mode toggle
 	if ( Q_stricmp(cmd, "ghostmode") == 0 )
 	{
-		if ( !( ent->hostmode ) ) {
-			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->ghostmode ? "TRUE" : "FALSE" );
-			ent->ghostmode = !ent->ghostmode;
-		} else if ( ent->hostmode ) {
+		if ( !( ent->client->hostmode ) ) {
+			ent->client->ghostmode = !ent->client->ghostmode;
+			gi.cprintf (ent, PRINT_HIGH, "GHOST MODE = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
+		} else if ( ent->client->hostmode ) {
 			//if your not gibbed or health < 0 youre still alive..
 			//..hence the reason the grenade glitch can ressurect a recently dieded enemy
-			ent->host->health = -100;		//ensures a gib
-			ent->host->die ( ent->host, NULL, NULL, 100, vec3_origin );
+			ent->client->host->health = -100;		//ensures a gib
+			ent->client->host->die ( ent->client->host, NULL, NULL, 100, vec3_origin );
 			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
-			ent->host = NULL;
+			ent->client->host = NULL;
 
-			ent->hostmode = false;
-			ent->ghostmode = true;
+			ent->client->hostmode = false;
+			ent->client->ghostmode = true;
 		} 
 
 		return;
