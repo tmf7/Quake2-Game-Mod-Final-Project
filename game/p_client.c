@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 
 void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const buttons);		//TMF7 GHOST MODE
+void player_ghost_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);	//TMF7 GHOST MODE
 
 void ClientUserinfoChanged (edict_t *ent, char *userinfo);
 
@@ -1231,7 +1232,9 @@ void PutClientInServer (edict_t *ent)
 //TMF7 BEGIN GHOST MODE (unsaved)
 	client->ghostmode = false;	
 	client->hostmode = false;
+	client->nextPossessTime = 0;
 	ent->possesed = false;
+	ent->touch = player_ghost_touch;
 //TMF7 END GHOST MODE (unsaved)
 
 	VectorCopy (mins, ent->mins);
@@ -1622,16 +1625,56 @@ void PrintPmove (pmove_t *pm)
 	c2 = CheckBlock (&pm->cmd, sizeof(pm->cmd));
 	Com_Printf ("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
 }
+//*************************
+//	TMF7 BEGIN GHOST MODE
+//*************************
 
-//TMF7 BEGIN GHOST MODE
+void player_ghost_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf) {
+
+	if ( self->client && self->client->player_husk 
+		&& ( self->client->player_husk == other || (!self->client->ghostmode && !self->client->hostmode ) ) ) {
+
+		gi.centerprintf( self, "BYE BYE HUSK!\n" );
+		self->client->host = NULL;
+		self->client->hostmode = false;
+		self->client->ghostmode = false;
+
+		self->s.renderfx &= ~RF_TRANSLUCENT;
+		self->flags &= ~FL_NOTARGET;
+
+		VectorCopy( other->s.origin, self->s.origin );
+
+		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);
+	
+		gi.linkentity( self );
+
+		G_FreeEdict( other );
+		self->client->player_husk = NULL;
+
+	} else if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) {
+
+		//touch possession
+		self->client->host = other;
+		self->client->host->possesed = true;
+
+		//transferring to host mode protocols
+		self->client->ghostmode = false;
+		self->client->hostmode = true;
+
+		gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+
+		gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", self->client->host->classname );
+
+		//develop a proper chasecam
+		SetChaseTarget( self, self->client->host );	//TMF7 THIRD PERSON 
+	} 
+}
+
 void host_target_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf) {
-
-	//gi.centerprintf( other, "WELL HELLO THERE!\n" );
-	//if ( self->classname && !Q_strncasecmp( self->classname, "husk", 4 ) ) { self->svflags &= ~SVF_DEADMONSTER; }
 
 	if ( other->possesed ) {
 
-		Com_Printf ("HOST TOUCHED ME! THANKS FOR PLAYING!\n");
+		Com_Printf ("STOP MOVING HOST!\n");
 
 		if ( other->monsterinfo.stand) {
 			other->monsterinfo.aiflags = 0;
@@ -1639,58 +1682,73 @@ void host_target_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface
 			other->monsterinfo.stand( other ); 
 		} 
 	}
-	//G_FreeEdict ( self );
+	//G_FreeEdict ( self );		//play with this to see if removing the target causes crashes*********************
 	return;
 }
 
-void player_husk_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point) {
+void player_husk_die (edict_t *husk, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point) {
 
-	self->owner->client->host = NULL;
-	self->owner->client->hostmode = false;
-	self->owner->client->ghostmode = false;
+	husk->owner->client->host = NULL;
+	//ensure chasecam stops prior to death ( it also relinks the owner )
+	UpdateChaseCam( husk->owner );		//TMF7 THIRD PERSON
 
-	VectorCopy( self->s.origin, self->owner->s.origin );
+	husk->owner->client->hostmode = false;
+	husk->owner->client->ghostmode = false;
 
-	gi.linkentity( self->owner );
+	//pull the player back and kill the player
+	VectorCopy( husk->s.origin, husk->owner->s.origin );
 
-	player_die ( self->owner, inflictor, attacker, damage, point );
+	husk->owner->s.renderfx &= ~RF_TRANSLUCENT;
+	husk->owner->flags &= ~FL_NOTARGET;
 
-	G_FreeEdict( self );
+	player_die ( husk->owner, inflictor, attacker, damage, point );
+
+	husk->owner->client->player_husk = NULL;
+	G_FreeEdict( husk );
 }
 
-void ghostmode_protocols ( edict_t *self  ) {
+void ghostmode_protocols ( edict_t *self ) {
 
 	trace_t tr;
 	float distance;	
 	gclient_t *client;
+	edict_t *other;
 
 	if ( self->client ) { client = self->client; }
 	else { return; }
 
-	if ( client->latched_buttons & BUTTON_ATTACK /*|| player's soul touched a monster directly*/ ) {
+	//targeted possesion ( touch possesion in player_ghost_touch, radial possession in ClientCommand )
+	if ( client->latched_buttons & BUTTON_ATTACK ) {
 			
 		tr = MuzzleTrace( self, &distance );
 
 		if ( tr.fraction < 1.0f && tr.ent ) {
 
 			//grab the clicked-upon monster for manipulation
-			if ( tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
+			if ( tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) && tr.ent->deadflag == DEAD_NO ) {
 
-				if ( tr.ent->deadflag == DEAD_NO ) {//works
-					client->host = tr.ent;
-					client->host->possesed = true;
+				client->host = tr.ent;
+				client->host->possesed = true;
 
-					//transferring to host mode protocols
-					client->ghostmode = false;
-					client->hostmode = true;
+				//transferring to host mode protocols
+				client->ghostmode = false;
+				client->hostmode = true;
 
-					gi.centerprintf (self, "HOST = %s\n", client->host->classname );
+				gi.sound ( client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+ 
+				gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", client->host->classname );
 
-					//develop a proper chasecam
-					SetChaseTarget( self, client->host );	//TMF7 THIRD PERSON 
-				}
+				//develop a proper chasecam
+				SetChaseTarget( self, client->host );	//TMF7 THIRD PERSON 
 			} 
 		} 
+	}
+
+	//find the first monster in range
+	other = NULL;
+	while ( ( other = findradius( other, self->s.origin, 60 ) ) != NULL )	{
+
+		if ( other->svflags & SVF_MONSTER ) { self->touch( self, other, NULL, NULL ); break; }
 	}
 }
 
@@ -1712,14 +1770,12 @@ void hostmode_protocols ( edict_t *self ) {
 		//set the movement goal, and enemy, based on the muzzle trace
 		if ( tr.fraction < 1.0f ) { 
 
-			if ( tr.ent && tr.ent->classname )  { gi.centerprintf (self, "ENTITY = %s", tr.ent->classname ); }
-
-			if ( tr.ent && (tr.ent != host ) && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 )) {
+			if ( tr.ent && (tr.ent != host ) && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
 				host->goalentity = host->enemy = tr.ent;
 				host->monsterinfo.aiflags = 0; 
 
 			} else { 
-				//TMF7 4/3/2016: instead of all this, use the monster_think_possesed to produce a point
+				//instead of all this, use the monster_think_possesed to produce a point
 				gi.centerprintf (self, "ATTACK THE DARKNESS %s!", vtos( tr.endpos ) ); 
 				
 				//practice spawning an entity, then removing it safely via: one at a time or ->touch
@@ -1767,6 +1823,7 @@ void hostmode_protocols ( edict_t *self ) {
 			} 
 
 			//only call this once per player click
+			//flying monsters slide along the ground
 			if ( host->monsterinfo.run ) { host->monsterinfo.run( host ); } 
 		}
 	}
@@ -1779,99 +1836,122 @@ void hostmode_protocols ( edict_t *self ) {
 	}
 }
 
-void ClientAnimateHusk ( gclient_t *client ) {
+void husk_think ( edict_t *husk ) {
 
-	if ( client->player_husk && level.time > client->nextBodyFrameTime ) {
+	gclient_t *client = husk->owner->client;
+	edict_t *other;
+	
+	if ( !client ) { return; } 
 
-		if ( client->player_husk->s.frame == FRAME_stand40 ) { client->player_husk->s.frame = FRAME_stand01; }
-		else if ( client->player_husk->s.frame < FRAME_stand40 	&& client->player_husk->s.frame >= FRAME_stand01) { 
-			client->player_husk->s.frame++; 
+	//check if the owner is within touching distance
+	if ( !client->hostmode && level.time > husk->huskBeginSearchTime ) {
+		other = NULL;
+
+		while ( ( other = findradius( other , husk->s.origin, 60 ) ) != NULL )	{
+			if ( other->client && other->client == husk->owner->client ) { 	
+				husk->owner->touch ( husk->owner, husk, NULL, NULL ); 
+				return;
+			}
 		}
-
-		client->nextBodyFrameTime = level.time + FRAMETIME;
 	}
 
-}
-/*
-void PushSpirit ( edict_t *self ) {
-	
-	vec3_t	forward;
+	//jump back to idle animation if outside it
+	if ( client->player_husk->s.frame > FRAME_stand40 || client->player_husk->s.frame < FRAME_stand01) {
+		client->player_husk->s.frame = FRAME_stand01;
+	}
 
-	gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutsght1.wav"), 1, ATTN_NORM, 0);
-	AngleVectors (self->s.angles, forward, NULL, NULL);
-	self->s.origin[2] += 1;
-	VectorScale (forward, 600, self->velocity);
-	self->velocity[2] = 250;
-	self->groundentity = NULL;
+	//continue idle animation
+	if ( client->player_husk->s.frame == FRAME_stand40 ) { client->player_husk->s.frame = FRAME_stand01; }
+	else if ( client->player_husk->s.frame < FRAME_stand40 && client->player_husk->s.frame >= FRAME_stand01) { 
+		client->player_husk->s.frame++; 
+	}
+
+	//match player pain animation
+	if (  husk->owner->s.frame >= FRAME_pain101 && husk->owner->s.frame <= FRAME_pain304  ) { 
+		client->player_husk->s.frame = husk->owner->s.frame;
+	} 
 }
-*/
 
 void SP_ClientHusk ( edict_t *self ) {
 
-	//change this spawn in to a full blown client (will allow for enemy attacks/tracking, and proper P_DamageFeedback for pain transference)
-
-	edict_t	*husk;
+	//change this spawn in to a full blown client ( will allow for enemy discovery, maybe? )
+	int savedEntNumber, j;
+	edict_t	*husk, *other;
 
 	self->client->player_husk = G_Spawn();
-	husk = self->client->player_husk;
+	husk				= self->client->player_husk;
 
-	husk->groundentity = NULL;
-	VectorCopy( self->s.origin, husk->s.origin );
-	husk->s.origin[2] += 1;	// make sure off ground
-	VectorCopy (husk->s.origin, husk->s.old_origin);
-	gi.setmodel( husk, "players/male/tris.md2" );
+	savedEntNumber		= husk->s.number;
+
+	//prevent memory overload
+	memset (husk, 0, sizeof(*husk));
+
+	husk->inuse			= true;
+	husk->gravity		= self->gravity;
+	husk->s.number		= savedEntNumber;
+
+	husk->groundentity = self->groundentity;
+	VectorCopy ( self->s.origin, husk->s.origin );
+	VectorCopy ( husk->s.origin, husk->s.old_origin );
 	
-	husk->takedamage = DAMAGE_AIM;	//can be attacked/killed
-	husk->health = self->client->pers.health;
-	husk->deadflag = DEAD_NO;
+	husk->takedamage	= self->takedamage;					//can be attacked/killed
+	husk->health		= self->health;
+	husk->deadflag		= self->deadflag;
 
-	husk->viewheight = 22;
-	husk->classname = "husk";
-	husk->mass = 200;
+	husk->viewheight	= self->viewheight;
+	husk->classname		= "husk";
+	husk->mass			= self->mass;
 
-	VectorCopy( self->mins, husk->mins );
-	VectorCopy( self->maxs, husk->maxs );
+	VectorCopy ( self->mins, husk->mins );
+	VectorCopy ( self->maxs, husk->maxs );
+	VectorCopy ( self->s.angles, husk->s.angles );
 	VectorClear (husk->velocity);
 
-	husk->s.modelindex = 255;			// will use the skin specified model
-	husk->s.skinnum = self - g_edicts - 1;
+	gi.setmodel ( husk, "players/male/tris.md2" );
+	husk->s.modelindex	= self->s.modelindex;				// will use the skin specified model
+	husk->s.skinnum		= self - g_edicts - 1;				// self->s.skinnum;**************************************
+	husk->s.renderfx	= self->s.renderfx;					// meh
+	husk->s.effects		= self->s.effects;					// meh
 
-	self->s.renderfx = RF_TRANSLUCENT;	// make the player ghostlike (not tangible yet, need a proper chasecam)
-	self->client->nextBodyFrameTime = level.time;
-	husk->owner = self;
+	//transfer all player enemies to the husk
+	for ( j = 1; j <= game.maxentities; j++ ) {
+		other = &g_edicts[ j ];
+		if ( !other->inuse ) { continue; }
+		if ( other->enemy == self ) { other->goalentity = other->movetarget = other->enemy = husk; /*reset aiflags???*/ }
+	}
 
-	husk->s.frame = FRAME_stand01;			//default starting animation
-	//husk->currentAnimation...
-	//BodyFrameStart
-	//BodyFrameEnd
-	//base these on touch, die, pain
+	husk->s.frame		= FRAME_stand01;					//idle animation
+	husk->owner			= self;								//owner will not clip against its belongings ( no touch! )
 
-	husk->solid = SOLID_BBOX;
-	husk->clipmask = MASK_PLAYERSOLID;
-	husk->s.effects = 0;
+	husk->solid			= self->solid;
+	husk->clipmask		= self->clipmask;
+	husk->flags			|= FL_NO_KNOCKBACK;
+	husk->svflags		= self->svflags;
+	husk->movetype		= MOVETYPE_TOSS;
 
-	husk->s.angles[PITCH] = 0;
-	husk->s.angles[YAW] = self->s.angles[YAW];
-	husk->s.angles[ROLL] = 0;
+	husk->waterlevel	= self->waterlevel;
+	husk->watertype		= self->watertype;
+	husk->air_finished	= self->air_finished;
 
-	husk->flags |= FL_NO_KNOCKBACK;
-	husk->svflags |= SVF_DEADMONSTER;		//for initial escape
-	husk->waterlevel = 0;
-	husk->watertype = 0;
-	husk->air_finished = level.time + 12;	//so the husk can drown???
+	husk->huskBeginSearchTime = level.time + 3.0f;				//give a few moments to allow player to leave the husk
 
-	husk->movetype = MOVETYPE_TOSS;
-	//husk->touch = host_target_touch;	//placeholder //set an animation cycle (let the cycle finish before restarting it)
-	husk->die = player_husk_die;		//just pull the player back and kill the player
+	// husk pain animation is handled in husk_think
+	// touch is handled in player_ghost_touch
+	husk->die			= player_husk_die;
 
-	//push the player away so they dont get stuck ( do a volumetric trace check, not a jump, and set the origin )
-	//PushSpirit( self );
+	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
+	self->flags			|= FL_NOTARGET;
+	//self->takedamage	= DAMAGE_NO;						// ensure doesn't mess with pain, damage transfer, and noclip stuff
 
-	gi.linkentity( self );
-	gi.linkentity( husk );
+	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0);
+
+	gi.linkentity ( self );
+	gi.linkentity ( husk );
 }
 
-//TMF7 END GHOST MODE
+//*************************
+//	TMF7 END GHOST MODE
+//*************************
 
 
 /*
@@ -1905,25 +1985,20 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	pm_passent = ent;
 
 //TMF7 BEGIN GHOST MODE 
-
-	if ( client->ghostmode ) { 
-
-		if ( !client->player_husk ) { SP_ClientHusk ( ent ); } //move this, and write a function to dispatch the husk
-
-		ghostmode_protocols( ent ); 
-	}
 	
-	if ( client->hostmode && client->host ) { hostmode_protocols( ent ); }
+	if ( client->ghostmode && level.time > client->nextPossessTime )	{ ghostmode_protocols( ent ); }
+	
+	if ( client->hostmode && client->host != NULL )						{ hostmode_protocols( ent ); }
 
-	if ( client->ghostmode || client->hostmode ) { ent->flags |= FL_NOTARGET; }
-	else { ent->flags &= ~FL_NOTARGET; }	//this usurps noclip?
+	if ( client->player_husk != NULL)									{ husk_think( client->player_husk ); }
 
-	if ( ent->client->chase_target ) {	// different conditions AND put this AFTER the pmove is fully processed normally
-										// NOTE: a normal pmove will do a killbox on the player each time it moves
-										// possibly due to host_target? doesn't killbox upon first taking host
+	if ( ent->client->chase_target != NULL ) {	// different conditions AND put this AFTER the pmove is fully processed normally
+												// NOTE: a normal pmove will do a killbox on the player each time it moves
+												// possibly due to host_target? doesn't killbox upon first taking host
 
 		//NOTE: the host is still trying to monster_think, but the possesed flag delays that by FRAMETIME
 		//verify that this function header at the top of <p_client.c> is enough for this to work (gi.cprintf...)
+
 		//ent->host->possesed_think = monster_think_possesed;
 
 		pm.s = client->ps.pmove;
@@ -1939,13 +2014,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		UpdateChaseCam( ent );
 	}
 
-	if ( ent->client->player_husk && ( ent->s.frame >= FRAME_pain101 && ent->s.frame <= FRAME_pain304 ) ) { 
-		ent->client->player_husk->s.frame = ent->s.frame;
-	} else if ( ent->client->player_husk ) { ClientAnimateHusk( client ); }
-
 //TMF7 END GHOST MODE
 
-	if (ent->client->chase_target) {			//TMF7 chasecam stuff too (this prevents pm processing)
+	if (ent->client->chase_target) {			//TMF7 vanilla chasecam stuff (this prevents normal pm processing)
 
 		client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
 		client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
@@ -2048,6 +2119,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 				continue;
 			other->touch (other, ent, NULL, NULL);
 		}
+
+		
+
 	}
 
 	client->oldbuttons = client->buttons;

@@ -90,13 +90,6 @@ void P_DamageFeedback (edict_t *player)
 
 	// total points of damage shot at the player this frame
 	count = (client->damage_blood + client->damage_armor + client->damage_parmor);
-
-//TMF7 BEGIN GHOST MODE (add in husk damage)
-	if ( client->player_husk ) {
-	//count += (client->player_husk->damage_armor + client->player_husk->damage_armor + client->player_husk->damage_parmor); 
-	}
-//TMF7 END GHOST MODE
-
 	if (count == 0)
 		return;		// didn't take any damage
 

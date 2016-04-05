@@ -965,10 +965,10 @@ struct gclient_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		ghostmode;
 	qboolean		hostmode;
+	float			nextPossessTime;
 	edict_t			*host;
 	edict_t			*host_target;		//the intented movement goal of a possesed host
 	edict_t			*player_husk;
-	float			nextBodyFrameTime;
 //TMF7 END GHOST MODE
 
 };
@@ -1124,6 +1124,7 @@ struct edict_s
 
 //TMF7 BEGIN GHOST MODE
 	qboolean		possesed;
+	float			huskBeginSearchTime;
 	void			(*possesed_think)(edict_t *host, usercmd_t *cmd, const int * const buttons);
 //TMF7 END GHOST MODE
 };

@@ -1,4 +1,4 @@
-﻿Build started 4/4/2016 4:39:25 AM.
+﻿Build started 4/5/2016 7:38:07 AM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -9,19 +9,19 @@
      1>g_ai.c(771): warning C4100: 'dist' : unreferenced formal parameter
          g_chase.c
          g_cmds.c
-     1>g_cmds.c(34): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(57): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(58): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(722): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(37): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(60): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(61): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
      1>g_cmds.c(725): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(808): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(809): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(810): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(821): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(828): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>g_cmds.c(893): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(728): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(811): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(812): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(813): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(824): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(831): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(896): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
-     1>g_cmds.c(897): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(900): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
          g_combat.c
      1>g_combat.c(370): warning C4100: 'attacker' : unreferenced formal parameter
      1>g_combat.c(370): warning C4100: 'targ' : unreferenced formal parameter
@@ -425,33 +425,35 @@
      1>m_tank.c(753): warning C4100: 'attacker' : unreferenced formal parameter
      1>m_tank.c(753): warning C4100: 'inflictor' : unreferenced formal parameter
          p_client.c
-     1>p_client.c(48): warning C4127: conditional expression is constant
-     1>p_client.c(72): warning C4100: 'self' : unreferenced formal parameter
-     1>p_client.c(227): warning C4100: 'damage' : unreferenced formal parameter
-     1>p_client.c(227): warning C4100: 'kick' : unreferenced formal parameter
-     1>p_client.c(227): warning C4100: 'other' : unreferenced formal parameter
-     1>p_client.c(227): warning C4100: 'self' : unreferenced formal parameter
-     1>p_client.c(259): warning C4100: 'inflictor' : unreferenced formal parameter
-     1>p_client.c(549): warning C4100: 'point' : unreferenced formal parameter
-     1>p_client.c(894): warning C4127: conditional expression is constant
-     1>p_client.c(979): warning C4100: 'point' : unreferenced formal parameter
-     1>p_client.c(979): warning C4100: 'attacker' : unreferenced formal parameter
-     1>p_client.c(979): warning C4100: 'inflictor' : unreferenced formal parameter
-     1>p_client.c(1433): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>p_client.c(1438): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(49): warning C4127: conditional expression is constant
+     1>p_client.c(73): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(228): warning C4100: 'damage' : unreferenced formal parameter
+     1>p_client.c(228): warning C4100: 'kick' : unreferenced formal parameter
+     1>p_client.c(228): warning C4100: 'other' : unreferenced formal parameter
+     1>p_client.c(228): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(260): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(550): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(895): warning C4127: conditional expression is constant
+     1>p_client.c(980): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(980): warning C4100: 'attacker' : unreferenced formal parameter
+     1>p_client.c(980): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(1436): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1441): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
-     1>p_client.c(1478): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1481): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
-     1>p_client.c(1627): warning C4100: 'surf' : unreferenced formal parameter
-     1>p_client.c(1627): warning C4100: 'plane' : unreferenced formal parameter
-     1>p_client.c(1627): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(1632): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1632): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1673): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1673): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1673): warning C4100: 'self' : unreferenced formal parameter
          p_hud.c
      1>p_hud.c(234): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
      1>p_hud.c(245): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
          p_trail.c
          p_view.c
      1>p_view.c(42): warning C4100: 'angles' : unreferenced formal parameter
-     1>p_view.c(967): warning C4101: 'view_origin' : unreferenced local variable
+     1>p_view.c(960): warning C4101: 'view_origin' : unreferenced local variable
          p_weapon.c
          Generating Code...
      1>c:\users\tom\desktop\code\quake2-project\game\p_hud.c(423): warning C4701: potentially uninitialized local variable 'cells' used
