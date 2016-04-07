@@ -736,7 +736,7 @@ void weapon_grenadelauncher_fire (edict_t *ent)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 
-	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
+	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )					//TMF7 INFINITE AMMO
 		ent->client->pers.inventory[ent->client->ammo_index]--;
 }
 
@@ -829,9 +829,13 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 	
-	//TMF7 HARD CODED SPEED 1000? mult by 5 makes crazy angles, div by 5 works fine (fuse runs out)
-	//TMF7 essently: don't mess with the speed too much on any weapon because the view angle sin/cos cycles and amplifies weird
-	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);		
+	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	//TMF7 NOTES:
+	// -> putting fire_grenade here makes the grenade harmless (is damage not assigned? is it not sent to the server?)
+	// -> the blaster maintains infinite ammo by default because it is the goto noammo switch weapon (hence the occastional animcaiton freeze)
+	//		will eventually cause a crash if the ammo value gets too negative
+	// -> just changing the fire_blaster function alone to spawn a functional grenade makes enemies that fire blasters also fire grenades
+	//		EXCEPT those grenades heal the player for some reason (opposite vector?)
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -853,7 +857,7 @@ void Weapon_Blaster_Fire (edict_t *ent)
 	if (deathmatch->value)
 		damage = 15;
 	else
-		damage = 100;			//TMF7 HARDCODED DAMAGE VALUE
+		damage = 10;			//TMF7 HARDCODED DAMAGE VALUE
 	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
 	ent->client->ps.gunframe++;
 }
@@ -863,9 +867,9 @@ void Weapon_Blaster (edict_t *ent)
 	static int	pause_frames[]	= {19, 32, 0};
 	static int	fire_frames[]	= {5, 0};
 
-	Weapon_Generic (ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_Blaster_Fire);
+	//Weapon_Generic (ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_Blaster_Fire);		//TMF7 (vanilla)
+	Weapon_Generic( ent, 4, 8, 52, 55, pause_frames, fire_frames, weapon_grenadelauncher_fire );	//TMF7 ROCKETPARTY
 }
-
 
 void Weapon_HyperBlaster_Fire (edict_t *ent)
 {

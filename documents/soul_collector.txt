@@ -9,17 +9,20 @@ TODO:
 ___________________________________________________________
 TESTING:
 
-monsters finding && attacking the husk (make it a client? a sight_entity?)
+husk holds a weapon (ideally that looks like the players current weapon)...meh (stuck on super shotgun)
 
-the husk drowning ( use husk_think )
+husk death pulls the player back and frees the husk.
+	->BUG: pulls back fine, dies fine, but locks up for some reason (theory: the T_damage function refs something gone, or the monster enemy is now null)
+
+
+player cannot pickup items while husk is active ( ->touch function? triggers/doors, items ) ( except enemy souls??? )
+
+husk can drown/lava/slime damage THIS NOW
+
 
 
 idle animation and pain animation (should only happen when husk is damaged)
-	-->too fast (test fire a grenade then spawn husk real quick)  
-	-->the grenades still damaged the player...ugh
-	-->instead of preventing T_Damage, just set it to noclip style touch/impact interactions???
-	
-->BUG: healths don't sync up, Husk dies when player still has about 40hp
+	-->too fast
 
 
 ____________________________________________________________

@@ -1,0 +1,8 @@
+
+what does all that WriteByte (server info communication) stuff do/for?
+
+how can a struct (eg edicts_s) be incremented??
+
+how does int start = level.sight_client - g_edicts; resolve???
+
+ent = &g_edicts[check]; //what does this mean, is it simlar to const char *chr; &chr[3] or chr[3]????

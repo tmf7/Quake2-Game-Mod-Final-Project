@@ -964,8 +964,8 @@ void ClientCommand (edict_t *ent)
 			ent->client->nextPossessTime = level.time + 3.0f;
 		}		
 		
-		//clear out the husk if not in either mode, and return if in ghostmode
-		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk != NULL ) { 
+		//clear out the husk if not in either mode
+		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk ) { 
 			ent->touch( ent, ent->client->player_husk, NULL, NULL );
 		}
 
@@ -986,10 +986,16 @@ void ClientCommand (edict_t *ent)
 			other = NULL;
 			while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
 
+				if ( other == ent )
+					continue;
+
+				if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+					continue;
+
 				if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
 			}
 
-			if ( other != NULL ) {
+			if ( other ) {
 
 				//radial possession
 				ent->client->host = other;
@@ -1016,8 +1022,8 @@ void ClientCommand (edict_t *ent)
 
 			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
 
-			ent->client->hostmode = false;
 			ent->client->ghostmode = true;
+			ent->client->hostmode = false;
 			ent->client->nextPossessTime = level.time + 3.0f;
 		}
 

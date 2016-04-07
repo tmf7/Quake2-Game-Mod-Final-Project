@@ -383,15 +383,18 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int			psave;
 	int			te_sparks;
 
-	if (!targ->takedamage)	//TMF7 GHOST MODE add a second condition if a husk is present???
+	if (!targ->takedamage && !( targ->client && targ->client->huskDamage ) )	//TMF7 GHOST MODE
 		return;
+
+	if ( targ->client ) { targ->client->huskDamage = false;	}					//TMF7 GHOST MODE
 
 //TMF7 BEGIN GHOST MODE
 	
 	//pass husk damage along to the player itself
-	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) ) { 
+	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) /*&& !targ->owner->deadflag*/ ) { 
+		targ->owner->client->huskDamage = true;
 		T_Damage ( targ->owner, inflictor, attacker, dir, point, normal, damage, knockback, dflags, mod);
-		//return;		//should this return? it currently seems more damage is done to the husk than the player
+		return;
 	}
 //TMF7 END GHOST MODE
 

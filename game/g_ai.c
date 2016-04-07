@@ -70,7 +70,15 @@ void AI_SetSightClient (void)
 		{
 			level.sight_client = ent;
 			return;		// got one
+		} 
+//TMF7 BEGIN GHOST MODE 
+		else if ( ent->inuse && ent->health > 0 && ent->client->player_husk ) { 
+
+			//check if the client has an active husk
+			level.sight_client = ent->client->player_husk;
+			return;		// got one's husk
 		}
+//TMF7 END GHOST MODE
 		if (check == start)
 		{
 			level.sight_client = NULL;
@@ -478,11 +486,13 @@ qboolean FindTarget (edict_t *self)
 		if (client->enemy->flags & FL_NOTARGET)
 			return false;
 	}
-	else if (heardit)
+	else if (heardit)	//jump, shoot, impact
 	{
 		if (client->owner->flags & FL_NOTARGET)
-			return false;
+			return false;								
 	}
+	else if ( client->classname && !Q_strncasecmp( client->classname, "husk", 4 ) ) 
+	{ /* TMF7 GHOST MODE placeholder to avoid default return statement */ }
 	else
 		return false;
 
@@ -521,11 +531,11 @@ qboolean FindTarget (edict_t *self)
 
 		self->enemy = client;
 
-		if (strcmp(self->enemy->classname, "player_noise") != 0)
+		if (strcmp(self->enemy->classname, "player_noise") != 0)		
 		{
 			self->monsterinfo.aiflags &= ~AI_SOUND_TARGET;
 
-			if (!self->enemy->client)
+			if (!self->enemy->client && Q_strncasecmp( self->enemy->classname, "husk", 4 ) )	//TMF7 GHOST MODE (the husk part)
 			{
 				self->enemy = self->enemy->enemy;
 				if (!self->enemy->client)

@@ -965,6 +965,7 @@ struct gclient_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		ghostmode;
 	qboolean		hostmode;
+	qboolean		huskDamage;
 	float			nextPossessTime;
 	edict_t			*host;
 	edict_t			*host_target;		//the intented movement goal of a possesed host
