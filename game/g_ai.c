@@ -72,7 +72,8 @@ void AI_SetSightClient (void)
 			return;		// got one
 		} 
 //TMF7 BEGIN GHOST MODE 
-		else if ( ent->inuse && ent->health > 0 && ent->client->player_husk ) { 
+		else if ( ent->inuse && ent->health > 0 && ent->client->player_husk && 
+			ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) { 
 
 			//check if the client has an active husk
 			level.sight_client = ent->client->player_husk;

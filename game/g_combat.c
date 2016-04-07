@@ -383,7 +383,7 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int			psave;
 	int			te_sparks;
 
-	if (!targ->takedamage && !( targ->client && targ->client->huskDamage ) )	//TMF7 GHOST MODE
+	if (!targ->takedamage && !( targ->client && ( targ->client->huskDamage || attacker == world ) ) )	//TMF7 GHOST MODE
 		return;
 
 	if ( targ->client ) { targ->client->huskDamage = false;	}					//TMF7 GHOST MODE

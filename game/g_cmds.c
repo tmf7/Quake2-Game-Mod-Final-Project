@@ -942,7 +942,7 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
-//TMF7 BEGIN NEW KEY BINDS
+//TMF7 BEGIN GHOST MODE
 
 	// 'f' is bound to ghost mode toggle
 	if ( Q_stricmp(cmd, "ghost") == 0 )
@@ -965,11 +965,14 @@ void ClientCommand (edict_t *ent)
 		}		
 		
 		//clear out the husk if not in either mode
-		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk ) { 
+		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
+			&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) {
 			ent->touch( ent, ent->client->player_husk, NULL, NULL );
 		}
 
-		if ( ent->client->ghostmode && !ent->client->player_husk ) { SP_ClientHusk ( ent ); }
+		if ( ent->client->ghostmode && ( !ent->client->player_husk 
+			|| ( ent->client->player_husk->classname && Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) ) ) 
+		{ SP_ClientHusk ( ent ); }
 
 		gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
 
@@ -1031,7 +1034,7 @@ void ClientCommand (edict_t *ent)
 
 		return;
 	}
-//TMF7 END NEW KEY BINDS
+//TMF7 END GHOST MODE
 
 
 	if (level.intermissiontime)

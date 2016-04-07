@@ -1,13 +1,15 @@
 CHANGES:
 
--> All Blasters Fire Grenades instead
+-> Player Blaster Fire Grenades instead
 
 -> Player toggles ghostmode by pressing 'f'
 
--> Ghostmode enable spawns an animated player husk that can be killed
-	--> Animations include standing around and responding to pain on it and/or the player
+-> Ghostmode enable spawns an animated player husk that transfers damage to the player
+	--> Animations include standing around and responding to pain the player
 	--> If the husk dies, the player returns to the husk to die with it
 	--> All monsters attacking the player now attack the husk instead
+	--> Monsters can independently discover and attack the husk
+	--> The husk can drown the player if left underwater ( and be damaged by lava/slime )
 	--> Ghostmode can also be disabled by touching the player husk
 	--> Pressing 'f' in ghostmode pulls the player back to the player husk, frees it, and disables ghostmode
 
@@ -17,15 +19,15 @@ CHANGES:
 	--> Clicking on another monster with a host causes the host to attack that monster
 	--> If the host dies or is released, the player returns to ghostmode
 
--> In hostmode, the player obliterates the host by presses 'f'
+-> In hostmode, the player obliterates the host by pressing 'f'
 
 -> In ghostmode, the player toggles possession of nearest monster by pressing 'r'
 
 -> In hostmode, the player harmlessly releases a host by pressing 'r'
 
--> In ghostmode any monster the player touches becomes the new host
+-> In ghostmode, if the player has no host, any monster the player touches becomes the new host
 
--> There is a 3 second cooldown for touching the newly spawned player husk, as well as touch-possession of monsters
+-> There is a 3 second cooldown for touching the newly spawned player husk, as well as any possession of monsters
 
 
 

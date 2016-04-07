@@ -1,0 +1,34 @@
+<g_main.c>
+
+declares:
+void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
+
+only includes:
+"g_local.h"
+
+__________________________________
+<g_local.h>
+
+only includes:
+"q_shared.h"
+"game.h"
+
+->neither includes g_spawn.c/h
+___________________________________
+<g_spawn.c>
+
+defines:
+void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+
+only includes:
+"g_local.h"
+
+
+HOW CAN g_main.c declare and use the defined code for SpawnEntities???
+__________________________________________
+BUG:
+->after making the blaster fire grenades -> the players grenades work just fine, but enemy blaster-grenades GIVE health????
+
+
+->a mod directory needs more then the .dll past a certain level ...or did my game just randomly corrupt at the 5th level?
+	-->the error says that "function pointers have moved"

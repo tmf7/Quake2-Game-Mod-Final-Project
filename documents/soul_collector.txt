@@ -17,13 +17,13 @@ husk death pulls the player back and frees the husk.
 
 player cannot pickup items while husk is active ( ->touch function? triggers/doors, items ) ( except enemy souls??? )
 
-husk can drown/lava/slime damage THIS NOW
 
+idle animation -->too fast
 
+BUG: if in proximity to touching husk and a monster in ghostmode, game glitches and jumps player to a combat point nearby
+	OR IS IT: if recently jumped/touched into the husk and get SHOT, then that happens (ie take damage)
 
-idle animation and pain animation (should only happen when husk is damaged)
-	-->too fast
-
+BUG: fix the clip into walls/ceilings when the host dies
 
 ____________________________________________________________
 TODO:
