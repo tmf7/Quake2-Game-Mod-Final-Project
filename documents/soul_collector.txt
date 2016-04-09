@@ -1,5 +1,13 @@
 TODO:
 
+->create a new branch
+
+->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
+
+->test to see how the third person chasecam affects possesed monsters (will they turn/animate properly when player simply looks around? set their yaw only)
+
+->prevent ai decision points if possesed flag is set if ( !possesed ){}
+
 ->make the monster_possesed_think generate an untouchable/invisible point for the host to go to (potentially the player, follow the leader style)
 	-->if SHIFT then run, not then walk, if nothing stand
 	-->if button_attack then attack along the v_angles using current weapon
@@ -11,32 +19,16 @@ TESTING:
 
 husk holds a weapon (ideally that looks like the players current weapon)...meh (stuck on super shotgun)
 
-husk death pulls the player back and frees the husk.
-	->BUG: pulls back fine, dies fine, but locks up for some reason (theory: the T_damage function refs something gone, or the monster enemy is now null)
-
 
 player cannot pickup items while husk is active ( ->touch function? triggers/doors, items ) ( except enemy souls??? )
 
 
-idle animation -->too fast
-
-BUG: if in proximity to touching husk and a monster in ghostmode, game glitches and jumps player to a combat point nearby
-	OR IS IT: if recently jumped/touched into the husk and get SHOT, then that happens (ie take damage)
+BUG: idle animation -->too fast
 
 BUG: fix the clip into walls/ceilings when the host dies
 
 ____________________________________________________________
-TODO:
 
-->create a new branch
-
-->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
-
-->test to see how the third person chasecam affects possesed monsters (will they turn/animate properly when player simply looks around? set their yaw only)
-
-->prevent ai decision points if possesed flag is set if ( !possesed ){}
-
-_______________________________________________
 
 add a boolean flag for player in "ghost mode"
 

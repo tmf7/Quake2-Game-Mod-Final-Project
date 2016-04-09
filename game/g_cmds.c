@@ -20,9 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
-void player_ghost_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);		//TMF7 GHOST MODE
-void SP_ClientHusk ( edict_t *self );															//TMF7 GHOST MODE
-
+void SP_ClientHusk ( edict_t *self );						//TMF7 GHOST MODE
 
 char *ClientTeam (edict_t *ent)
 {
@@ -953,7 +951,7 @@ void ClientCommand (edict_t *ent)
 
 		} else if ( ent->client->hostmode ) {
 			//if your not gibbed or health < 0 youre still alive..
-			//..hence the reason the grenade glitch can ressurect a recently dieded enemy
+			//..hence the reason the old grenade glitch could ressurect a recently dieded enemy
 			ent->client->host->health = -100;		//ensures a gib
 			ent->client->host->die ( ent->client->host, NULL, NULL, 100, vec3_origin );
 			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
@@ -966,7 +964,8 @@ void ClientCommand (edict_t *ent)
 		
 		//clear out the husk if not in either mode
 		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
-			&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) {
+			&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) 
+			&& ent->touch ) {
 			ent->touch( ent, ent->client->player_husk, NULL, NULL );
 		}
 
@@ -1021,7 +1020,7 @@ void ClientCommand (edict_t *ent)
 			
 			gi.centerprintf (ent, "HOST LEFT UNHARMED, GHOST MODE ENABLED\n" );
 			ent->client->host = NULL;
-			UpdateChaseCam ( ent );		//TMF7 THIRD PERSON
+			//UpdateChaseCam ( ent );		//TMF7 THIRD PERSON
 
 			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
 

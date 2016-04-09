@@ -1,0 +1,150 @@
+"global" Variables Created:
+
+<g_local.h>
+[ gclient_s ]
+	qboolean		ghostmode;
+	qboolean		hostmode;
+	qboolean		huskDamage;
+	float			nextPossessTime;
+	edict_t			*host;
+	edict_t			*host_target;
+	edict_t			*player_husk;
+
+[ edict_s ]
+	qboolean		possesed;
+	float			huskBeginSearchTime;
+	void			(*possesed_think)(edict_t *host, usercmd_t *cmd, const int * const buttons);
+
+
+
+
+Functions modified ( and new variables used [ local and non-local ] ):
+
+<g_ai.c>
+[ AI_SetSightClient ]	
+	player_husk
+
+[ FindTarget ]
+	client->classname, "husk", 4
+
+
+<g_chase.c>
+[ UpdateChaseCam ]
+	hostmode
+	ghostmode
+	host
+	possesed
+
+<g_cmds.c>
+[ ClientCommand ]
+	hostmode
+	ghostmode
+	host
+	nextPossessTime
+	player_husk
+	->[ SP_ClientHusk ]
+	possesed
+	->[ SetChaseTarget ]
+	
+<g_combat.c>
+[ T_Damage ]						problem here?
+	huskDamage
+	targ->classname, "husk", 4
+
+<g_monster.c>
+[ monster_start ]
+	possesed
+
+<p_client.c>
+[ GhostMuzzleTrace ]
+	trace_t tr;
+	vec3_t forward;	
+	vec3_t fromPos, toPos, targ;
+	edict_t *ignore;
+	float d = 0;
+	host_target
+	host
+	player_husk
+
+[ player_die ]
+	edict_t *husk = self->client->player_husk;
+	edict_t *host = self->client->host;
+	host
+	hostmode
+	ghostmode
+
+[ PutClientInServer ]
+	ghostmode	
+	hostmode
+	nextPossessTime
+	possesed
+	huskDamage
+	ent->touch = player_ghost_touch;
+
+[ player_ghost_touch ]	
+	int j;
+	edict_t *oldEnemy;
+	player_husk
+	ghostmode
+	hostmode
+	host
+
+[ host_target_touch ]
+	possesed
+	
+[ ghostmode_protocols ]	
+	trace_t tr;
+	float distance;	
+	gclient_t *client;
+	edict_t *other;
+	->[ GhostMuzzleTrace ]
+	host
+	possesed
+	ghostmode
+	hostmode
+	->[ SetChaseTarget ]
+
+[ hostmode_protocols ]	
+	trace_t		tr;
+	float		distance;	
+	vec3_t		ht_mins		= {-16, -16, -24};
+	vec3_t		ht_maxs		= {16, 16, 32};
+	int		savedEntNumber;
+	gclient_t	*client;
+	edict_t		*host, *target;
+	host
+	hostmode
+	ghostmode
+	nextPossessTime
+	->[ GhostMuzzleTrace ]
+	host_target
+
+[ husk_think ]		
+	vec3_t point;
+	int cont;
+	gclient_t *client;
+	edict_t *other;
+	husk->classname, "husk", 4
+	hostmode
+	huskBeginSearchTime
+	player_husk
+
+[ SP_ClientHusk ]
+	int savedEntNumber, j;
+	edict_t	*husk, *other;
+	player_husk
+	possesed
+	huskBeginSearchTime
+
+[ ClientThink ]		
+	ghostmode
+	nextPossessTime
+	->[ ghostmode_protocols ]
+	hostmode
+	->[ hostmode_protocols ]
+	player_husk
+	->[ husk_think ]
+
+	
+	
+	

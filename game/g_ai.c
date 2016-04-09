@@ -64,6 +64,7 @@ void AI_SetSightClient (void)
 		if (check > game.maxclients)
 			check = 1;
 		ent = &g_edicts[check];
+		//Com_Printf( "ENT ADDRESS: %i\tENT NUMBER: %i\tENT CLASSNAME: %s\n", ent, check, ent->classname );
 		if (ent->inuse
 			&& ent->health > 0
 			&& !(ent->flags & FL_NOTARGET) )
@@ -72,14 +73,18 @@ void AI_SetSightClient (void)
 			return;		// got one
 		} 
 //TMF7 BEGIN GHOST MODE 
-		else if ( ent->inuse && ent->health > 0 && ent->client->player_husk && 
-			ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) { 
+		else if ( ent->inuse 
+			&& ent->health > 0 
+			&& ent->client->player_husk 
+			&& ent->client->player_husk->classname 
+			&& !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) { 
 
 			//check if the client has an active husk
 			level.sight_client = ent->client->player_husk;
 			return;		// got one's husk
 		}
 //TMF7 END GHOST MODE
+
 		if (check == start)
 		{
 			level.sight_client = NULL;
@@ -492,7 +497,7 @@ qboolean FindTarget (edict_t *self)
 		if (client->owner->flags & FL_NOTARGET)
 			return false;								
 	}
-	else if ( client->classname && !Q_strncasecmp( client->classname, "husk", 4 ) ) 
+	else if ( client && client->classname && !Q_strncasecmp( client->classname, "husk", 4 ) )
 	{ /* TMF7 GHOST MODE placeholder to avoid default return statement */ }
 	else
 		return false;

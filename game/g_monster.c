@@ -597,7 +597,7 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 	void		(*sight)(edict_t *self, edict_t *other);
 	qboolean	(*checkattack)(edict_t *self);				//maybe not this if forcing a particular attack
 
-	*/
+	
 /////////////////////////////////////
 
 
@@ -608,7 +608,7 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 	}
 	M_CatagorizePosition (host);
 	M_WorldEffects (host);
-	M_SetEffects (host);
+	M_SetEffects (host);*/
 }
 
 //TMF7 END GHOST MODE

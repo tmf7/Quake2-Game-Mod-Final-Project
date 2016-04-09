@@ -391,7 +391,7 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 //TMF7 BEGIN GHOST MODE
 	
 	//pass husk damage along to the player itself
-	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) /*&& !targ->owner->deadflag*/ ) { 
+	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) ) { 
 		targ->owner->client->huskDamage = true;
 		T_Damage ( targ->owner, inflictor, attacker, dir, point, normal, damage, knockback, dflags, mod);
 		return;

@@ -42,6 +42,7 @@ void UpdateChaseCam(edict_t *ent)
 			ent->viewheight = 22;
 			ent->client->ps.pmove.pm_type = PM_NORMAL;	
 			ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+			//ent->velocity( 0 );	//try throwing the player to deal with weird wall-stick
 			gi.linkentity( ent );
 			return;
 		}
@@ -210,7 +211,7 @@ void GetChaseTarget(edict_t *ent)
 	gi.centerprintf(ent, "No other players to chase.");
 }
 
-//TMF7 BEGIN THIRD PERSON
+//TMF7 BEGIN GHOST MODE
 void SetChaseTarget( edict_t *self, edict_t *host )
 {
 	if ( !host ) { return; }
@@ -219,4 +220,4 @@ void SetChaseTarget( edict_t *self, edict_t *host )
 	self->client->update_chase = true;		//only checked in ctf project
 	UpdateChaseCam( self );
 }
-//TMF7 END THIRD PERSON
+//TMF7 END GHOST MODE

@@ -1,4 +1,4 @@
-﻿Build started 4/7/2016 7:33:26 AM.
+﻿Build started 4/8/2016 11:35:15 PM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -13,19 +13,19 @@
      1>p_client.c(230): warning C4100: 'self' : unreferenced formal parameter
      1>p_client.c(262): warning C4100: 'inflictor' : unreferenced formal parameter
      1>p_client.c(552): warning C4100: 'point' : unreferenced formal parameter
-     1>p_client.c(917): warning C4127: conditional expression is constant
-     1>p_client.c(1002): warning C4100: 'point' : unreferenced formal parameter
-     1>p_client.c(1002): warning C4100: 'attacker' : unreferenced formal parameter
-     1>p_client.c(1002): warning C4100: 'inflictor' : unreferenced formal parameter
-     1>p_client.c(1459): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-     1>p_client.c(1464): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(918): warning C4127: conditional expression is constant
+     1>p_client.c(1003): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(1003): warning C4100: 'attacker' : unreferenced formal parameter
+     1>p_client.c(1003): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(1460): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1465): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
-     1>p_client.c(1504): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1505): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
-     1>p_client.c(1655): warning C4100: 'surf' : unreferenced formal parameter
-     1>p_client.c(1655): warning C4100: 'plane' : unreferenced formal parameter
-     1>p_client.c(1724): warning C4100: 'surf' : unreferenced formal parameter
-     1>p_client.c(1724): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1656): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1656): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1730): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1730): warning C4100: 'plane' : unreferenced formal parameter
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(game) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
@@ -88,4 +88,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.44
+Time Elapsed 00:00:00.45

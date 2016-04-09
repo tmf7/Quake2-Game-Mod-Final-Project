@@ -71,7 +71,7 @@ void PlayerNoise(edict_t *who, vec3_t where, int type)
 	if (deathmatch->value)
 		return;
 
-	if (who->flags & FL_NOTARGET)
+	if (who->flags & FL_NOTARGET)	
 		return;
 
 
@@ -822,7 +822,7 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	if (is_quad)
 		damage *= 4;
 	AngleVectors (ent->client->v_angle, forward, right, NULL);				//TMF7 sets the launch angles based on playerview angles
-	VectorSet(offset, 24, 8, ent->viewheight-8);							//TMF7 regualar offset based on player/gun dimensions					
+	VectorSet(offset, 24, 8, ent->viewheight-8);							//TMF7 regular offset based on player/gun dimensions					
 	VectorAdd (offset, g_offset, offset);	
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);	//TMF7 sets the muzzle firing POSITION
 

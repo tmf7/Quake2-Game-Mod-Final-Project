@@ -6,7 +6,7 @@ CHANGES:
 
 -> Ghostmode enable spawns an animated player husk that transfers damage to the player
 	--> Animations include standing around and responding to pain the player
-	--> If the husk dies, the player returns to the husk to die with it
+	--> If the husk dies, the player returns to the husk to die with it ( regardless of whether the player has a host )
 	--> All monsters attacking the player now attack the husk instead
 	--> Monsters can independently discover and attack the husk
 	--> The husk can drown the player if left underwater ( and be damaged by lava/slime )
