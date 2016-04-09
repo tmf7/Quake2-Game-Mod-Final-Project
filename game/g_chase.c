@@ -42,7 +42,11 @@ void UpdateChaseCam(edict_t *ent)
 			ent->viewheight = 22;
 			ent->client->ps.pmove.pm_type = PM_NORMAL;	
 			ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-			//ent->velocity( 0 );	//try throwing the player to deal with weird wall-stick
+
+			if ( ent->client->host_target ) { G_FreeEdict( ent->client->host_target ); }
+			
+			//do something here to avoid clipping into walls and getting stuck*********
+
 			gi.linkentity( ent );
 			return;
 		}

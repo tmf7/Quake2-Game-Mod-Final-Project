@@ -2264,21 +2264,24 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 		gi.linkentity (ent);
 
-		if (ent->movetype != MOVETYPE_NOCLIP)
-			G_TouchTriggers (ent);
+		if ( !client->ghostmode && !client->hostmode ) {		//TMF7 GHOST MODE ( prevent level changes and item pickups )
 
-		// touch other objects
-		for (i=0 ; i<pm.numtouch ; i++)
-		{
-			other = pm.touchents[i];
-			for (j=0 ; j<i ; j++)
-				if (pm.touchents[j] == other)
-					break;
-			if (j != i)
-				continue;	// duplicated
-			if (!other->touch)
-				continue;
-			other->touch (other, ent, NULL, NULL);
+			if (ent->movetype != MOVETYPE_NOCLIP)
+				G_TouchTriggers (ent);
+
+			// touch other objects 
+			for (i=0 ; i<pm.numtouch ; i++)
+			{
+				other = pm.touchents[i];
+				for (j=0 ; j<i ; j++)
+					if (pm.touchents[j] == other)
+						break;
+				if (j != i)
+					continue;	// duplicated
+				if (!other->touch)
+					continue;
+				other->touch (other, ent, NULL, NULL);
+			}
 		}
 	}
 
