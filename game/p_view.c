@@ -1071,7 +1071,8 @@ void ClientEndServerFrame (edict_t *ent)
 
 	G_SetClientSound (ent);
 
-	G_SetClientFrame (ent);
+	G_SetClientFrame (ent);									//TMF7 vanilla: this sets the animation frame of the player
+															//T_Damage does that too for pain interrupts
 
 	VectorCopy (ent->velocity, ent->client->oldvelocity);
 	VectorCopy (ent->client->ps.viewangles, ent->client->oldviewangles);

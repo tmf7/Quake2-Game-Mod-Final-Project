@@ -1237,9 +1237,9 @@ Pmove
 Can be called by either the server or the client
 ================
 */
-void Pmove (pmove_t *pmove)
-{
-	pm = pmove;
+void Pmove (pmove_t *pmove)			//TMF7 GHOST MODE ( start here 4/9/2016, how are ucmd used )
+{									// the origin, velocity, angles, and controls are copied into this
+	pm = pmove;						// then it produces a new set of data based on ucmd and global speed values
 
 	// clear results
 	pm->numtouch = 0;
@@ -1266,7 +1266,7 @@ void Pmove (pmove_t *pmove)
 
 	pml.frametime = pm->cmd.msec * 0.001;
 
-	PM_ClampAngles ();
+	PM_ClampAngles ();									//TMF7 monster yaw ( and view tilt ), good
 
 	if (pm->s.pm_type == PM_SPECTATOR)
 	{
@@ -1286,7 +1286,12 @@ void Pmove (pmove_t *pmove)
 		return;		// no movement at all
 
 	// set mins, maxs, and viewheight
-	PM_CheckDuck ();
+	PM_CheckDuck ();									//TMF7 hardcoded to the player's size ( frown )
+														// write a new Pmove that takes mins, maxs
+														// write a new PM_CheckDuck that deals with NON-HARDCODED mins/maxs
+														// iff the monster has a monsterinfo.dodge function ( an thus animinations )
+														// ...maybe not...because (eg) the soldier will randomly fire...ugh
+														// I'd have to verify every monster's currentmove arrays....and tweak 'em
 
 	if (pm->snapinitial)
 		PM_InitialSnapPosition ();

@@ -2020,7 +2020,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	VectorCopy ( self->s.origin, husk->s.origin );
 	VectorCopy ( husk->s.origin, husk->s.old_origin );
 	
-	husk->takedamage	= DAMAGE_AIM;					//forwards all T_Damage calls to the player
+	husk->takedamage	= DAMAGE_AIM;						//forwards all T_Damage calls to the player
 	husk->health		= self->health;
 	husk->deadflag		= self->deadflag;
 
@@ -2051,18 +2051,13 @@ void SP_ClientHusk ( edict_t *self ) {
 
 		if ( other->enemy == self ) { 
 
-			if ( other->svflags & SVF_MONSTER ) {
-				other->monsterinfo.aiflags = 0;
-				//other->monsterinfo.aiflags &= ~AI_LOST_SIGHT; 
-			}
+			if ( other->svflags & SVF_MONSTER ) { other->monsterinfo.aiflags = 0; }
+
 			other->goalentity	= 
 			other->movetarget	= 
 			other->enemy		= 
 			other->oldenemy		= husk;
-			//other->goalentity = other->movetarget = other->enemy = husk;
 		}
-		//BUG: if an enemy has lost sight, and is therefore following the player trail, then they still attack the playertral lastsight
-		//not the husk (so their aim is off but in the general direction of the player)
 	}
 
 	husk->s.frame		= FRAME_stand01;					// idle animation
@@ -2140,8 +2135,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	pm_passent = ent;
 
 //TMF7 BEGIN GHOST MODE 
-	//TMF7 BEGIN GHOST MODE		(the placement of these three needs to be above the normal pm stuff it looks like)
-	//							(otherwise game crashes when host dies on its own)
+	//TMF7 BEGIN GHOST MODE		(the placement of these two(?) needs to be above the normal pm stuff it looks like)
+	//							(otherwise game crashes when **host dies on its own**)
 
 	if ( client->ghostmode && level.time > client->nextPossessTime )	{ ghostmode_protocols( ent ); }
 	

@@ -448,6 +448,21 @@ typedef struct
 } monsterinfo_t;
 
 
+//TMF7 BEGIN GHOST MODE
+typedef struct
+{
+	char		*move_name;
+	//mmove_t		*hmove;
+	void		(*hmove)(edict_t *self);
+} hmove_t;
+
+typedef struct
+{
+	char		*host_name;
+	hmove_t		*host_moves;
+} host_t;
+//TMF7 END GHOST MODE
+
 
 extern	game_locals_t	game;
 extern	level_locals_t	level;
@@ -1126,6 +1141,7 @@ struct edict_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		possesed;
 	float			huskBeginSearchTime;
+	hmove_t			*hmoves;				//UNDEFINED?
 	void			(*possesed_think)(edict_t *host, usercmd_t *cmd, const int * const buttons);
 //TMF7 END GHOST MODE
 };

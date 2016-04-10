@@ -1,0 +1,89 @@
+Monster Working Framework:
+
+<g_ai.c> has all the support functions for run, walk, findtarget, checkattack, range, action interrupts
+_______________________________________________
+These are set in each monster ( which usually set currentmove to a mmove_t set of frames, function array [which has g_ai.c calls], and endfunc ):
+
+void		(*stand)(edict_t *self);
+void		(*idle)(edict_t *self);
+void		(*search)(edict_t *self);				//maybe not this
+void		(*walk)(edict_t *self);
+void		(*run)(edict_t *self);
+void		(*dodge)(edict_t *self, edict_t *other, float eta);	//duck equivalent, but not all dodges are pure
+void		(*attack)(edict_t *self);
+void		(*melee)(edict_t *self);
+void		(*sight)(edict_t *self, edict_t *other);		//maybe not this
+qboolean	(*checkattack)(edict_t *self);				//maybe not this if forcing a particular attack
+________________________________________________
+
+<m_monster.c> has all the support functions for attacks, think ( M_MoveFrame processes the current aifunc and thinkfunc ), basic spawn info
+
+<m_move.c> has all the support functions for translating origin and yaw
+
+<m_infantry.c> has all the specific frame setups and behavior sequences ( monsterinfo.currentmove access )
+
+
+
+Options:
+
+1- Set the enemy/goalentity then call ent->monsterinfo.run ( baulur's gate style ) ( currently done, but limited control on movement and attack )
+
+2- Generate an off-origin entity based on a pmove then do the same as (1)
+
+3- Write a new function to utilze a pmove point instead of an entity then do the same as (1)
+
+	--> (3 and 4 ) the support weapon_fire function will naturally come from the monsterinfo.attack, but may have unintended actions/animations as-is
+
+4- #include all monster-specific headers ( frame #defines ) and set the animation like the player ( after checking host classname )
+	--> make a big-ass class that operates off host-origin pmove ( like the player )
+	--> whatever the forwardmove, sidemove, upmove produces in terms of velocity & origin, clamp it to the ai_func dist ( low|high )???
+	--> pass all the pmove results to the host, not the player (the player does its own pmove results...or not really because its a husk)
+
+5- ???
+
+
+
+Include:
+
+-> clear all the aiflags, put possesed check in the relevant <g_ai.c> and/or <m_monster.c> functions THEN do DIFFERENT checks there
+
+-> set the host's OWNER to the player ( they wont do any collision handling ) *********EASY TEST THIS*******
+
+-> New think function ( monster_think_possesed ( pmove, ucmd???, latched buttons???, player??? ) called each ClientThink
+
+	-->if SHIFT then run, not then walk, if nothing stand
+	-->if button_attack then attack along the v_angles using current weapon
+	-->if keybind switch weapons based on monster class
+	-->if jump ??? write a new (no animation) jump function in <g_ai.c> ???
+	-->death ( and pain ) processing the same ( fire targets, do normal currentmove, etc )
+	-->drowning? lava/slime? <g_monster.c>
+
+-> make the host take/release noise monster specific ( and the player soul sound specific )
+
+-> relink both the player and the host
+
+
+
+TODO:
+
+learn how Pmove uses the ucmd to produce a new point/velocity/position info -> pmove is non-player specific EXCEPT for the bounding box CheckDuck
+
+learn how the player sets the frame sequence, and decides which frame is next -> <p_view.c> G_SetClientFrame (ent); based on anim_priority ( if not interr. by pain )
+
+
+____________________________________________________
+Plan asof 2am:
+
+--> I want to set the currentmove exactly
+--> then override/not-resolve the aifunc (but still do all the thinkfunc) in M_MoveFrame
+
+--> I'd have to make a class that forward-declares ALL the possible currentmove functions
+--> Then figure out all the relevant aifuncs called in those moves and override them (ie pass on to MY function)
+
+--> Group all the forward declarations according to monster
+--> Then somehow set the available currentmoves according to monster classname .... a "movelist"
+
+--> BUG: there may be a syncronization issue ( null/empty pointer useage ) when transferring for death/pain
+
+		//ALSO: do not process the mmove_t endfunc ( or at least verify and/or override )
+	

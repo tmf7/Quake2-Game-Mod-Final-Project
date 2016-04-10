@@ -45,7 +45,9 @@ void UpdateChaseCam(edict_t *ent)
 
 			if ( ent->client->host_target ) { G_FreeEdict( ent->client->host_target ); }
 			
-			//do something here to avoid clipping into walls and getting stuck*********
+			// do something here to avoid clipping into walls and getting stuck*********
+			// may not be an issue after proper chasecam 
+			// and host->owner = player; with origin matching + no model
 
 			gi.linkentity( ent );
 			return;

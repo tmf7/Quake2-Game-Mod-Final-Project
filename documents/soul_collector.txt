@@ -1,26 +1,17 @@
 TODO:
 
-->create a new branch
+->better host controls
+
+->player can only pickup dropped dead enemy souls
 
 ->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
 ->test to see how the third person chasecam affects possesed monsters (will they turn/animate properly when player simply looks around? set their yaw only)
 
-->prevent ai decision points if possesed flag is set if ( !possesed ){}
-
-->make the monster_possesed_think generate an untouchable/invisible point for the host to go to (potentially the player, follow the leader style)
-	-->if SHIFT then run, not then walk, if nothing stand
-	-->if button_attack then attack along the v_angles using current weapon
-	-->if keybind switch weapons based on monster class
-	-->if jump ??? write a new (no animation) jump function in <g_ai.c> ???
-	-->possibly make a bigass class that groups all the monster animations I want to use into certain arrays (pain in the ass too, but maybe more accurate)
 ___________________________________________________________
 TESTING:
 
 husk holds a weapon (ideally that looks like the players current weapon)...meh (stuck on super shotgun)
-
-
-player cannot pickup items while husk is active ( ->touch function? triggers/doors, items ) ( except enemy souls??? )
 
 
 BUG: idle animation -->too fast
@@ -52,4 +43,4 @@ ______________________________________________
 
 EXTRA:
 
-->if the leader is the player, continue to handle touch and allow host persistance between levels???
+->allow host persistance between levels ( free and reset the husk near the new player spawn point, OR obliterate the host and "teleport" the "husk" to that origin )
