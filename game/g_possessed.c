@@ -29,6 +29,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // NOTE: "#include" a xyz.c by forward declaring the needed function in <g_local.h> then including <g_local.h> in whatever
 // EG: everything that currently includes <g_local.h> has access to ClientEndServerFrame ( ent );
 
+char *take_host_noise;
+char *drop_host_noise;
+
+//*************
+//   SOLDIER
+//*************
 
 hmove_t soldier_li[] =
 {
@@ -136,7 +142,24 @@ host_t hosts[] =
 	{ NULL,						NULL		}
 };
 
-void SP_Host_Target ( edict_t *host, vec3_t origin );
+void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type );
+void SP_Host_Target( edict_t *host, vec3_t origin, qboolean show);
+
+void set_host_move ( edict_t *host, char *selected_move ) {
+
+	hmove_t		*m;
+
+	for ( m = host->hmove_list; m->move_name; m++ )
+	{
+		if ( !strcmp( m->move_name, selected_move ) )
+		{	
+			// found it, set the monsterinfo.currentmove
+			m->hmove( host );	//don't resolve the ai_func or endfunc
+			return;
+		}
+	}
+	gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
+}
 
 void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons )
 { 
@@ -154,7 +177,19 @@ void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd,
 		return; 
 	}
 
-	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { /*put the pmove stuff here*/ }
+	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { 
+
+		// test-run
+		// need to set the enemy to give it a point to fire at => trusty host_target
+		// host fidgets in place if aifunc or endfunc cant resolve ( double check this )
+		if ( *buttons & BUTTON_ATTACK ) { // works, host defaults to last move, host stops if target is too close ( as expected )
+
+			tr = GhostMuzzleTrace( self );	
+			set_host_target( host, &tr, false, UBER_ATTACK );
+			set_host_move ( host, "attack3" ); 
+		} 
+		//else { set_host_move ( host, "stand1" ); }	//set every ClientThink => doesn't give time to resolve all frames
+	}
 	else {
 
 		//RODEO HOST CONTROLS
@@ -168,30 +203,14 @@ void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd,
 				if ( tr.ent && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
 				
 					gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
+					set_host_target( host, &tr, false, RODEO_ENEMY );
 
-					host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr.ent;
-					host->target_ent = NULL;
-
-					host->monsterinfo.aiflags = 0; 
-
+					// get rid of the benign target edict
 					if ( target ) { G_FreeEdict( host->host_target ); }
 
 				} else { 
 					gi.centerprintf( self, "INTO THE LIGHT!" ); 
-				
-					// move/spawn somthing for the host to chase
-					if ( target && !Q_strcasecmp( target->classname, "host_target" ) ) {
-
-						VectorCopy ( tr.endpos, target->s.origin );
-						gi.linkentity ( target );
-
-					} else { SP_Host_Target( host, tr.endpos ); }
-
-					host->goalentity = host->movetarget = target;
-					host->target_ent = host->enemy = host->oldenemy = NULL;	
-
-					host->monsterinfo.aiflags = 0;
-					host->monsterinfo.aiflags = AI_COMBAT_POINT;
+					set_host_target( host, &tr, true, RODEO_BENIGN );
 				}
 
 				//only call this once per player click
@@ -350,6 +369,9 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 			foundit = true;
 			if ( self->client->soul_abilities & UBERHOST ) { host->hmove_list = h->host_moves; }
 			else { host->hmove_list = NULL; }	// Rodeo host controls
+			
+			take_host_noise = h->takeNoise;
+			drop_host_noise = h->dropNoise;
 		}
 	}
 
@@ -364,13 +386,14 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	}
 
 	//make this monster-specific
-	//gi.sound ( self, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+	gi.sound ( host, CHAN_VOICE, gi.soundindex (take_host_noise), 1, ATTN_NORM, 0);		//potential crash issue if NULL?
 
-	self->client->host = host;
-	host->possesed = true;
-	//host->owner = self;				// to prevent clipping
+	self->client->host		= host;
+	host->possesed			= true;
+	host->old_owner			= host->owner;				// potentially null
+	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
-	self->client->hostmode = true;
+	self->client->hostmode	= true;
 
 	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped?
 				
@@ -388,7 +411,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 void DropHost ( edict_t *self, int drop_style ) 
 {
 	//make monster-specific
-	//gi.sound ( self, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( drop_host_noise ), 1, ATTN_NORM, 0);	//potential crash issue if NULL?
 
 	switch ( drop_style ) {
 
@@ -398,11 +421,6 @@ void DropHost ( edict_t *self, int drop_style )
 
 			// nail it ( courtesy of KillBox )
 			T_Damage ( self->client->host, self, self, vec3_origin, self->s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
-
-			// original:
-			//host->health = -100;		//ensures a gib on most things
-			//host->die ( host, NULL, NULL, 100, vec3_origin );
-
 			gi.centerprintf( self, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
 			break; 
 		}
@@ -412,10 +430,12 @@ void DropHost ( edict_t *self, int drop_style )
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
 
-	self->client->host = NULL;
-	self->client->hostmode = false;
-	self->client->ghostmode = true;
-	self->client->nextPossessTime = level.time + 3.0f;
+	self->client->host->possesed		= false;
+	self->client->host->owner			= self->client->host->old_owner;	// potentially null
+	self->client->host					= NULL;
+	self->client->hostmode				= false;
+	self->client->ghostmode				= true;
+	self->client->nextPossessTime		= level.time + 3.0f;
 }
 
 void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
@@ -444,7 +464,52 @@ void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface
 	return;
 }
 
-void SP_Host_Target ( edict_t *host, vec3_t origin ) {
+// USE CASES:
+// 1) Rodeo controls spawn/move a ball of light to chase						( covered )
+// 2) Rodeo controls set a monster to a direct-enemy							( covered )
+// 3) Uberhost controls attack the clicked point ( similar to player attacks )	(  )
+// 4) Uberhost controls move to a specified origin								(  )
+void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type ) {
+
+	// move/spawn somthing for the host to chase/attack
+	if ( host->host_target && !Q_strcasecmp( host->host_target->classname, "host_target" ) ) {
+
+		VectorCopy ( tr->endpos, host->host_target->s.origin );
+		gi.linkentity ( host->host_target );
+
+	} else { SP_Host_Target( host, tr->endpos, show ); }
+
+	host->monsterinfo.aiflags = 0;
+
+	switch ( control_type ) {
+
+		case RODEO_BENIGN: {
+			host->goalentity = host->movetarget = host->host_target;
+			host->target_ent = host->enemy = host->oldenemy = NULL;	
+			host->monsterinfo.aiflags = AI_COMBAT_POINT;
+			break;
+		}
+
+		case RODEO_ENEMY: {
+			host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr->ent;
+			host->target_ent = NULL;
+			break;
+		}
+
+		case UBER_ATTACK: {
+			host->oldenemy = host->enemy = host->host_target;
+			host->goalentity = 	host->movetarget = host->target_ent = NULL;
+			break;
+		}
+
+		case UBER_MOVE: {
+
+			break;
+		}
+	}
+}
+
+void SP_Host_Target ( edict_t *host, vec3_t origin, qboolean show ) {
 	
 	vec3_t		ht_mins		= {-16, -16, -24};
 	vec3_t		ht_maxs		= {16, 16, 32};
@@ -468,7 +533,7 @@ void SP_Host_Target ( edict_t *host, vec3_t origin ) {
 	VectorCopy( ht_mins, targ->mins );
 	VectorCopy( ht_maxs, targ->maxs );
 
-	targ->s.modelindex	= gi.modelindex ("sprites/s_bfg1.sp2");
+	if ( show ) { targ->s.modelindex	= gi.modelindex ("sprites/s_bfg1.sp2"); }
 	
 	targ->solid			= SOLID_TRIGGER;
 	targ->clipmask		= (CONTENTS_PLAYERCLIP|CONTENTS_MONSTERCLIP|CONTENTS_TRANSLUCENT);
@@ -477,8 +542,8 @@ void SP_Host_Target ( edict_t *host, vec3_t origin ) {
 	targ->flags		   |= FL_NO_KNOCKBACK;
 	targ->takedamage	= DAMAGE_NO;
 	targ->movetype		= MOVETYPE_NONE;
-	targ->touch			= host_target_touch;
-	//targ->owner		= self;					//not necessary
+	targ->touch			= host_target_touch;			// change this depending on UBERHOST status???
+	//targ->owner		= host->owner;					// not necessary
 	targ->classname		= "host_target";
 	
 	gi.linkentity( targ );

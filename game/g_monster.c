@@ -375,7 +375,9 @@ void M_MoveFrame (edict_t *self)
 	{
 		if (self->s.frame == move->lastframe)
 		{
-			if (move->endfunc)
+			//TMF7 GHOST MODE ( host override conditions )
+			if (move->endfunc 
+				/*&& !( self->owner && self->owner->client && !(self->owner->client->soul_abilities & UBERHOST) ) */ )
 			{
 				move->endfunc (self);
 
@@ -405,11 +407,16 @@ void M_MoveFrame (edict_t *self)
 	}
 
 	index = self->s.frame - move->firstframe;
-	if (move->frame[index].aifunc)
+
+	//TMF7 GHOST MODE ( host override conditions )
+	if (move->frame[index].aifunc 
+		/*&& !( self->owner && self->owner->client && !(self->owner->client->soul_abilities & UBERHOST) ) */) {
+
 		if (!(self->monsterinfo.aiflags & AI_HOLD_FRAME))
 			move->frame[index].aifunc (self, move->frame[index].dist * self->monsterinfo.scale);
 		else
 			move->frame[index].aifunc (self, 0);
+	}
 
 	if (move->frame[index].thinkfunc)
 		move->frame[index].thinkfunc (self);

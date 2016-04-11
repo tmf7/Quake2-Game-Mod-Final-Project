@@ -1252,7 +1252,7 @@ void PutClientInServer (edict_t *ent)
 //TMF7 BEGIN GHOST MODE (unsaved)
 	client->ghostmode = false;	
 	client->hostmode = false;
-	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION);		//starting ability set
+	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST);		//starting ability set
 	client->nextPossessTime = 0;
 	ent->possesed = false;
 	client->huskDamage = false;

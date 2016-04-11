@@ -898,6 +898,80 @@ void Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
+//TMF7 BEGIN GHOST MODE
+
+// 'f' is bound to ghost mode toggle ( husk spawn ), and host obliteration
+void Cmd_Ghost_f( edict_t *ent ) {
+
+	if ( !( ent->client->hostmode ) ) {
+		ent->client->ghostmode = !ent->client->ghostmode;
+
+	} else if ( ent->client->hostmode ) { DropHost( ent, HOST_KILL ); }		
+		
+	//clear out the husk if not in either mode
+	if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
+		&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) 
+		&& ent->husktouch ) {
+		ent->husktouch( ent, ent->client->player_husk );
+	}
+
+	if ( ent->client->ghostmode && ( !ent->client->player_husk 
+		|| ( ent->client->player_husk->classname && Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) ) ) 
+	{ SP_ClientHusk ( ent ); }
+
+	gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
+}
+
+// 'r' is bound to radial host-take and host drop
+void Cmd_Inhabit_f( edict_t *ent ) {
+
+	edict_t *other;
+
+	if ( ent->client->ghostmode ) { 
+
+		if ( ent->client->soul_abilities & RADIAL_POSSESSION ) { 
+
+			if ( level.time >= ent->client->nextPossessTime ) {
+
+				//find the first monster in range
+				other = NULL;
+				while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
+
+					if ( other == ent )
+					{ continue; }
+
+					if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+					{ continue; }
+
+					if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
+				}
+
+				if ( other ) { TakeHost( ent, other, HOST_RADIAL ); } 
+				else { gi.centerprintf ( ent, "NO HOSTS IN RANGE\n" ); }
+
+			} else { gi.centerprintf ( ent, "POSSESSION RECHARGHING" );  }
+		}
+	} else if ( ent->client->hostmode ) { DropHost( ent, HOST_NO_HARM ); }
+
+	gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
+}
+
+void Cmd_Uberhost_f (edict_t *ent) {
+
+	//definite crash...maybe
+	char	*msg;
+
+	ent->client->soul_abilities ^= UBERHOST;
+	if (!(ent->client->soul_abilities & UBERHOST) )
+		msg = "uberhost OFF\n";
+	else
+		msg = "uberhost ON\n";
+
+	gi.cprintf (ent, PRINT_HIGH, msg);
+}
+
+//TMF7 END GHOST MODE
+
 
 /*
 =================
@@ -938,67 +1012,6 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
-//TMF7 BEGIN GHOST MODE
-
-	// 'f' is bound to ghost mode toggle
-	if ( Q_stricmp(cmd, "ghost") == 0 )
-	{
-		if ( !( ent->client->hostmode ) ) {
-			ent->client->ghostmode = !ent->client->ghostmode;
-
-		} else if ( ent->client->hostmode ) { DropHost( ent, HOST_KILL ); }		
-		
-		//clear out the husk if not in either mode
-		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
-			&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) 
-			&& ent->husktouch ) {
-			ent->husktouch( ent, ent->client->player_husk );
-		}
-
-		if ( ent->client->ghostmode && ( !ent->client->player_husk 
-			|| ( ent->client->player_husk->classname && Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) ) ) 
-		{ SP_ClientHusk ( ent ); }
-
-		gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
-
-		return;
-	}
-
-	if ( Q_stricmp(cmd, "inhabit") == 0 ) {
-		edict_t *other;
-
-		if ( ent->client->ghostmode ) { 
-
-			if ( ent->client->soul_abilities & RADIAL_POSSESSION ) { 
-
-				if ( level.time >= ent->client->nextPossessTime ) {
-
-					//find the first monster in range
-					other = NULL;
-					while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
-
-						if ( other == ent )
-						{ continue; }
-
-						if ( !(other->svflags & SVF_MONSTER) || (other->client) )
-						{ continue; }
-
-						if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
-					}
-
-					if ( other ) { TakeHost( ent, other, HOST_RADIAL ); } 
-					else { gi.centerprintf ( ent, "NO HOSTS IN RANGE\n" ); }
-
-				} else { gi.centerprintf ( ent, "POSSESSION RECHARGHING" );  }
-			}
-		} else if ( ent->client->hostmode ) { DropHost( ent, HOST_NO_HARM ); }
-
-		gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
-
-		return;
-	}
-//TMF7 END GHOST MODE
-
 
 	if (level.intermissiontime)
 		return;
@@ -1047,6 +1060,14 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+//TMF7 BEGIN GHOST MODE
+	else if ( Q_stricmp(cmd, "uberhost") == 0 )
+		Cmd_Uberhost_f( ent );
+	else if ( Q_stricmp(cmd, "ghost") == 0 )
+		Cmd_Ghost_f( ent );
+	else if ( Q_stricmp(cmd, "inhabit") == 0 )	
+		Cmd_Inhabit_f( ent );
+//TMF7 END GHOST MODE
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

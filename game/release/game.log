@@ -1,13 +1,13 @@
-﻿Build started 4/11/2016 2:25:15 AM.
+﻿Build started 4/11/2016 6:23:26 AM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt g_possessed.c
          g_possessed.c
-     1>g_possessed.c(141): warning C4100: 'cmd' : unreferenced formal parameter
-     1>g_possessed.c(421): warning C4100: 'surf' : unreferenced formal parameter
-     1>g_possessed.c(421): warning C4100: 'plane' : unreferenced formal parameter
+     1>g_possessed.c(164): warning C4100: 'cmd' : unreferenced formal parameter
+     1>g_possessed.c(441): warning C4100: 'surf' : unreferenced formal parameter
+     1>g_possessed.c(441): warning C4100: 'plane' : unreferenced formal parameter
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(game) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
@@ -71,4 +71,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.46
+Time Elapsed 00:00:00.36

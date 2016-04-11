@@ -613,6 +613,13 @@ enum drop_host_style {
 	HOST_DEATH
 };
 
+enum host_control_type {
+	RODEO_BENIGN,			// move to a point
+	RODEO_ENEMY,			// attack a monster
+	UBER_ATTACK,			// perform attack
+	UBER_MOVE				// perform a movement
+};
+
 //unlockable abilities
 enum soul_collector {
 	TARGETED_POSSESSION = 0x00000001,
@@ -1179,7 +1186,8 @@ struct edict_s
 	qboolean		possesed;
 	float			huskBeginSearchTime;
 	hmove_t			*hmove_list;
-	edict_t			*host_target;		//the rodeo movement goal of a possesed host
+	edict_t			*host_target;		// the movement/attack goal of a possesed host
+	edict_t			*old_owner;			// in case the host had a prior owner
 	void			(*possesed_think)( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons);
 	void			(*husktouch)(edict_t *self, edict_t *husk );
 //TMF7 END GHOST MODE
