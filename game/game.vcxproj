@@ -461,6 +461,7 @@
   <ItemGroup>
     <ClInclude Include="g_local.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="g_possessed.h" />
     <ClInclude Include="m_actor.h" />
     <ClInclude Include="m_berserk.h" />
     <ClInclude Include="m_boss2.h" />

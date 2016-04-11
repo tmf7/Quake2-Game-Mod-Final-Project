@@ -86,4 +86,9 @@ Plan asof 2am:
 --> BUG: there may be a syncronization issue ( null/empty pointer useage ) when transferring for death/pain
 
 		//ALSO: do not process the mmove_t endfunc ( or at least verify and/or override )
+
+
+TODO:
+-> add a centerprintf for possession cooldown ( only for targeted and radial triggers )
+-> have rodeo controls check if fly | swim | walk
 	

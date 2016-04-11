@@ -20,9 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
-void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const buttons);		//TMF7 GHOST MODE
-void player_ghost_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);	//TMF7 GHOST MODE
-
 void ClientUserinfoChanged (edict_t *ent, char *userinfo);
 
 void SP_misc_teleporter_dest (edict_t *ent);
@@ -179,13 +176,13 @@ void SP_info_player_intermission(void)
 //=======================================================================
 
 //TMF7 BEGIN GHOST MODE
-trace_t GhostMuzzleTrace ( edict_t *ent , float *dist) {
+trace_t GhostMuzzleTrace ( edict_t *ent ) {
 
 	trace_t tr;
 	vec3_t forward;	
 	vec3_t fromPos, toPos, targ;
 	edict_t *ignore;
-	float d = 0;
+//	float d = 0;
 
 	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
 	AngleVectors( ent->client->v_angle, forward, NULL, NULL );
@@ -201,14 +198,14 @@ trace_t GhostMuzzleTrace ( edict_t *ent , float *dist) {
 			
 	// continue the trace if this hits the host, host_target, or player_husk
 	while ( tr.fraction < 1.0f && tr.ent  
-		&& ( ( ent->client->host_target		&& tr.ent == ent->client->host_target )
-		||   ( ent->client->host			&& tr.ent == ent->client->host )
-		||   ( ent->client->player_husk		&& tr.ent == ent->client->player_husk ) ) ) {
+		&& ( ( ent->client->host && ent->client->host->host_target && tr.ent == ent->client->host->host_target )
+		||   ( ent->client->host					&& tr.ent == ent->client->host )
+		||   ( ent->client->player_husk				&& tr.ent == ent->client->player_husk ) ) ) {
 
-		if ( dist ) { 
-			VectorSubtract( tr.endpos, fromPos, targ );
-			d += VectorLength( targ ); 
-		}
+//		if ( dist ) { 
+//			VectorSubtract( tr.endpos, fromPos, targ );
+//			d += VectorLength( targ ); 
+//		}
 
 		VectorCopy( tr.endpos, fromPos );
 		ignore = tr.ent;
@@ -217,11 +214,11 @@ trace_t GhostMuzzleTrace ( edict_t *ent , float *dist) {
 	}
 
 
-	if ( tr.fraction < 1.0f && dist ) { 
-		VectorSubtract( tr.endpos, fromPos, targ );
-		*dist = d + VectorLength( targ );
-
-	} else if ( dist ) { *dist = 99999; }
+//	if ( tr.fraction < 1.0f && dist ) { 
+//		VectorSubtract( tr.endpos, fromPos, targ );
+//		*dist = d + VectorLength( targ );
+//
+//	} else if ( dist ) { *dist = 99999; }
 
 	return tr;
 }
@@ -569,8 +566,8 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	self->client->ghostmode = false;
 
 	//pull back to the husk
-	if ( husk && husk->classname && !Q_strncasecmp( husk->classname, "husk", 4 ) && self->touch ) {
-		self->touch( self, husk, NULL, NULL ); 
+	if ( husk && husk->classname && !Q_strncasecmp( husk->classname, "husk", 4 ) && self->husktouch ) {
+		self->husktouch( self, husk ); 
 	}
 //TMF7 END GHOST MODE
 
@@ -1255,10 +1252,11 @@ void PutClientInServer (edict_t *ent)
 //TMF7 BEGIN GHOST MODE (unsaved)
 	client->ghostmode = false;	
 	client->hostmode = false;
+	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION);		//starting ability set
 	client->nextPossessTime = 0;
 	ent->possesed = false;
 	client->huskDamage = false;
-	ent->touch = player_ghost_touch;
+	ent->husktouch = player_husk_touch;
 //TMF7 END GHOST MODE (unsaved)
 
 	VectorCopy (mins, ent->mins);
@@ -1653,7 +1651,7 @@ void PrintPmove (pmove_t *pm)
 //	TMF7 BEGIN GHOST MODE
 //*************************
 
-void player_ghost_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
+void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
 	int j;
 	edict_t *oldEnemy;
@@ -1708,48 +1706,7 @@ void player_ghost_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfa
 		self->client->newweapon = self->client->pers.lastweapon;		//pickup the prev weapon
 		ChangeWeapon (self);
 		
-	} else if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) {
-
-		//touch possession
-		self->client->host = other;
-		self->client->host->possesed = true;
-
-		//transferring to host mode protocols
-		self->client->ghostmode = false;
-		self->client->hostmode = true;
-
-		gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
-
-		gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", self->client->host->classname );
-
-		//develop a proper chasecam
-		SetChaseTarget( self, self->client->host );	//TMF7 THIRD PERSON 
 	} 
-}
-
-void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
-
-	if ( self && other && other->possesed ) {
-
-		Com_Printf( "STOP MOVING HOST!\n" );
-
-		if ( other->monsterinfo.stand ) {
-
-			other->monsterinfo.aiflags = 0;
-			other->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
-
-			other->goalentity = 
-			other->movetarget = 
-			other->target_ent = 
-			other->oldenemy =
-			other->enemy = NULL;
-
-			other->monsterinfo.stand( other ); 
-		} 
-		G_FreeEdict ( self );
-	}
-
-	return;
 }
 
 void ghostmode_protocols ( edict_t *self ) {
@@ -1766,158 +1723,44 @@ void ghostmode_protocols ( edict_t *self ) {
 	//game.clients->damage_alpha;
 	//game.clients->damage_blend;
 	//SV_AddBlend (1.0, 0.3, 0.0, 0.6, self->client->ps.blend);
+	//BE SURE TO CLEAR IT WHEN ghostmode == false;
 
-	//targeted possesion ( touch possesion in player_ghost_touch, radial possession in ClientCommand )
-	if ( client->latched_buttons & BUTTON_ATTACK ) {
+	//radial possession in ClientCommand
+	if ( client->soul_abilities & TARGETED_POSSESSION ) {
+
+		if ( client->latched_buttons & BUTTON_ATTACK ) {
+
+			if ( level.time >= client->nextPossessTime ) {
 			
-		tr = GhostMuzzleTrace( self, &distance );
+				tr = GhostMuzzleTrace( self );
 
-		if ( tr.fraction < 1.0f && tr.ent ) {
+				if ( tr.fraction < 1.0f && tr.ent ) {
 
-			//grab the clicked-upon monster for manipulation
-			if ( tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) && tr.ent->deadflag == DEAD_NO ) {
+					if ( tr.ent->classname 
+						&& !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) 
+						&& tr.ent->deadflag == DEAD_NO ) {
 
-				client->host = tr.ent;
-				client->host->possesed = true;
-
-				//transferring to host mode protocols
-				client->ghostmode = false;
-				client->hostmode = true;
-
-				gi.sound ( client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
- 
-				gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", client->host->classname );
-
-				//develop a proper chasecam
-				SetChaseTarget( self, client->host );	//TMF7 THIRD PERSON 
-			} 
+						TakeHost( self, tr.ent, HOST_TARGETED );
+					} 
+				} 
+			} else  { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
 		} 
 	}
 
-	if ( !client->host ) {
-		other = NULL;
+	if ( client->soul_abilities & TOUCH_POSSESSION ) {
 
-		//find the first monster in range
-		while ( ( other = findradius( other, self->s.origin, 60 ) ) != NULL )	{
+		if ( !client->host ) {
+			other = NULL;
 
-			if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO && self->touch ) 
-			{ self->touch( self, other, NULL, NULL ); break; }
-		}
-	}
-}
+			while ( ( other = findradius( other, self->s.origin, 60 ) ) != NULL )	{
 
-void hostmode_protocols ( edict_t *self ) {
-
-	trace_t		tr;
-	float		distance;	
-	vec3_t		ht_mins		= {-16, -16, -24};
-	vec3_t		ht_maxs		= {16, 16, 32};
-	int			savedEntNumber;
-
-	gclient_t	*client;
-	edict_t		*host, *target;
-
-	if ( self && self->client && self->client->host ) { 
-		client = self->client;
-		host = self->client->host;
-	} else { return; }
-
-	if ( host->deadflag != DEAD_NO ) {
-
-		gi.centerprintf( self, "HOST DIED ON ITS OWN, GHOST MODE ENABLED\n" );
-		client->host = NULL;
-
-		client->hostmode = false;
-		client->ghostmode = true;
-
-		//UpdateChaseCam( self );			//TMF7 THIRD PERSON 
-		client->nextPossessTime = level.time + 3.0f;
-		return;
-	}
-
-	//*******************************MOVE/CHANGE THIS************************************
-	if ( client->latched_buttons & BUTTON_ATTACK ) {
-
-		tr = GhostMuzzleTrace( self, &distance );
-
-		//set the movement goal, and enemy, based on the muzzle trace
-		if ( tr.fraction < 1.0f ) { 
-
-			if ( tr.ent && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
-				
-				gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
-
-				host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr.ent;
-				host->target_ent = NULL;
-
-				host->monsterinfo.aiflags = 0; 
-
-				if ( client->host_target ) { G_FreeEdict( client->host_target ); }
-
-			} else { 
-				//instead of all this, use the monster_think_possesed to produce a point...or a pure pmove like a player
-
-				//IDEA: clear all the flags, put possesed check in the ai_walk, ai_run, etc functions THEN do DIFFERENT checks there
-				//leave monster_think as-is and keep doing that
-				//let the currentmove play out as normal (it handles the dist for animations and frames)
-
-				gi.centerprintf( self, "INTO THE LIGHT!" ); 
-				
-				//spawn somthing for the host to chase
-				if ( client->host_target && !Q_strcasecmp( client->host_target->classname, "host_target" ) ) {
-
-					target = client->host_target;
-
-					//gi.centerprintf( ent, "MOVING HOST TARGET\n" );
-					VectorCopy ( tr.endpos, target->s.origin );
-
-					gi.linkentity ( target );
-
-				} else {
-
-					//gi.centerprintf( ent, "SPAWNING HOST TARGET\n" );
-					client->host_target		= G_Spawn();
-					target					= client->host_target;
-					savedEntNumber			= target->s.number;
-
-					//prevent memory overload, and make sure there's nothing leftover
-					memset (target, 0, sizeof(*target));
-
-					target->inuse			= true;
-					target->gravity			= self->gravity;
-					target->s.number		= savedEntNumber;
-
-					VectorCopy( tr.endpos, target->s.origin );
-
-					VectorCopy( ht_mins, target->mins );
-					VectorCopy( ht_maxs, target->maxs );
-
-					target->s.modelindex = gi.modelindex ("sprites/s_bfg1.sp2");
-	
-					target->solid = SOLID_TRIGGER;
-					target->clipmask = (CONTENTS_PLAYERCLIP|CONTENTS_MONSTERCLIP|CONTENTS_TRANSLUCENT);
-					target->s.effects = EF_BFG|EF_ANIM_ALLFAST;
-
-					target->flags |= FL_NO_KNOCKBACK;
-					target->takedamage = DAMAGE_NO;
-					target->movetype = MOVETYPE_NONE;
-					target->touch = host_target_touch;
-					//target->owner = self;
-					target->classname = "host_target";
-	
-					gi.linkentity( target );
+				if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
+				{ 
+					if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
+					else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
+					break; 
 				}
-
-				host->goalentity = host->movetarget = target;
-				host->target_ent = host->enemy = host->oldenemy = NULL;	
-
-				host->monsterinfo.aiflags = 0;
-				host->monsterinfo.aiflags = AI_COMBAT_POINT;
 			}
-
-			//only call this once per player click
-			//flying monsters slide along the ground
-			if ( host && host->monsterinfo.run ) { host->monsterinfo.run( host ); } 
 		}
 	}
 }
@@ -1940,8 +1783,8 @@ void husk_think ( edict_t *husk ) {
 
 		while ( ( other = findradius( other , husk->s.origin, 60 ) ) != NULL )	{
 
-			if ( other == husk->owner && husk->owner->touch ) { 	
-				husk->owner->touch ( husk->owner, husk, NULL, NULL ); 
+			if ( other == husk->owner && husk->owner->husktouch ) { 	
+				husk->owner->husktouch ( husk->owner, husk ); 
 				return;
 			}
 		}
@@ -2080,12 +1923,12 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->huskBeginSearchTime = level.time + 3.0f;			// give a few moments to allow player to leave the husk
 
 	// husk pain animation is handled in husk_think
-	// touch is handled in player_ghost_touch
+	// touch is handled in player_ghost_touch and husk_think
 	// never dies, only gets freed, player dies
 
 	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
-	self->flags			|= FL_NOTARGET;						//CRITICAL: THIS CAUSES A CRASH IF LEFT SET BEFORE PLAYER DIES**************
-	self->takedamage	= DAMAGE_NO;								//IT IS A AI_SightClient ISSUE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
+	self->takedamage	= DAMAGE_NO;								
 
 	self->client->newweapon = NULL;
 	ChangeWeapon( self );
@@ -2117,8 +1960,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	int		i, j;
 	pmove_t	pm;
 
-	//gi.cprintf( ent, PRINT_HIGH, "CLIENT THINK TIME: %f\n", level.time ); //client still thinks after player_die
-
 	level.current_entity = ent;
 	client = ent->client;
 
@@ -2138,9 +1979,10 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	//TMF7 BEGIN GHOST MODE		(the placement of these two(?) needs to be above the normal pm stuff it looks like)
 	//							(otherwise game crashes when **host dies on its own**)
 
-	if ( client->ghostmode && level.time > client->nextPossessTime )	{ ghostmode_protocols( ent ); }
+	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
 	
-	if ( client->hostmode )												{ hostmode_protocols( ent ); }
+	if ( client->hostmode )		{ client->host->possesed_think( ent, client->host, NULL , &client->latched_buttons ); }
+															//( client->host, ucmd , &client->latched_buttons );
 
 //TMF7 END GHOST MODE
 
@@ -2150,23 +1992,15 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 		//pm needs to be processed for proper host_target positioning
 
-		//set the host's OWNER to the player (they wont do any collision handling)
-
-		//NOTE: the host is still trying to monster_think, but the possesed flag delays that by FRAMETIME
-		//verify that this function header at the top of <p_client.c> is enough for this to work (gi.cprintf...)
-
-		//ent->host->possesed_think = monster_think_possesed;
-
 		pm.s = client->ps.pmove;
-		pm.cmd = *ucmd;						//KEY 1of2	to raw host control
+		pm.cmd = *ucmd;
 
-		// perform a pmove (doesn't actually move the player, just gets the info)
-		gi.Pmove (&pm);						//KEY 2of2 to raw host control
+		// doesn't actually move the player, just gets the validated move info
+		gi.Pmove (&pm);
 
 		VectorCopy (pm.viewangles, client->v_angle);		//dont do this once fully controlling the host
 		VectorCopy (pm.viewangles, client->ps.viewangles);	//dont do this once fully controlling the host
 
-		//ent->host->possesed_think( ent->host, ucmd , &client->latched_buttons );
 		UpdateChaseCam( ent );
 	}
 	
@@ -2327,6 +2161,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 			UpdateChaseCam(other);
 	}
 
+	// needs to be here so the husk can drown the player
 	if ( client->player_husk && !ent->deadflag ) { husk_think( client->player_husk ); }		//TMF7 GHOST MODE
 }
 

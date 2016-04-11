@@ -452,7 +452,6 @@ typedef struct
 typedef struct
 {
 	char		*move_name;
-	//mmove_t		*hmove;
 	void		(*hmove)(edict_t *self);
 } hmove_t;
 
@@ -460,6 +459,8 @@ typedef struct
 {
 	char		*host_name;
 	hmove_t		*host_moves;
+	char		*takeNoise;
+	char		*dropNoise;
 } host_t;
 //TMF7 END GHOST MODE
 
@@ -598,6 +599,29 @@ typedef enum {
 	F_MMOVE,
 	F_IGNORE
 } fieldtype_t;
+
+//TMF7 GHOST MODE
+enum take_host_style {
+	HOST_TOUCH,
+	HOST_RADIAL,
+	HOST_TARGETED
+};
+
+enum drop_host_style {
+	HOST_NO_HARM,
+	HOST_KILL,
+	HOST_DEATH
+};
+
+//unlockable abilities
+enum soul_collector {
+	TARGETED_POSSESSION = 0x00000001,
+	RADIAL_POSSESSION	= 0x00000002,
+	TOUCH_POSSESSION	= 0x00000004,
+	UBERHOST			= 0x00000008,
+	DERP				= 0x00000010
+};
+//TMF7 GHOST MODE
 
 typedef struct
 {
@@ -776,6 +800,10 @@ void ClientBeginServerFrame (edict_t *ent);
 //
 void player_pain (edict_t *self, edict_t *other, float kick, int damage);
 void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
+void SP_ClientHusk ( edict_t *self );														//TMF7 GHOST MODE
+void player_husk_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);	//TMF7 GHOST MODE
+trace_t GhostMuzzleTrace ( edict_t *ent );													//TMF7 GHOST MODE
+
 
 //
 // g_svcmds.c
@@ -829,7 +857,16 @@ void UpdateChaseCam(edict_t *ent);
 void ChaseNext(edict_t *ent);
 void ChasePrev(edict_t *ent);
 void GetChaseTarget(edict_t *ent);
-void SetChaseTarget(edict_t *self, edict_t *host);	//TMF7 THIRD PERSON
+void SetChaseTarget(edict_t *self, edict_t *host);	//TMF7 THIRD PERSON / GHOST MODE
+
+//TMF7 BEGIN GHOST MODE
+//
+// g_possessed.c
+//
+void TakeHost( edict_t *self, edict_t *host, int take_style );
+void DropHost( edict_t *self, int drop_style );
+void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons );		
+//TMF7 END GHOST MODE
 
 //============================================================================
 
@@ -981,9 +1018,9 @@ struct gclient_s
 	qboolean		ghostmode;
 	qboolean		hostmode;
 	qboolean		huskDamage;
+	int				soul_abilities;
 	float			nextPossessTime;
 	edict_t			*host;
-	edict_t			*host_target;		//the intented movement goal of a possesed host
 	edict_t			*player_husk;
 //TMF7 END GHOST MODE
 
@@ -1141,8 +1178,10 @@ struct edict_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		possesed;
 	float			huskBeginSearchTime;
-	hmove_t			*hmoves;				//UNDEFINED?
-	void			(*possesed_think)(edict_t *host, usercmd_t *cmd, const int * const buttons);
+	hmove_t			*hmove_list;
+	edict_t			*host_target;		//the rodeo movement goal of a possesed host
+	void			(*possesed_think)( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons);
+	void			(*husktouch)(edict_t *self, edict_t *husk );
 //TMF7 END GHOST MODE
 };
 

@@ -42,8 +42,6 @@ void UpdateChaseCam(edict_t *ent)
 			ent->viewheight = 22;
 			ent->client->ps.pmove.pm_type = PM_NORMAL;	
 			ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-
-			if ( ent->client->host_target ) { G_FreeEdict( ent->client->host_target ); }
 			
 			// do something here to avoid clipping into walls and getting stuck*********
 			// may not be an issue after proper chasecam 

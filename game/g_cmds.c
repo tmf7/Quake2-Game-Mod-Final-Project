@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
-void SP_ClientHusk ( edict_t *self );						//TMF7 GHOST MODE
-
 char *ClientTeam (edict_t *ent)
 {
 	char		*p;
@@ -945,28 +943,16 @@ void ClientCommand (edict_t *ent)
 	// 'f' is bound to ghost mode toggle
 	if ( Q_stricmp(cmd, "ghost") == 0 )
 	{
-		//possibly add a duration/mana cost to ghost "spell" (initial, AS a ghost, to explode, AS a host, none to return)
 		if ( !( ent->client->hostmode ) ) {
 			ent->client->ghostmode = !ent->client->ghostmode;
 
-		} else if ( ent->client->hostmode ) {
-			//if your not gibbed or health < 0 youre still alive..
-			//..hence the reason the old grenade glitch could ressurect a recently dieded enemy
-			ent->client->host->health = -100;		//ensures a gib
-			ent->client->host->die ( ent->client->host, NULL, NULL, 100, vec3_origin );
-			gi.centerprintf (ent, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
-			ent->client->host = NULL;
-
-			ent->client->hostmode = false;
-			ent->client->ghostmode = true;
-			ent->client->nextPossessTime = level.time + 3.0f;
-		}		
+		} else if ( ent->client->hostmode ) { DropHost( ent, HOST_KILL ); }		
 		
 		//clear out the husk if not in either mode
 		if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
 			&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) 
-			&& ent->touch ) {
-			ent->touch( ent, ent->client->player_husk, NULL, NULL );
+			&& ent->husktouch ) {
+			ent->husktouch( ent, ent->client->player_husk );
 		}
 
 		if ( ent->client->ghostmode && ( !ent->client->player_husk 
@@ -981,53 +967,31 @@ void ClientCommand (edict_t *ent)
 	if ( Q_stricmp(cmd, "inhabit") == 0 ) {
 		edict_t *other;
 
-		//possibly add a duration/mana cost to inhabitation "spell" ( initial, AS a host )
-		if ( ent->client->ghostmode && level.time > ent->client->nextPossessTime ) { 
+		if ( ent->client->ghostmode ) { 
 
-			//find the first monster in range
-			other = NULL;
-			while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
+			if ( ent->client->soul_abilities & RADIAL_POSSESSION ) { 
 
-				if ( other == ent )
-					continue;
+				if ( level.time >= ent->client->nextPossessTime ) {
 
-				if ( !(other->svflags & SVF_MONSTER) || (other->client) )
-					continue;
+					//find the first monster in range
+					other = NULL;
+					while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
 
-				if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
+						if ( other == ent )
+						{ continue; }
+
+						if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+						{ continue; }
+
+						if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
+					}
+
+					if ( other ) { TakeHost( ent, other, HOST_RADIAL ); } 
+					else { gi.centerprintf ( ent, "NO HOSTS IN RANGE\n" ); }
+
+				} else { gi.centerprintf ( ent, "POSSESSION RECHARGHING" );  }
 			}
-
-			if ( other ) {
-
-				//radial possession
-				ent->client->host = other;
-				ent->client->host->possesed = true;
-
-				//transferring to host mode protocols
-				ent->client->ghostmode = false;
-				ent->client->hostmode = true;
-
-				gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
-				
-				gi.centerprintf (ent, "CLOUD POSSESSION OF: %s\n", ent->client->host->classname );
-
-				//develop a proper chasecam
-				SetChaseTarget( ent, ent->client->host );	//TMF7 THIRD PERSON 
-				
-			} else { gi.centerprintf (ent, "NO AVAILABLE HOSTS TO POSSESS\n" ); }
-		}
-		else if ( ent->client->hostmode ) { 
-			
-			gi.centerprintf (ent, "HOST LEFT UNHARMED, GHOST MODE ENABLED\n" );
-			ent->client->host = NULL;
-			//UpdateChaseCam ( ent );		//TMF7 THIRD PERSON
-
-			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
-
-			ent->client->ghostmode = true;
-			ent->client->hostmode = false;
-			ent->client->nextPossessTime = level.time + 3.0f;
-		}
+		} else if ( ent->client->hostmode ) { DropHost( ent, HOST_NO_HARM ); }
 
 		gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
 

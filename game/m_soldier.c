@@ -1297,3 +1297,52 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->health = 40;
 	self->gib_health = -30;
 }
+
+//***********************
+// TMF7 BEGIN GHOST MODE
+//***********************
+
+/*
+	self->monsterinfo.stand		= soldier_stand;	//done
+	self->monsterinfo.walk		= soldier_walk;		//done
+	self->monsterinfo.run		= soldier_run;		
+	self->monsterinfo.dodge		= soldier_dodge;
+	self->monsterinfo.attack	= soldier_attack;
+	self->monsterinfo.melee		= NULL;
+	self->monsterinfo.sight		= soldier_sight;
+*/
+
+// Callback functions for <m_soldier.c> currentmove(s)
+void soldier_stand1		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_stand1;		}	// all
+void soldier_stand3		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_stand3;		}	// all
+void soldier_walk1		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_walk1;		}	// all
+void soldier_walk2		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_walk2;		}	// all
+void soldier_start_run	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_start_run;	}	// all, primary
+void soldier_runp		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_run;			}	// all, secondary
+
+// self->pain = soldier_pain; ( each type makes a different pain noise )
+void soldier_pain1		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_pain1;		}	// all
+void soldier_pain2		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_pain2;		}	// all
+void soldier_pain3		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_pain3;		}	// all
+void soldier_pain4		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_pain4;		}	// all, secondary
+
+void soldier_attack1	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_attack1;		}	// skin < 4 -> s & sl
+void soldier_attack2	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_attack2;		}	// skin < 4 -> s & sl
+void soldier_attack3	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_attack3;		}	// all, duck-attack
+void soldier_attack4	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_attack4;		}	// only ss
+void soldier_attack6	( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_attack6;		}	// all on-sight
+
+// skill level dependent
+void soldier_duck		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_duck;			}	// all, duck-pure
+
+// self->die = soldier_die; ( each type makes a different death noise )
+void soldier_death1		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death1;		}	// all
+void soldier_death2		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death2;		}	// all
+void soldier_death3		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death3;		}	// all, headshot
+void soldier_death4		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death4;		}	// all
+void soldier_death5		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death5;		}	// all
+void soldier_death6		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_death6;		}	// all
+
+//***********************
+// TMF7 END GHOST MODE
+//***********************

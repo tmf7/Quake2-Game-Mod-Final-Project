@@ -23,166 +23,183 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //**********************
 
 #include "g_local.h"
-/*
-//////////////////////////////////////////Used for player animation//////////////////////////////////////////////////////
-	// client_t->anim_priority		from <g_local.h>	// ent->client->anim_priority = ANIM_ATTACK;
-	// find examples of when each of these are set and set them here according the the pmove output
-	//if ( ((ent->client->latched_buttons|ent->client->buttons) & BUTTON_ATTACK) )
-	#define	ANIM_BASIC		0		// stand / run
-	#define	ANIM_WAVE		1
-	#define	ANIM_JUMP		2
-	#define	ANIM_PAIN		3
-	#define	ANIM_ATTACK		4
-	#define	ANIM_DEATH		5
-	#define	ANIM_REVERSE	6
+#include "g_possessed.h"
 
-	// pmove->pm_flags			from <q_shared.h>		// current_client->ps.pmove.pm_flags & PMF_DUCKED
-	// these are all already set by the player's transferred pmove and pmove_state
-	#define	PMF_DUCKED			1
-	#define	PMF_JUMP_HELD		2
-	#define	PMF_ON_GROUND		4
-	#define	PMF_TIME_WATERJUMP	8	// pm_time is waterjump
-	#define	PMF_TIME_LAND		16	// pm_time is time before rejump
-	#define	PMF_TIME_TELEPORT	32	// pm_time is non-moving time
-	#define PMF_NO_PREDICTION	64	// temporarily disables prediction (used for grappling hook)
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// How player frames are handled ( extra in T_Damage, ChangeWeapon, WeaponGeneric ) would be more precise
+// NOTE: "#include" a xyz.c by forward declaring the needed function in <g_local.h> then including <g_local.h> in whatever
+// EG: everything that currently includes <g_local.h> has access to ClientEndServerFrame ( ent );
 
-//available amination frames ( temporarily here for easier reference, if kept they will cause weird animation overlap )
-#include "m_berserk.h"		//
-#include "m_boss2.h"		//	//Hornet			// G:\quake2\baseq2\models/monsters/boss2
-#include "m_boss31.h"		//	//makron stage1		// G:\quake2\baseq2\models/monsters/boss3/jorg
-#include "m_boss32.h"		//	//makron stage2		// G:\quake2\baseq2\models/monsters/boss3/rider
-#include "m_brain.h"		//
-#include "m_chick.h"		//
-#include "m_flipper.h"		//
-#include "m_float.h"		//
-#include "m_flyer.h"		//
-#include "m_gladiator.h"	//
-#include "m_gunner.h"		//
-#include "m_hover.h"		//
-#include "m_infantry.h"		//
-#include "m_medic.h"		//
-#include "m_mutant.h"		//
-#include "m_parasite.h"		//
-#include "m_rider.h"	//	??	//makron?			// G:\quake2\baseq2\models/monsters/boss3/rider
-#include "m_soldier.h"		//
-#include "m_supertank.h"	//
-#include "m_tank.h"			//
-*/
 
-// use a structure similar to <g_local.h> for monster's global mmove_t and mframe_t
-// OR one similar to how the player's frames are handled....learn that....extra in T_Damage, ChangeWeapon, WeaponGeneric
-/*typedef struct
+hmove_t soldier_li[] =
 {
-	char		*name;
-	int			allFrames;	// prototype: all monster-specific frames to be used pulled from the monster's header
-						// break down each animation set according to each m_xyzMonster.c mmove_t*********
-						// those will also tell which frame to call the fireweapon/jump/etc functions that I really need
+	{	"stand1",				soldier_stand1		},
+	{	"stand2",				soldier_stand3		},
+	{	"walk1",				soldier_walk1		},
+	{	"walk2",				soldier_walk2		},
+	{	"run_start",			soldier_start_run	},
+	{	"run",					soldier_runp		},
+	{	"attack1",				soldier_attack1		},
+	{	"attack2",				soldier_attack2		},
+	{	"attack3",				soldier_attack3		},	//duck attack
+	{	"attack5",				soldier_attack6		},
+	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
 
-// animation vars similar to <g_local.h> in gclient_s
-	//these extra members may confuse the hosts[] definition...alot...invalid...crashy-crash
-	int			anim_end;
-	int			anim_priority;
-	qboolean	anim_duck;
-	qboolean	anim_run;
+hmove_t soldier[] =
+{
+	{	"stand1",				soldier_stand1		},
+	{	"stand2",				soldier_stand3		},
+	{	"walk1",				soldier_walk1		},
+	{	"walk2",				soldier_walk2		},
+	{	"run_start",			soldier_start_run	},
+	{	"run",					soldier_runp		},
+	{	"attack1",				soldier_attack1		},
+	{	"attack2",				soldier_attack2		},
+	{	"attack3",				soldier_attack3		},	//duck attack
+	{	"attack5",				soldier_attack6		},
+	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
 
-} host_t;
+hmove_t soldier_ss[] =
+{
+	{	"stand1",				soldier_stand1		},
+	{	"stand2",				soldier_stand3		},
+	{	"walk1",				soldier_walk1		},
+	{	"walk2",				soldier_walk2		},
+	{	"run_start",			soldier_start_run	},
+	{	"run",					soldier_runp		},
+	{	"attack3",				soldier_attack3		},	//duck attack
+	{	"attack4",				soldier_attack4		},
+	{	"attack5",				soldier_attack6		},
+	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+
+//*************
+//   INFANTRY
+//*************
+
+hmove_t infantry[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
 
 // all potential hosts according to <g_spawn.c>
-host_t hosts[] = {
-
-	{"monster_berserk",			SP_monster_berserk},		// 243, 1
-	{"monster_gladiator",		SP_monster_gladiator},		// 89, 1
-	{"monster_gunner",			SP_monster_gunner},			// 208, 1.15
-	{"monster_infantry",		SP_monster_infantry},		// 206, 1
-
-	{"monster_soldier_light",	SP_monster_soldier_light},	// 474, 1.2
-	{"monster_soldier",			SP_monster_soldier},		// ditto ( verified in m_soldier.c )
-	{"monster_soldier_ss",		SP_monster_soldier_ss},		// ditto ( verified in m_soldier.c )
-
-	{"monster_tank",			SP_monster_tank},			// 293, 1
-	{"monster_tank_commander",	SP_monster_tank},			// ditto ( verified in m_tank.c )
-
-	{"monster_medic",			SP_monster_medic},			// 236, 1
-	{"monster_flipper",			SP_monster_flipper},		// 159, 1
-	{"monster_chick",			SP_monster_chick},			// 287, 1
-	{"monster_parasite",		SP_monster_parasite},		// 117, 1
-	{"monster_flyer",			SP_monster_flyer},			// 150, 1
-
-	{"monster_brain",			SP_monster_brain},			// 221, 1
-	{"monster_floater",			SP_monster_floater},		// 247, 1
-	{"monster_hover",			SP_monster_hover},			// 204, 1
-	{"monster_mutant",			SP_monster_mutant},			// 148, 1
-	{"monster_supertank",		SP_monster_supertank},		// 253, 1
-
-	{"monster_boss2",			SP_monster_boss2},			// 180, 1
-	{"monster_boss3_stand",		SP_monster_boss3_stand},	// 490,1 ( used boss32 because its in the main source folder )
-	{"monster_jorg",			SP_monster_jorg},			// 187, 1
-
-//	{"monster_commander_body", SP_monster_commander_body}, <-----NOT ACTUALLY A MONSTER ( do a case check for this? )...unless it has GOOD animations
-
-	{NULL, NULL}
-};
-*/
-
-//TODO: write in EACH monster a set of functions that simply set the currentmove to all the ones I want control of
-//		then forward declare them here and add them to the list
-
-void berserk_stand (edict_t *self);
-
-hmove_t berserk[] =
-{
-	{	"attack1",				berserk_stand	},
-	{	"attack2",				NULL			}
-};
-
-hmove_t gladiator[] =
-{
-	{	"attack1",				NULL		},
-	{	"attack2",				NULL		}
-};
-
-
-
 host_t hosts[] = 
 {
-	{ "monster_berserk",		berserk		},
-	{ "monster_gladiator",		gladiator	},
-/*
-	{ "monster_gunner",			gunner		},
-	{ "monster_infantry",		infantry	},
+//	{ "monster_berserk",		berserk		},
+//	{ "monster_gladiator",		gladiator	},
 
-	{ "monster_soldier_light",	soldier_li	},
-	{ "monster_soldier",		soldier		},
-	{ "monster_soldier_ss",		soldier_ss	},
+//	{ "monster_gunner",			gunner		},
+	{ "monster_infantry",		infantry,	NULL,					NULL					},
 
-	{"monster_tank",			tank		},
-	{ "monster_tank_commander",	tank		},
+	{ "monster_soldier_light",	soldier_li,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
+	{ "monster_soldier",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
+	{ "monster_soldier_ss",		soldier_ss,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 
-	{ "monster_medic",			medic		},
-	{ "monster_flipper",		flipper		},
-	{ "monster_chick",			chick		},
-	{ "monster_parasite",		parasite	},
-	{ "monster_flyer",			flyer		},
+//	{"monster_tank",			tank		},
+//	{ "monster_tank_commander",	tank		},
 
-	{ "monster_brain",			brain		},
-	{ "monster_floater",		floater		},
-	{ "monster_hover",			hover		},
-	{ "monster_mutant",			mutant		},	
-	{ "monster_supertank",		supertank	},
+//	{ "monster_medic",			medic		},
+//	{ "monster_flipper",		flipper		},
+//	{ "monster_chick",			chick		},
+//	{ "monster_parasite",		parasite	},
+//	{ "monster_flyer",			flyer		},
 
-	{ "monster_boss2",			boss2		},	
-	{ "monster_boss3_stand",	boss3_stand	},
-	{ "monster_jorg",			jorg		},
+//	{ "monster_brain",			brain		},
+//	{ "monster_floater",		floater		},
+//	{ "monster_hover",			hover		},
+//	{ "monster_mutant",			mutant		},	
+//	{ "monster_supertank",		supertank	},
+
+//	{ "monster_boss2",			boss2		},	
+//	{ "monster_boss3_stand",	boss3_stand	},
+//	{ "monster_jorg",			jorg		},
 
 //	{"monster_commander_body", SP_monster_commander_body}, <-----NOT ACTUALLY A MONSTER ( do a case check for this? )...unless it has GOOD animations
-*/
+
 	{ NULL,						NULL		}
 };
 
+void SP_Host_Target ( edict_t *host, vec3_t origin );
 
-void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const buttons)
+void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons )
 { 
+	trace_t		tr;
+	edict_t		*target;
+
+	if ( !self || !host ) { return; }
+
+	if ( host->host_target ) { target = host->host_target; }
+	else { target = NULL; }	
+
+	if ( host->deadflag != DEAD_NO ) { 
+		
+		DropHost( self, HOST_DEATH ); 
+		return; 
+	}
+
+	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { /*put the pmove stuff here*/ }
+	else {
+
+		//RODEO HOST CONTROLS
+		if ( *buttons & BUTTON_ATTACK ) {
+
+			tr = GhostMuzzleTrace( self );
+
+			//set the movement goal, and enemy, based on the muzzle trace
+			if ( tr.fraction < 1.0f ) { 
+
+				if ( tr.ent && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
+				
+					gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
+
+					host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr.ent;
+					host->target_ent = NULL;
+
+					host->monsterinfo.aiflags = 0; 
+
+					if ( target ) { G_FreeEdict( host->host_target ); }
+
+				} else { 
+					gi.centerprintf( self, "INTO THE LIGHT!" ); 
+				
+					// move/spawn somthing for the host to chase
+					if ( target && !Q_strcasecmp( target->classname, "host_target" ) ) {
+
+						VectorCopy ( tr.endpos, target->s.origin );
+						gi.linkentity ( target );
+
+					} else { SP_Host_Target( host, tr.endpos ); }
+
+					host->goalentity = host->movetarget = target;
+					host->target_ent = host->enemy = host->oldenemy = NULL;	
+
+					host->monsterinfo.aiflags = 0;
+					host->monsterinfo.aiflags = AI_COMBAT_POINT;
+				}
+
+				//only call this once per player click
+				//do a check for FLY|SWIM and call a better ai_func********************************
+				if ( host && host->monsterinfo.run ) { host->monsterinfo.run( host ); } 
+			}
+		}
+	}
 
 ///////////////how a player uses the pm info///////////////////////
 	/*
@@ -190,7 +207,10 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 	int		i, j;
 	pmove_t	mpm;
 
-	level.current_entity = host;
+	hmove_t *m;
+	char	*selected_move;
+
+	level.current_entity = host;	//necessary???
 
 	pm_passent = host;			//global? originally declared in <p_client.c>
 
@@ -273,7 +293,6 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 			continue;
 		other->touch (other, host, NULL, NULL);
 	}
-	///////////////////
 
 	// save light level the player is standing on for
 	// monster sighting AI
@@ -287,6 +306,22 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 			ent->client->pers.weapon->weaponthink (ent);
 		}
 	}
+////////////////////////////////////////////////////
+
+	// set the selected_move NAME according the the pmove AND execute via:
+
+	for ( m = host->hmove_list; m->move_name; m++ )
+	{
+		if ( !strcmp( m->move_name, selected_move ) )	//!Q_strncasecmp( tr.ent->classname, "monster_", 8 )
+		{	
+			// found it, set the monsterinfo.currentmove
+			m->hmove( host );
+			return;
+		}
+	}
+	gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
+	
+//////////////////////////////////////////////
 
 ////////////////Vanilla monster_think/////////////////
 
@@ -302,26 +337,153 @@ void monster_think_possesed (edict_t *host, usercmd_t *cmd, const int * const bu
 	M_SetEffects (host);*/
 }
 
-void InitHost ( edict_t *self, edict_t *host ) { //set the host owner to self before this call => no need for self ???
+void TakeHost ( edict_t *self, edict_t *host, int take_style ) { 
 
+	qboolean foundit =  false;
 	host_t	*h;
 
-	for ( h = hosts; h->host_name; h++ )
-	{
-		if ( !strcmp( h->host_name, host->classname ) )
-		{	
+	for ( h = hosts; h->host_name; h++ ) {
+
+		if ( !strcmp( h->host_name, host->classname ) ) {
+
 			// found it, set the available monsterinfo.currentmove(s)
-			host->hmoves = h->host_moves;
-			return;
+			foundit = true;
+			if ( self->client->soul_abilities & UBERHOST ) { host->hmove_list = h->host_moves; }
+			else { host->hmove_list = NULL; }	// Rodeo host controls
 		}
 	}
-	gi.dprintf ( "%s doesn't have host moves defined\n", host->classname );
 
-	// SET the monster-specific take/release noise here
-	// MAKE them in the usual spots in ClientThink/g_cmds
+	// only monster_ classnames are taken ( should only !foundit for the headless strogg_commander )
+	if ( !foundit ) { 
+		gi.dprintf ( "%s doesn't have any host moves defined\n", host->classname );
+		return;
+	} else {
+		//some debug prints
+		if ( host->hmove_list ) { gi.dprintf( "UBERHOST\n" ); }
+		else { gi.dprintf( "GIDDYUP\n" ); }
+	}
 
+	//make this monster-specific
+	//gi.sound ( self, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+
+	self->client->host = host;
+	host->possesed = true;
+	//host->owner = self;				// to prevent clipping
+	self->client->ghostmode = false;
+	self->client->hostmode = true;
+
+	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped?
+				
+	//develop a proper chasecam
+	SetChaseTarget( self, host );
+
+	switch ( take_style ) {
+		case HOST_TOUCH:	{ gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", host->classname ); break; }
+		case HOST_RADIAL:	{ gi.centerprintf( self, "RADIAL POSSESSION OF: %s\n", host->classname ); break; }
+		case HOST_TARGETED:	{ gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", host->classname ); break;}
+	
+	}
 }
+
+void DropHost ( edict_t *self, int drop_style ) 
+{
+	//make monster-specific
+	//gi.sound ( self, CHAN_VOICE, gi.soundindex ("makron/pain1.wav"), 1, ATTN_NORM, 0);
+
+	switch ( drop_style ) {
+
+		case HOST_NO_HARM: { gi.centerprintf( self, "HOST LEFT UNHARMED, GHOST MODE ENABLED\n" ); break; }
+
+		case HOST_KILL: { 
+
+			// nail it ( courtesy of KillBox )
+			T_Damage ( self->client->host, self, self, vec3_origin, self->s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+
+			// original:
+			//host->health = -100;		//ensures a gib on most things
+			//host->die ( host, NULL, NULL, 100, vec3_origin );
+
+			gi.centerprintf( self, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
+			break; 
+		}
+
+		case HOST_DEATH: { gi.centerprintf( self, "HOST DIED ON ITS OWN, GHOST MODE ENABLED\n" ); break; }
+	}
+
+	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
+
+	self->client->host = NULL;
+	self->client->hostmode = false;
+	self->client->ghostmode = true;
+	self->client->nextPossessTime = level.time + 3.0f;
+}
+
+void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
+
+	if ( self && other && other->possesed ) {
+
+		Com_Printf( "STOP MOVING HOST!\n" );
+
+		// check for fly | swim too**********************************************
+		if ( other->monsterinfo.stand ) {
+
+			other->monsterinfo.aiflags = 0;
+			other->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+
+			other->goalentity = 
+			other->movetarget = 
+			other->target_ent = 
+			other->oldenemy =
+			other->enemy = NULL;
+
+			other->monsterinfo.stand( other ); 
+		} 
+		G_FreeEdict ( self );
+	}
+
+	return;
+}
+
+void SP_Host_Target ( edict_t *host, vec3_t origin ) {
+	
+	vec3_t		ht_mins		= {-16, -16, -24};
+	vec3_t		ht_maxs		= {16, 16, 32};
+	int			savedEntNumber;
+
+	edict_t		*targ;
+
+	host->host_target	= G_Spawn();
+	targ				= host->host_target;
+	savedEntNumber		= targ->s.number;
+
+	//prevent memory overload, and make sure there's nothing leftover
+	memset( targ, 0, sizeof(*targ) );
+
+	targ->inuse			= true;
+	targ->gravity		= host->gravity;
+	targ->s.number		= savedEntNumber;
+
+	VectorCopy( origin, targ->s.origin );
+
+	VectorCopy( ht_mins, targ->mins );
+	VectorCopy( ht_maxs, targ->maxs );
+
+	targ->s.modelindex	= gi.modelindex ("sprites/s_bfg1.sp2");
+	
+	targ->solid			= SOLID_TRIGGER;
+	targ->clipmask		= (CONTENTS_PLAYERCLIP|CONTENTS_MONSTERCLIP|CONTENTS_TRANSLUCENT);
+	targ->s.effects		= EF_BFG|EF_ANIM_ALLFAST;
+
+	targ->flags		   |= FL_NO_KNOCKBACK;
+	targ->takedamage	= DAMAGE_NO;
+	targ->movetype		= MOVETYPE_NONE;
+	targ->touch			= host_target_touch;
+	//targ->owner		= self;					//not necessary
+	targ->classname		= "host_target";
+	
+	gi.linkentity( targ );
+}
+
 //*******************
 // TMF7 END GHOST MODE
 //*******************
-
