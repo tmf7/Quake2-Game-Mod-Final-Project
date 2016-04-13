@@ -44,14 +44,14 @@ if ( ent->possessed ) { transfer a particular thinkfunc to an override thinkfunc
 
 _________________________________________
 
-BUG: whether the v_angles sync up seems random
+BUG: whether the v_angles sync up seems random? needs further testing
+
 BUG: doesn't duck ( as expected because player isn't on ground to begin with )
-BUG: if shoot, CONTINUES to shoot
-BUG: if initial player "run", CONTINUES to run
 
-If *player* is holding still and touch-possess then they continue their currentmove (but follow player aim)
-	if the player then "runs" and stops, so does the host
+BUG*: if run-shoot and RELEASE host, crash ( prolly because its shooting and has no enemy mid-move )
+	solution(?): save the enemy/goal/target/etc and switch back when released; save the oldMove and switch back when released
 
-If the player touch-possesses while running then host starts uniterruptably running ( weird )
+BUG: continues repeating pain animation? YES, probably BECAUSE its self->possessed
+
  
 

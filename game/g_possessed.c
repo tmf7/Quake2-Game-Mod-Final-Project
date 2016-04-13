@@ -148,12 +148,11 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	// how do monsters handle fly/swim moves?
 
 	// ai_run_slide performs a strafe ( normally only for FL_FLY monsters )
-	// what about HOLDING a duck animation? or fire animation
 
 	// trouble with fly/swim ( or inadvertent fly/swim )?
 
 	float xyspeed;
-	qboolean	duck, run, attack;
+	qboolean	duck, run, slow, attack;
 	qboolean	allowInterrupt;
 	hmove_t		*perform_move;
 
@@ -164,19 +163,27 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	VectorCopy( pm->viewangles, host->s.angles ); // PITCH YAW ROLL
 	host->monsterinfo.aiflags = 0;
 
-	xyspeed = sqrt( (float)(pm->s.velocity[0])*(float)(pm->s.velocity[0]) + (float)(pm->s.velocity[1])*(float)(pm->s.velocity[1]) );
+	// tested: 0 = stand, 200 = walk, 400 = run
+	xyspeed = sqrt( (float)(pm->cmd.forwardmove)*(float)(pm->cmd.forwardmove) + (float)(pm->cmd.sidemove)*(float)(pm->cmd.sidemove) );
 	allowInterrupt = false;
+	perform_move = NULL;
+
+	// relink here to fix random no-sync issue?
 
 	// only set when on the ground ( yoda ain't on the ground ... prollem? )***********
-	// solution: put the host->owner inside the host for reals and match their origin & v_angle
+	// solution: put the host->owner inside the host for reals
 	// and develop a real chasecam
 	if ( pm->s.pm_flags & PMF_DUCKED ) 
 		{ duck = true; }
 	else 
 		{ duck = false; }
 
-	if (xyspeed) 
-		{ run = true; }
+	if (xyspeed) { 
+		run = true;
+
+		if ( xyspeed == 200 ) { slow = true; }
+		else { slow = false; } // xyspeed == 400
+	}
 	else 
 		{ run = false; }
 
@@ -186,24 +193,16 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 		{ attack = false; }
 
 	// check for new attack, stand/duck and stop/go transitions
-	if ( attack != host->host_anim_attack && host->host_anim_priority < ANIM_ATTACK ) // => either JUMP or BASIC
+	if ( attack != host->host_anim_attack && host->host_anim_priority == ANIM_BASIC )
 		{ allowInterrupt = true; }	
-	else if ( duck != host->host_anim_duck && host->host_anim_priority < ANIM_DEATH ) // => either ATTACK, JUMP, or BASIC
+	if ( duck != host->host_anim_duck && host->host_anim_priority <= ANIM_ATTACK) // => either ATTACK or BASIC
 		{ allowInterrupt = true; }
-	else if ( run != host->host_anim_run && host->host_anim_priority == ANIM_BASIC )
+	if ( run != host->host_anim_run && host->host_anim_priority == ANIM_BASIC )
 		{ allowInterrupt = true; }
-	else if ( !host->groundentity && host->host_anim_priority == ANIM_BASIC )
+	if ( slow != host->host_anim_walk && host->host_anim_priority == ANIM_BASIC )
 		{ allowInterrupt = true; }
-
-//	if ( host->host_anim_priority == ANIM_JUMP )							//fix this nonsense 1of2
-///	{
-//		if (!host->groundentity)
-//			return;		// stay there
-//		ent->client->anim_priority = ANIM_BASIC;
-//		ent->s.frame = FRAME_jump3;											//set the currentmove to jump *landing* frames
-//		ent->client->anim_end = FRAME_jump6;								//create monster-specific helper func that sets the frame
-//		return;
-//	}
+	if ( !host->groundentity && host->host_anim_priority == ANIM_BASIC )
+		{ allowInterrupt = true; }
 
 	if ( allowInterrupt ) {
 
@@ -213,22 +212,9 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 
 		host->host_anim_duck = duck;
 		host->host_anim_run = run;
+		host->host_anim_walk = slow;
 		host->host_anim_attack = attack;
 
-//		if (!ent->groundentity)													//fix this nonsense 2of2
-//		{
-//			client->anim_priority = ANIM_JUMP;
-//			if (ent->s.frame != FRAME_jump2)									//cycle a jump move first two frames
-//				ent->s.frame = FRAME_jump1;										//create monster-specific helper func that sets the frame
-//			client->anim_end = FRAME_jump2;
-//		}
-
-/*	
-	// unused soldier moves
-	// also possible that i should move
-	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
-	{	"walk2",				soldier_walk2		},	// regualr walk
-*/
 		if (run)
 		{	// running
 			if (duck)
@@ -243,18 +229,31 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 				}
 			}
 			else
-			{
-				if (attack)
+			{	if (slow) 
 				{
-					//do a running upright attack
-					perform_move = find_host_move ( host, "run_attack" );
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
+					if (attack)
+					{
+						//do a "walking" upright attack ( really just stand still )
+						perform_move = find_host_move ( host, "attack1" ); // or try "attack4" or "attack2"
+					}
+					else
+					{
+						//do a walking move ( no attack )
+						perform_move = find_host_move ( host, "walk2" ); // or try "walk1"
+					}
 				}
 				else
 				{
-					//do a running move ( no attack )
-					perform_move = find_host_move ( host, "run_start" ); // or try just "run"
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
+					if (attack)
+					{
+						//do a running upright attack
+						perform_move = find_host_move ( host, "run_attack" );
+					}
+					else
+					{
+						//do a running move ( no attack )
+						perform_move = find_host_move ( host, "run_start" ); // or try just "run"
+					}
 				}
 			}
 		}
@@ -266,13 +265,11 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 				{
 					//do a holding-still crouch attack
 					perform_move = find_host_move ( host, "duck_attack" );
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 				else
 				{
 					//do an holding-still crouch ( no attack )
 					perform_move = find_host_move ( host, "duck" );
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 			}
 			else
@@ -281,17 +278,18 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 				{
 					//do a holding-still standing attack
 					perform_move = find_host_move ( host, "attack1" ); // or try "attack4" or "attack2"
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 				else
 				{
 					//do an holding-still stand ( no attack )
 					perform_move = find_host_move ( host, "stand1" ); // or try "stand2"
-					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 			}
 		}
 	}
+
+	if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
+
 	gi.linkentity( host );		// the angles were changed
 }
 
@@ -312,19 +310,9 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 		return; 
 	}
 
-	// hmove_list will not be set if a host is taken while in RODEO mode then switch to UBERHOST mode******( not really an issue )
 	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { 
 
 		set_host_move( host, pm );
-		
-		// works, host defaults to last move, host stops if target is too close ( as expected )
-//		if ( pm->cmd.buttons & BUTTON_ATTACK ) { 
-//
-//			tr = GhostMuzzleTrace( self );	
-//			set_host_target( host, &tr, false, UBER_ATTACK );
-//			find_host_move ( host, "attack3" );
-//		} 
-		//else { set_host_move ( host, "stand1" ); }	//set every ClientThink => doesn't give time to resolve all frames
 	}
 	else {
 
@@ -340,9 +328,6 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 				
 					gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
 					set_host_target( host, &tr, false, RODEO_ENEMY );
-
-					// get rid of the benign target edict
-					if ( target ) { G_FreeEdict( host->host_target ); }
 
 				} else { 
 					gi.centerprintf( self, "INTO THE LIGHT!" ); 
@@ -468,23 +453,22 @@ void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface
 // USE CASES:
 // 1) Rodeo controls spawn/move a ball of light to chase						( covered )
 // 2) Rodeo controls set a monster to a direct-enemy							( covered )
-// 3) Uberhost controls attack the clicked point ( similar to player attacks )	(  )
-// 4) Uberhost controls move to a specified origin								(  )
 void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type ) {
-
-	// move/spawn somthing for the host to chase/attack
-	if ( host->host_target && !Q_strcasecmp( host->host_target->classname, "host_target" ) ) {
-
-		VectorCopy ( tr->endpos, host->host_target->s.origin );
-		gi.linkentity ( host->host_target );
-
-	} else { SP_Host_Target( host, tr->endpos, show ); }
 
 	host->monsterinfo.aiflags = 0;
 
 	switch ( control_type ) {
 
 		case RODEO_BENIGN: {
+
+			// move or spawn somthing for the host to chase
+			if ( host->host_target && !Q_strcasecmp( host->host_target->classname, "host_target" ) ) {
+
+				VectorCopy ( tr->endpos, host->host_target->s.origin );
+				gi.linkentity ( host->host_target );
+
+			} else { SP_Host_Target( host, tr->endpos, show ); }
+
 			host->goalentity = host->movetarget = host->host_target;
 			host->target_ent = host->enemy = host->oldenemy = NULL;	
 			host->monsterinfo.aiflags = AI_COMBAT_POINT;
@@ -494,17 +478,9 @@ void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_typ
 		case RODEO_ENEMY: {
 			host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr->ent;
 			host->target_ent = NULL;
-			break;
-		}
-
-		case UBER_ATTACK: {
-			host->oldenemy = host->enemy = host->host_target;
-			host->goalentity = 	host->movetarget = host->target_ent = NULL;
-			break;
-		}
-
-		case UBER_MOVE: {
-
+			
+			// get rid of any leftover benign target edict
+			if ( host->host_target ) { G_FreeEdict( host->host_target ); }
 			break;
 		}
 	}

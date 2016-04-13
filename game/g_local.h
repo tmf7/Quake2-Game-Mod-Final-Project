@@ -616,9 +616,7 @@ enum drop_host_style {
 
 enum host_control_type {
 	RODEO_BENIGN,			// move to a point
-	RODEO_ENEMY,			// attack a monster
-	UBER_ATTACK,			// perform attack
-	UBER_MOVE				// perform a movement
+	RODEO_ENEMY				// attack a monster
 };
 
 //unlockable abilities
@@ -1190,6 +1188,7 @@ struct edict_s
 	int				host_anim_priority;
 	qboolean		host_anim_duck;
 	qboolean		host_anim_run;
+	qboolean		host_anim_walk;
 	qboolean		host_anim_attack;
 
 	hmove_t			*hmove_list;

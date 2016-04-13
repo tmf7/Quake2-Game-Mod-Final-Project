@@ -1660,6 +1660,8 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 	if ( self->client->player_husk && self->client->player_husk == other && other->classname && !Q_strncasecmp( other->classname, "husk", 4 ) )  {
 			 
+		//flash the screen for a less sudden transition
+
 		gi.centerprintf( self, "BYE BYE HUSK!\n" );
 		self->client->host = NULL;
 		self->client->hostmode = false;

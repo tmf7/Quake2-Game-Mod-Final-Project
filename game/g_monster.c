@@ -366,6 +366,14 @@ void M_MoveFrame (edict_t *self)
 	move = self->monsterinfo.currentmove;
 	self->nextthink = level.time + FRAMETIME;
 
+//TMF7 BEGIN GHOST MODE ( overrride )
+	if ( self->possessed 
+		&& self->owner->client->soul_abilities & UBERHOST 
+		&& self->s.frame == move->lastframe ) {
+			self->host_anim_priority = ANIM_BASIC;		// everyone has it, only true uberhosts use it
+	}
+//TMF7 BEGIN GHOST MODE ( overrride )
+
 	if ((self->monsterinfo.nextframe) && (self->monsterinfo.nextframe >= move->firstframe) && (self->monsterinfo.nextframe <= move->lastframe))
 	{
 		self->s.frame = self->monsterinfo.nextframe;

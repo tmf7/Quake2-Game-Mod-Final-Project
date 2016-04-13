@@ -166,7 +166,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 					test[1] = trace.endpos[1];
 					test[2] = trace.endpos[2] + ent->mins[2] + 1;
 					contents = gi.pointcontents(test);
-					if (contents & MASK_WATER)
+					if ( contents & MASK_WATER && !ent->possessed )	//TMF7 GHOST MODE ( override )
 						return false;
 				}
 			}
@@ -235,7 +235,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		test[2] = trace.endpos[2] + ent->mins[2] + 1;	
 		contents = gi.pointcontents(test);
 
-		if (contents & MASK_WATER)
+		if ( contents & MASK_WATER && !ent->possessed )	//TMF7 GHOST MODE ( override )
 			return false;
 	}
 

@@ -181,7 +181,8 @@ void ai_walk (edict_t *self, float dist)
 //TMF7 BEGIN GHOST MODE ( override )
 	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
 		//M_MoveToGoal uses goalentity, but ALSO calls SV_movestep eventually ( may screw with fly/swim here )
-		M_walkmove( self, self->s.angles[YAW], dist );	
+		if (dist)
+			M_walkmove( self, self->s.angles[YAW], dist );	
 		return;
 	}
 //TMF7 END GHOST MODE ( override )
