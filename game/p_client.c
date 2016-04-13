@@ -1980,29 +1980,28 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	//							(otherwise game crashes when **host dies on its own**)
 
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
-	
-	if ( client->hostmode )		{ client->host->possesed_think( ent, client->host, NULL , &client->latched_buttons ); }
-															//( client->host, ucmd , &client->latched_buttons );
 
 //TMF7 END GHOST MODE
 
-
-	//MOVE/CHANGE THIS???*************************************
-	if ( ent->client->chase_target ) {
+	if ( client->hostmode ) {		// the host may be null goint into this check
 
 		//pm needs to be processed for proper host_target positioning
 
 		pm.s = client->ps.pmove;
 		pm.cmd = *ucmd;
 
-		// doesn't actually move the player, just gets the validated move info
+		// get the validated move info based on key presses
+		// used to set host yaw, "v_angle" and currentmove
 		gi.Pmove (&pm);
 
-		VectorCopy (pm.viewangles, client->v_angle);		//dont do this once fully controlling the host
-		VectorCopy (pm.viewangles, client->ps.viewangles);	//dont do this once fully controlling the host
+		client->host->possesed_think( ent, client->host, &pm );
 
-		UpdateChaseCam( ent );
+		VectorCopy (pm.viewangles, client->v_angle);		//dont do this once fully controlling the host?
+		VectorCopy (pm.viewangles, client->ps.viewangles);	//dont do this once fully controlling the host?
+
 	}
+
+	if ( client->chase_target ) { UpdateChaseCam( ent ); }
 	
 //TMF7 END GHOST MODE
 

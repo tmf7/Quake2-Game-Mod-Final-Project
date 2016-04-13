@@ -1,13 +1,32 @@
-﻿Build started 4/11/2016 6:23:26 AM.
+﻿Build started 4/12/2016 10:53:15 PM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt g_possessed.c
-         g_possessed.c
-     1>g_possessed.c(164): warning C4100: 'cmd' : unreferenced formal parameter
-     1>g_possessed.c(441): warning C4100: 'surf' : unreferenced formal parameter
-     1>g_possessed.c(441): warning C4100: 'plane' : unreferenced formal parameter
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt p_client.c
+         p_client.c
+     1>p_client.c(46): warning C4127: conditional expression is constant
+     1>p_client.c(70): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(183): warning C4101: 'targ' : unreferenced local variable
+     1>p_client.c(227): warning C4100: 'damage' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'kick' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'other' : unreferenced formal parameter
+     1>p_client.c(227): warning C4100: 'self' : unreferenced formal parameter
+     1>p_client.c(259): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(549): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(915): warning C4127: conditional expression is constant
+     1>p_client.c(1000): warning C4100: 'point' : unreferenced formal parameter
+     1>p_client.c(1000): warning C4100: 'attacker' : unreferenced formal parameter
+     1>p_client.c(1000): warning C4100: 'inflictor' : unreferenced formal parameter
+     1>p_client.c(1259): warning C4113: 'void (__cdecl *)(edict_t *,edict_t *,cplane_t *,csurface_t *)' differs in parameter lists from 'void (__cdecl *)(edict_t *,edict_t *)'
+     1>p_client.c(1458): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>p_client.c(1463): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>p_client.c(1503): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>p_client.c(1654): warning C4100: 'surf' : unreferenced formal parameter
+     1>p_client.c(1654): warning C4100: 'plane' : unreferenced formal parameter
+     1>p_client.c(1715): warning C4101: 'distance' : unreferenced local variable
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(game) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
@@ -71,4 +90,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.36
+Time Elapsed 00:00:00.52

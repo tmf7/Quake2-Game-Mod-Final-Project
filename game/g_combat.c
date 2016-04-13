@@ -122,6 +122,7 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 		monster_death_use (targ);
 	}
 
+	targ->host_anim_priority = ANIM_DEATH;					//TMF7 GHOST MODE ( everything gets it, but only true hosts use it )
 	targ->die (targ, inflictor, attacker, damage, point);
 }
 
@@ -517,9 +518,10 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	if (targ->svflags & SVF_MONSTER)
 	{
-		M_ReactToDamage (targ, attacker);
+		M_ReactToDamage (targ, attacker);								//TMF7 GHOST MODE ( override this? or let the host struggle? )
 		if (!(targ->monsterinfo.aiflags & AI_DUCKED) && (take))
 		{
+			targ->host_anim_priority = ANIM_PAIN;						//TMF7 GHOST MODE ( everything gets it only true hosts use it )
 			targ->pain (targ, attacker, knockback, take);
 			// nightmare mode monsters don't go into pain frames often
 			if (skill->value == 3)
@@ -534,7 +536,10 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	else if (take)
 	{
 		if (targ->pain)
+		{
+			// targ->host_anim_priority = ANIM_PAIN;					//TMF7 GHOST MODE ( everything gets it only true hosts use it )
 			targ->pain (targ, attacker, knockback, take);
+		}
 	}
 
 	// add to the damage inflicted on a player this frame

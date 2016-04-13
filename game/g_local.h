@@ -604,7 +604,8 @@ typedef enum {
 enum take_host_style {
 	HOST_TOUCH,
 	HOST_RADIAL,
-	HOST_TARGETED
+	HOST_TARGETED,
+	HOST_CHEAT
 };
 
 enum drop_host_style {
@@ -872,7 +873,7 @@ void SetChaseTarget(edict_t *self, edict_t *host);	//TMF7 THIRD PERSON / GHOST M
 //
 void TakeHost( edict_t *self, edict_t *host, int take_style );
 void DropHost( edict_t *self, int drop_style );
-void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons );		
+void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );		
 //TMF7 END GHOST MODE
 
 //============================================================================
@@ -1185,10 +1186,16 @@ struct edict_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		possesed;
 	float			huskBeginSearchTime;
+
+	int				host_anim_priority;
+	qboolean		host_anim_duck;
+	qboolean		host_anim_run;
+	qboolean		host_anim_attack;
+
 	hmove_t			*hmove_list;
 	edict_t			*host_target;		// the movement/attack goal of a possesed host
 	edict_t			*old_owner;			// in case the host had a prior owner
-	void			(*possesed_think)( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons);
+	void			(*possesed_think)( edict_t *self, edict_t *host, const pmove_t *pm );
 	void			(*husktouch)(edict_t *self, edict_t *husk );
 //TMF7 END GHOST MODE
 };

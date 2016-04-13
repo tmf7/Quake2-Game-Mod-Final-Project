@@ -967,6 +967,9 @@ void Cmd_Uberhost_f (edict_t *ent) {
 	else
 		msg = "uberhost ON\n";
 
+	// re-initialize hmove_list
+	if ( ent->client->host ) { TakeHost( ent, ent->client->host, HOST_CHEAT ); }		//potential crash issue
+
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
 

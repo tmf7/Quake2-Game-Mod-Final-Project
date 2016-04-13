@@ -36,22 +36,8 @@ char *drop_host_noise;
 //   SOLDIER
 //*************
 
-hmove_t soldier_li[] =
-{
-	{	"stand1",				soldier_stand1		},
-	{	"stand2",				soldier_stand3		},
-	{	"walk1",				soldier_walk1		},
-	{	"walk2",				soldier_walk2		},
-	{	"run_start",			soldier_start_run	},
-	{	"run",					soldier_runp		},
-	{	"attack1",				soldier_attack1		},
-	{	"attack2",				soldier_attack2		},
-	{	"attack3",				soldier_attack3		},	//duck attack
-	{	"attack5",				soldier_attack6		},
-	{	"duck",					soldier_duck		},
-	{	NULL,					NULL				}
-};
-
+// give all three soldiers the same physical moves
+// resolve the thinkfunc's differently ( ie shotgun, blaster, etc )
 hmove_t soldier[] =
 {
 	{	"stand1",				soldier_stand1		},
@@ -63,26 +49,11 @@ hmove_t soldier[] =
 	{	"attack1",				soldier_attack1		},
 	{	"attack2",				soldier_attack2		},
 	{	"attack3",				soldier_attack3		},	//duck attack
-	{	"attack5",				soldier_attack6		},
-	{	"duck",					soldier_duck		},
-	{	NULL,					NULL				}
-};
-
-hmove_t soldier_ss[] =
-{
-	{	"stand1",				soldier_stand1		},
-	{	"stand2",				soldier_stand3		},
-	{	"walk1",				soldier_walk1		},
-	{	"walk2",				soldier_walk2		},
-	{	"run_start",			soldier_start_run	},
-	{	"run",					soldier_runp		},
-	{	"attack3",				soldier_attack3		},	//duck attack
 	{	"attack4",				soldier_attack4		},
 	{	"attack5",				soldier_attack6		},
 	{	"duck",					soldier_duck		},
 	{	NULL,					NULL				}
 };
-
 
 //*************
 //   INFANTRY
@@ -114,9 +85,9 @@ host_t hosts[] =
 //	{ "monster_gunner",			gunner		},
 	{ "monster_infantry",		infantry,	NULL,					NULL					},
 
-	{ "monster_soldier_light",	soldier_li,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
+	{ "monster_soldier_light",	soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 	{ "monster_soldier",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
-	{ "monster_soldier_ss",		soldier_ss,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
+	{ "monster_soldier_ss",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 
 //	{"monster_tank",			tank		},
 //	{ "monster_tank_commander",	tank		},
@@ -145,26 +116,174 @@ host_t hosts[] =
 void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type );
 void SP_Host_Target( edict_t *host, vec3_t origin, qboolean show);
 
-void set_host_move ( edict_t *host, char *selected_move ) {
+// unlike G_SetClientFrame
+// this only sets the currentmove and lets the monster resolve it
+// instead of resolving individual frames here
+// However, it does determine the conditions for currentmove interrupt/change
+// on a per-frame basis
+void set_host_move( edict_t *host, const pmove_t *pm ) {
+
+	// find_host_move ( host, possible_move )
+	// make it a little random if multiple versions of the same thing ( re-do if not found )
+	//  m->hmove( host );	
+
+	// host fidgets in place if aifunc or endfunc cant resolve ( double check this )*************
+	// change: ai_func, thinkfunc, endfunc
+	// change: m_move.c stuff ( because they contain goalentities and no_water_enter stuff )
+	// change: g_combat.c stuff ( reaction to damage, etc )
+	// verifgy m_monster.c stuff
+
+
+	// how does the player handle swimming?
+	// how do monsters handle fly/swim moves?
+
+	// set the host's v_angle according to pm ( this will set the aim direction for shots and movement )
+	// trouble with fly/swim ( or inadvertent fly/swim )?
+
+	// clear out the host's enemies, etc ( re: M_ReactToDamage  from <g_combat.c> )
+
+
+	float xyspeed;
+	qboolean	duck, run, attack;
+	qboolean	allowInterrupt;
+
+	if ( host->host_anim_priority == ANIM_DEATH || host->host_anim_priority == ANIM_PAIN )
+		{ return; }		// stay there
+
+	xyspeed = sqrt( (float)(pm->s.velocity[0])*(float)(pm->s.velocity[0]) + (float)(pm->s.velocity[1])*(float)(pm->s.velocity[1]) );
+	allowInterrupt = false;
+
+	// only set when on the ground ( yoda ain't on the ground ... prollem? )***********
+	// solution: put the host->owner inside the host for reals and match their origin & v_angle
+	// and develop a real chasecam
+	if ( pm->s.pm_flags & PMF_DUCKED ) 
+		{ duck = true; }
+	else 
+		{ duck = false; }
+
+	if (xyspeed) 
+		{ run = true; }
+	else 
+		{ run = false; }
+
+	if ( pm->cmd.buttons & BUTTON_ATTACK )
+		{ attack = true; }
+	else 
+		{ attack = false; }
+
+	// check for new attack, stand/duck and stop/go transitions
+	if ( attack != host->host_anim_attack && host->host_anim_priority < ANIM_ATTACK ) // => either JUMP or BASIC
+		{ allowInterrupt = true; }	
+	else if ( duck != host->host_anim_duck && host->host_anim_priority < ANIM_DEATH ) // => either ATTACK, JUMP, or BASIC
+		{ allowInterrupt = true; }
+	else if ( run != host->host_anim_run && host->host_anim_priority == ANIM_BASIC )
+		{ allowInterrupt = true; }
+	else if ( !host->groundentity && host->host_anim_priority == ANIM_BASIC )
+		{ allowInterrupt = true; }
+
+//	if ( host->host_anim_priority == ANIM_JUMP )							//fix this nonsense 1of2
+///	{
+//		if (!host->groundentity)
+//			return;		// stay there
+//		ent->client->anim_priority = ANIM_BASIC;
+//		ent->s.frame = FRAME_jump3;											//set the currentmove to jump *landing* frames
+//		ent->client->anim_end = FRAME_jump6;								//create monster-specific helper func that sets the frame
+//		return;
+//	}
+
+	if ( allowInterrupt ) {
+
+		// find and begin a new monsterinfo.currentmove
+		if ( attack ) { host->host_anim_priority = ANIM_ATTACK; }
+		else { host->host_anim_priority = ANIM_BASIC; }
+
+		host->host_anim_duck = duck;
+		host->host_anim_run = run;
+		host->host_anim_attack = attack;
+
+//		if (!ent->groundentity)													//fix this nonsense 2of2
+//		{
+//			client->anim_priority = ANIM_JUMP;
+//			if (ent->s.frame != FRAME_jump2)									//cycle a jump move first two frames
+//				ent->s.frame = FRAME_jump1;										//create monster-specific helper func that sets the frame
+//			client->anim_end = FRAME_jump2;
+//		}
+		if (run)
+		{	// running
+			if (duck)
+			{
+				if (attack)
+				{
+				//do a moving crouch attack
+				}
+				else
+				{
+				//do an moving crouch ( no attack )
+				}
+			}
+			else
+			{
+				if (attack)
+				{
+				//do a running upright attack
+				}
+				else
+				{
+				//do a running move ( no attack )
+				}
+			}
+		}
+		else
+		{	// standing
+			if (duck)
+			{
+				if (attack)
+				{
+				//do a holding-still crouch attack
+				}
+				else
+				{
+				//do an holding-still crouch ( no attack )
+				}
+			}
+			else
+			{
+				if (attack)
+				{
+				//do a holding-still standing attack
+				}
+				else
+				{
+				//do an holding-still stand ( no attack )
+				}
+			}
+		}
+	}
+
+}
+
+
+hmove_t * find_host_move ( edict_t *host, char *possible_move ) {		// possible issue with wrong address ( function or data )
 
 	hmove_t		*m;
 
-	for ( m = host->hmove_list; m->move_name; m++ )
-	{
-		if ( !strcmp( m->move_name, selected_move ) )
-		{	
-			// found it, set the monsterinfo.currentmove
-			m->hmove( host );	//don't resolve the ai_func or endfunc
-			return;
+	for ( m = host->hmove_list; m->move_name; m++ ) {
+		if ( !strcmp( m->move_name, possible_move ) ) {	
+			// found it
+			m->hmove ( host );		// test to verify i havent broken it yet
+			return m;
 		}
 	}
-	gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
+
+	//gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
+	return NULL;
 }
 
-void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd, const int *buttons )
+void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 { 
 	trace_t		tr;
 	edict_t		*target;
+	char		*selected_move;
 
 	if ( !self || !host ) { return; }
 
@@ -177,23 +296,26 @@ void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd,
 		return; 
 	}
 
+	// hmove_list will not be set if a host is taken while in RODEO mode then switch to UBERHOST mode******( not really an issue )
 	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { 
 
-		// test-run
-		// need to set the enemy to give it a point to fire at => trusty host_target
-		// host fidgets in place if aifunc or endfunc cant resolve ( double check this )
-		if ( *buttons & BUTTON_ATTACK ) { // works, host defaults to last move, host stops if target is too close ( as expected )
+		//set_host_move( host, pm );
+
+		
+		// works, host defaults to last move, host stops if target is too close ( as expected )
+		if ( pm->cmd.buttons & BUTTON_ATTACK ) { 
 
 			tr = GhostMuzzleTrace( self );	
 			set_host_target( host, &tr, false, UBER_ATTACK );
-			set_host_move ( host, "attack3" ); 
+			find_host_move ( host, "attack3" );
 		} 
+		
 		//else { set_host_move ( host, "stand1" ); }	//set every ClientThink => doesn't give time to resolve all frames
 	}
 	else {
 
 		//RODEO HOST CONTROLS
-		if ( *buttons & BUTTON_ATTACK ) {
+		if ( pm->cmd.buttons & BUTTON_ATTACK ) {
 
 			tr = GhostMuzzleTrace( self );
 
@@ -219,141 +341,6 @@ void monster_think_possesed( edict_t *self, edict_t *host, const usercmd_t *cmd,
 			}
 		}
 	}
-
-///////////////how a player uses the pm info///////////////////////
-	/*
-	edict_t	*other;				//may include lasers, water?, buttons, other monsters, triggers, ***level swaps***
-	int		i, j;
-	pmove_t	mpm;
-
-	hmove_t *m;
-	char	*selected_move;
-
-	level.current_entity = host;	//necessary???
-
-	pm_passent = host;			//global? originally declared in <p_client.c>
-
-	// set up for pmove (prevent overload crash)
-	memset (&mpm, 0, sizeof(mpm));
-
-	client->ps.pmove.pm_type = PM_NORMAL;			//set the host
-
-	client->ps.pmove.gravity = sv_gravity->value;	//set the host
-	mpm.s = client->ps.pmove;						//set the host
-
-	for (i=0 ; i<3 ; i++)	//hosts originally always have zero velocity (only their origin changes)
-	{
-		mpm.s.origin[i] = host->s.origin[i]*8;
-		mpm.s.velocity[i] = host->velocity[i]*8;
-	}
-
-	if (memcmp(&client->old_pmove, &mpm.s, sizeof(mpm.s)))		//set the host
-	{
-		mpm.snapinitial = true;
-//		gi.dprintf ("pmove changed!\n");
-	}
-
-	mpm.cmd = *cmd;
-
-	mpm.trace = PM_trace;	// adds default parms			//declare this in <g_monster.c>???
-	mpm.pointcontents = gi.pointcontents;
-
-	// perform a pmove
-	gi.Pmove (&mpm);	
-
-	// save results of pmove					//put this in edict_t????
-	client->ps.pmove = pm.s;
-	client->old_pmove = pm.s;
-
-	for (i=0 ; i<3 ; i++)
-	{
-		host->s.origin[i] = mpm.s.origin[i]*0.125;
-		host->velocity[i] = mpm.s.velocity[i]*0.125;
-	}
-
-	VectorCopy (mpm.mins, host->mins);
-	VectorCopy (mpm.maxs, host->maxs);
-
-	client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);		//set the host???
-	client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);		//set the host???
-	client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);		//set the host???
-
-	if (host->groundentity && !mpm.groundentity && (mpm.cmd.upmove >= 10) && (mpm.waterlevel == 0))
-	{
-		gi.sound(host, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);	//make a different noise?
-		PlayerNoise(host, host->s.origin, PNOISE_SELF);				//declare this in <g_monster.c>???
-	}
-
-	host->viewheight = mpm.viewheight;
-	host->waterlevel = mpm.waterlevel;
-	host->watertype = mpm.watertype;
-	host->groundentity = mpm.groundentity;
-	if (mpm.groundentity)
-		host->groundentity_linkcount = mpm.groundentity->linkcount;
-
-	VectorCopy (mpm.viewangles, client->v_angle);				//set the host
-	VectorCopy (mpm.viewangles, client->ps.viewangles);			//set the host
-
-	gi.linkentity (host);
-
-	if (host->movetype != MOVETYPE_NOCLIP)		//trigger events, finding secrets, jump scares, etc
-		G_TouchTriggers (host);
-
-	// touch other objects => allows activation of other monsters and buttons (ending of levels)
-	for (i=0 ; i<mpm.numtouch ; i++)
-	{
-		other = mpm.touchents[i];
-		for (j=0 ; j<i ; j++)
-			if (mpm.touchents[j] == other)
-				break;
-		if (j != i)
-			continue;	// duplicated
-		if (!other->touch)
-			continue;
-		other->touch (other, host, NULL, NULL);
-	}
-
-	// save light level the player is standing on for
-	// monster sighting AI
-	host->light_level = mpm->cmd.lightlevel;
-
-	// fire weapon from final position if needed
-	if (buttons & BUTTON_ATTACK )		//ugh???
-	{
-		if (!client->weapon_thunk) {
-			client->weapon_thunk = true;
-			ent->client->pers.weapon->weaponthink (ent);
-		}
-	}
-////////////////////////////////////////////////////
-
-	// set the selected_move NAME according the the pmove AND execute via:
-
-	for ( m = host->hmove_list; m->move_name; m++ )
-	{
-		if ( !strcmp( m->move_name, selected_move ) )	//!Q_strncasecmp( tr.ent->classname, "monster_", 8 )
-		{	
-			// found it, set the monsterinfo.currentmove
-			m->hmove( host );
-			return;
-		}
-	}
-	gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
-	
-//////////////////////////////////////////////
-
-////////////////Vanilla monster_think/////////////////
-
-	M_MoveFrame (self);
-
-	if (host->linkcount != host->monsterinfo.linkcount)
-	{
-		host->monsterinfo.linkcount = host->linkcount;
-		M_CheckGround (host);
-	}
-	M_CatagorizePosition (host);
-	M_WorldEffects (host);
-	M_SetEffects (host);*/
 }
 
 void TakeHost ( edict_t *self, edict_t *host, int take_style ) { 
@@ -390,7 +377,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 
 	self->client->host		= host;
 	host->possesed			= true;
-	host->old_owner			= host->owner;				// potentially null
+	host->old_owner			= host->owner;				// potentially null, but sould be okay
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
 	self->client->hostmode	= true;
@@ -404,7 +391,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 		case HOST_TOUCH:	{ gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_RADIAL:	{ gi.centerprintf( self, "RADIAL POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_TARGETED:	{ gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", host->classname ); break;}
-	
+		case HOST_CHEAT:	{ break;}
 	}
 }
 

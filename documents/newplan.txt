@@ -1,0 +1,44 @@
+NEW BRANCH: uberhost_trial2
+
+use QuArk to determine which moves i want to use for an animation cycle
+
+leave pain and death *actions* alone
+
+
+// just reuse these, theyre in g_local.h for use by anything
+// client_t->anim_priority
+#define	ANIM_BASIC		0		// stand / run	// set in <g_possessed.c> get_host_frame
+#define	ANIM_WAVE		1		// unused ( player uses it for wave, flipoff, point, etc fun anims )
+#define	ANIM_JUMP		2		// set in <g_possessed.c> set_host_move
+#define	ANIM_PAIN		3		// set in <g_combat.c> T_Damage
+#define	ANIM_ATTACK		4		// set when an attack is verfied to start....in <g_possessed.c>
+#define	ANIM_DEATH		5		// set in <g_combat.c> Killed
+#define	ANIM_REVERSE		6		// unused ( player uses it for weapon putaway/idle )
+
+<p_view.c>
+G_SetClientFrame is primary to advancing/reversing client animations ( prolly copy it exactly )
+
+<p_weapon.c>
+Weapon_Generic is useful for setting up host actionframes ( when firing/attacking )
+
+_____________________________________________
+
+->utilze the callback functions as originally intended
+->process the client pmove THEN pass it to monster_possessed_think
+->get rid of the host_target spawn for UBERHOST
+->ONLY CHANGE THE CURRENTMOVE in monster_think_possessed if its a newanim ( simlar to SetClientFrame )
+
+go through EACH m_xyzmonster.c and check their frame arrays and endfuncs for overrride/non-execution 
+	--> all or none....or make a list of valid endfuncs in g_local.h....
+
+
+if ( ent->possessed ) { transfer aifunc to ... alt_aifunc <g_ai.c> ... to allow per-frame interrupt/transitions/movechanges }
+
+if ( ent->possessed ) { transfer a particular thinkfunc to an override thinkfunc }
+
+	--> ClientThink calls ( monster_think_possessed ) which SETS the hosts currentmove AND OTHER parameters
+	--> Monster_Think RESOLVES the currentmove, which includes aifunc/thinkfunc/endfunc
+	--> aifunc typically contains m_move.c calls ( which also need overriding )
+	--> also check g_combat.c for various monster reactions to damage, etc
+	--> also verify the functions in m_monster.c
+
