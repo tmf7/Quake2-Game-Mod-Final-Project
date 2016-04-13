@@ -40,6 +40,7 @@ static int	sound_death;
 static int	sound_death_ss;
 static int	sound_cock;
 
+qboolean possessed_endfunc_verify ( edict_t *self );
 
 void soldier_idle (edict_t *self)
 {
@@ -315,6 +316,9 @@ mmove_t soldier_move_run = {FRAME_run03, FRAME_run08, soldier_frames_run, NULL};
 
 void soldier_run (edict_t *self)
 {
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST && possessed_endfunc_verify( self ) ) 
+		{ return; } //TMF7 GHOST MODE ( override )
+
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 	{
 		self->monsterinfo.currentmove = &soldier_move_stand1;
@@ -479,7 +483,8 @@ void soldier_fire (edict_t *self, int flash_number)
 	AngleVectors (self->s.angles, forward, right, NULL);
 	G_ProjectSource (self->s.origin, monster_flash_offset[flash_index], forward, right, start);
 
-	if (flash_number == 5 || flash_number == 6)
+	if (flash_number == 5 || flash_number == 6 
+		|| ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) ) //TMF7 GHOST MODE ( overrride )
 	{
 		VectorCopy (forward, aim);
 	}
@@ -487,6 +492,7 @@ void soldier_fire (edict_t *self, int flash_number)
 	{
 		VectorCopy (self->enemy->s.origin, end);
 		end[2] += self->enemy->viewheight;
+
 		VectorSubtract (end, start, aim);
 		vectoangles (aim, dir);
 		AngleVectors (dir, forward, right, up);
@@ -532,6 +538,19 @@ void soldier_fire1 (edict_t *self)
 
 void soldier_attack1_refire1 (edict_t *self)
 {
+
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+
+		if ( random() < 0.5 )
+			self->monsterinfo.nextframe = FRAME_attak102;
+		else
+			self->monsterinfo.nextframe = FRAME_attak110;
+
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
+
 	if (self->s.skinnum > 1)
 		return;
 
@@ -546,6 +565,17 @@ void soldier_attack1_refire1 (edict_t *self)
 
 void soldier_attack1_refire2 (edict_t *self)
 {
+
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+
+		if ( random() < 0.5 )
+			self->monsterinfo.nextframe = FRAME_attak102;
+
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
+
 	if (self->s.skinnum < 2)
 		return;
 
@@ -582,6 +612,19 @@ void soldier_fire2 (edict_t *self)
 
 void soldier_attack2_refire1 (edict_t *self)
 {
+
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+
+		if ( random() < 0.5 )
+			self->monsterinfo.nextframe = FRAME_attak204;
+		else
+			self->monsterinfo.nextframe = FRAME_attak216;
+
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
+
 	if (self->s.skinnum > 1)
 		return;
 
@@ -596,6 +639,17 @@ void soldier_attack2_refire1 (edict_t *self)
 
 void soldier_attack2_refire2 (edict_t *self)
 {
+
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+
+		if ( random() < 0.5 )
+			self->monsterinfo.nextframe = FRAME_attak204;
+
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
+
 	if (self->s.skinnum < 2)
 		return;
 
@@ -740,6 +794,14 @@ void soldier_fire8 (edict_t *self)
 
 void soldier_attack6_refire (edict_t *self)
 {
+
+//TMF7 BEGIN GHOST MODE ( overrride )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+		self->monsterinfo.nextframe = FRAME_runs03;
+		return;
+	}
+//TMF7 END GHOST MODE ( overrride )
+
 	if (self->enemy->health <= 0)
 		return;
 
@@ -1311,6 +1373,23 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->monsterinfo.melee		= NULL;
 	self->monsterinfo.sight		= soldier_sight;
 */
+
+qboolean possessed_endfunc_verify ( edict_t *self ) {
+
+		if ( self->monsterinfo.currentmove == &soldier_move_pain1
+		|| self->monsterinfo.currentmove == &soldier_move_pain2 
+		|| self->monsterinfo.currentmove == &soldier_move_pain3 
+		|| self->monsterinfo.currentmove == &soldier_move_pain4 
+		|| self->monsterinfo.currentmove == &soldier_move_attack1 
+		|| self->monsterinfo.currentmove == &soldier_move_attack2 
+		|| self->monsterinfo.currentmove == &soldier_move_attack3
+		|| self->monsterinfo.currentmove == &soldier_move_attack4
+		|| self->monsterinfo.currentmove == &soldier_move_attack6 
+		|| self->monsterinfo.currentmove == &soldier_move_duck )
+			{ return true; }
+
+	return false;
+}
 
 // Callback functions for <m_soldier.c> currentmove(s)
 void soldier_stand1		( edict_t *self ) {		self->monsterinfo.currentmove = &soldier_move_stand1;		}	// all

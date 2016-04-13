@@ -375,9 +375,7 @@ void M_MoveFrame (edict_t *self)
 	{
 		if (self->s.frame == move->lastframe)
 		{
-			//TMF7 GHOST MODE ( host override conditions )
-			if (move->endfunc 
-				/*&& !( self->owner && self->owner->client && !(self->owner->client->soul_abilities & UBERHOST) ) */ )
+			if (move->endfunc)		//TMF7 GHOST MODE ( add host override conditions? )
 			{
 				move->endfunc (self);
 
@@ -408,9 +406,8 @@ void M_MoveFrame (edict_t *self)
 
 	index = self->s.frame - move->firstframe;
 
-	//TMF7 GHOST MODE ( host override conditions )
-	if (move->frame[index].aifunc 
-		/*&& !( self->owner && self->owner->client && !(self->owner->client->soul_abilities & UBERHOST) ) */) {
+	
+	if (move->frame[index].aifunc) {		//TMF7 GHOST MODE ( add host override conditions? )
 
 		if (!(self->monsterinfo.aiflags & AI_HOLD_FRAME))
 			move->frame[index].aifunc (self, move->frame[index].dist * self->monsterinfo.scale);
@@ -426,8 +423,8 @@ void M_MoveFrame (edict_t *self)
 void monster_think (edict_t *self)
 {
 //TMF7 BEGIN GHOST MODE
-	// delay normal think resolution while possesed
-//	if ( self->possesed ) {
+	// delay normal think resolution while possessed
+//	if ( self->possessed ) {
 //		self->nextthink = level.time + FRAMETIME;
 //		return; 
 //	}
@@ -594,7 +591,7 @@ qboolean monster_start (edict_t *self)
 	if (self->monsterinfo.currentmove)
 		self->s.frame = self->monsterinfo.currentmove->firstframe + (rand() % (self->monsterinfo.currentmove->lastframe - self->monsterinfo.currentmove->firstframe + 1));
 
-	self->possesed = false;	//TMF7 GHOST MODE
+	self->possessed = false;	//TMF7 GHOST MODE
 
 	return true;
 }

@@ -71,7 +71,7 @@ void UpdateChaseCam(edict_t *ent)
 	ownerv[2] += targ->viewheight;
 
 	//cannot posses non-monsters
-	if ( targ->possesed ) { VectorCopy( targ->s.angles, angles ); }	//TMF7 GHOST MODE where the target HOST is looking
+	if ( targ->possessed ) { VectorCopy( targ->s.angles, angles ); }	//TMF7 GHOST MODE where the target HOST is looking
 	else { VectorCopy(targ->client->v_angle, angles); }				//TMF7 where the target CLIENT is looking
 
 	if (angles[PITCH] > 56)
@@ -80,7 +80,7 @@ void UpdateChaseCam(edict_t *ent)
 	VectorNormalize(forward);
 
 //TMF7 BEGIN GHOST MODE
-	if ( targ->possesed ) { 
+	if ( targ->possessed ) { 
 		VectorMA(ownerv, -60, forward, o); 
 		o[2] += 16;
 	}
@@ -117,7 +117,7 @@ void UpdateChaseCam(edict_t *ent)
 		goal[2] += 6;
 	}
 
-	if ( targ->possesed ) { ent->client->ps.pmove.pm_type = PM_SPECTATOR; } //TMF7 GHOST MODE
+	if ( targ->possessed ) { ent->client->ps.pmove.pm_type = PM_SPECTATOR; } //TMF7 GHOST MODE
 	else if (targ->deadflag)								
 		ent->client->ps.pmove.pm_type = PM_DEAD;
 	else
@@ -125,7 +125,7 @@ void UpdateChaseCam(edict_t *ent)
 
 	VectorCopy(goal, ent->s.origin);				//TMF7 this sets where the player is relative to the target
 
-	if ( targ->possesed ) {							//TMF7 GHOST MODE
+	if ( targ->possessed ) {							//TMF7 GHOST MODE
 		//for (i=0 ; i<3 ; i++)						//TMF7 player movement direction, reative to the target HOST
 		//	ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(targ->s.angles[i] - ent->client->resp.cmd_angles[i]);
 	} else {
@@ -137,7 +137,7 @@ void UpdateChaseCam(edict_t *ent)
 		ent->client->ps.viewangles[ROLL] = 40;
 		ent->client->ps.viewangles[PITCH] = -15;
 		ent->client->ps.viewangles[YAW] = targ->client->killer_yaw;
-	} else if ( targ->possesed ) {											//TMF7 GHOST MODE
+	} else if ( targ->possessed ) {											//TMF7 GHOST MODE
 		//	VectorCopy(targ->s.angles, ent->client->ps.viewangles);			//TMF7 where the player looks, relative to the target HOST
 		//	VectorCopy(targ->s.angles, ent->client->v_angle);
 	} else {

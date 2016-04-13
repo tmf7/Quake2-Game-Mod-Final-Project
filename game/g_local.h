@@ -1184,7 +1184,7 @@ struct edict_s
 	monsterinfo_t	monsterinfo;
 
 //TMF7 BEGIN GHOST MODE
-	qboolean		possesed;
+	qboolean		possessed;
 	float			huskBeginSearchTime;
 
 	int				host_anim_priority;
@@ -1193,7 +1193,7 @@ struct edict_s
 	qboolean		host_anim_attack;
 
 	hmove_t			*hmove_list;
-	edict_t			*host_target;		// the movement/attack goal of a possesed host
+	edict_t			*host_target;		// the movement/attack goal of a possessed host
 	edict_t			*old_owner;			// in case the host had a prior owner
 	void			(*possesed_think)( edict_t *self, edict_t *host, const pmove_t *pm );
 	void			(*husktouch)(edict_t *self, edict_t *husk );

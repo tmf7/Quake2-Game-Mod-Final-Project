@@ -518,7 +518,9 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	if (targ->svflags & SVF_MONSTER)
 	{
-		M_ReactToDamage (targ, attacker);								//TMF7 GHOST MODE ( override this? or let the host struggle? )
+		if ( !targ->possessed ) {										//TMF7 GHOST MODE ( override )
+			M_ReactToDamage (targ, attacker);								
+		}
 		if (!(targ->monsterinfo.aiflags & AI_DUCKED) && (take))
 		{
 			targ->host_anim_priority = ANIM_PAIN;						//TMF7 GHOST MODE ( everything gets it only true hosts use it )

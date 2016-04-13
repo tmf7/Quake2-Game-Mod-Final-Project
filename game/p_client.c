@@ -1254,7 +1254,7 @@ void PutClientInServer (edict_t *ent)
 	client->hostmode = false;
 	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST);		//starting ability set
 	client->nextPossessTime = 0;
-	ent->possesed = false;
+	ent->possessed = false;
 	client->huskDamage = false;
 	ent->husktouch = player_husk_touch;
 //TMF7 END GHOST MODE (unsaved)
@@ -1918,7 +1918,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->light_level	= self->light_level;
 	husk->show_hostile	= level.time + 1;
 
-	husk->possesed		= false;
+	husk->possessed		= false;
 
 	husk->huskBeginSearchTime = level.time + 3.0f;			// give a few moments to allow player to leave the husk
 
@@ -1994,11 +1994,10 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		// used to set host yaw, "v_angle" and currentmove
 		gi.Pmove (&pm);
 
-		client->host->possesed_think( ent, client->host, &pm );
-
 		VectorCopy (pm.viewangles, client->v_angle);		//dont do this once fully controlling the host?
 		VectorCopy (pm.viewangles, client->ps.viewangles);	//dont do this once fully controlling the host?
 
+		client->host->possesed_think( ent, client->host, &pm );
 	}
 
 	if ( client->chase_target ) { UpdateChaseCam( ent ); }

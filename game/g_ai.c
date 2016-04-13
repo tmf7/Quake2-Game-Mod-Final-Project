@@ -124,6 +124,8 @@ void ai_stand (edict_t *self, float dist)
 	if (dist)
 		M_walkmove (self, self->s.angles[YAW], dist);
 
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) { return; } // TMF7 GHOST MODE ( override )
+
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 	{
 		if (self->enemy)
@@ -176,6 +178,14 @@ The monster is walking it's beat
 */
 void ai_walk (edict_t *self, float dist)
 {
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+		//M_MoveToGoal uses goalentity, but ALSO calls SV_movestep eventually ( may screw with fly/swim here )
+		M_walkmove( self, self->s.angles[YAW], dist );	
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
+
 	M_MoveToGoal (self, dist);
 
 	// check for noticing a player
@@ -208,6 +218,14 @@ Use this call with a distnace of 0 to replace ai_face
 void ai_charge (edict_t *self, float dist)
 {
 	vec3_t	v;
+
+//TMF7 BEGIN GHOST MODE ( overrride )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+		if (dist)
+			M_walkmove (self, self->s.angles[YAW], dist);
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
 
 	VectorSubtract (self->enemy->s.origin, self->s.origin, v);
 	self->ideal_yaw = vectoyaw(v);
@@ -939,6 +957,13 @@ void ai_run (edict_t *self, float dist)
 	vec3_t		v_forward, v_right;
 	float		left, center, right;
 	vec3_t		left_target, right_target;
+
+//TMF7 BEGIN GHOST MODE ( override )
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST ) {
+		M_walkmove( self, self->s.angles[YAW], dist );	
+		return;
+	}
+//TMF7 END GHOST MODE ( override )
 
 	// if we're going to a combat point, just proceed
 	if (self->monsterinfo.aiflags & AI_COMBAT_POINT)

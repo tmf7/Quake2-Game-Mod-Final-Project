@@ -29,7 +29,7 @@ _____________________________________________
 ->ONLY CHANGE THE CURRENTMOVE in monster_think_possessed if its a newanim ( simlar to SetClientFrame )
 
 go through EACH m_xyzmonster.c and check their frame arrays and endfuncs for overrride/non-execution 
-	--> all or none....or make a list of valid endfuncs in g_local.h....
+	--> all or none....or make a list of valid endfuncs in g_local.h....or the monster itself
 
 
 if ( ent->possessed ) { transfer aifunc to ... alt_aifunc <g_ai.c> ... to allow per-frame interrupt/transitions/movechanges }
@@ -41,4 +41,17 @@ if ( ent->possessed ) { transfer a particular thinkfunc to an override thinkfunc
 	--> aifunc typically contains m_move.c calls ( which also need overriding )
 	--> also check g_combat.c for various monster reactions to damage, etc
 	--> also verify the functions in m_monster.c
+
+_________________________________________
+
+BUG: whether the v_angles sync up seems random
+BUG: doesn't duck ( as expected because player isn't on ground to begin with )
+BUG: if shoot, CONTINUES to shoot
+BUG: if initial player "run", CONTINUES to run
+
+If *player* is holding still and touch-possess then they continue their currentmove (but follow player aim)
+	if the player then "runs" and stops, so does the host
+
+If the player touch-possesses while running then host starts uniterruptably running ( weird )
+ 
 

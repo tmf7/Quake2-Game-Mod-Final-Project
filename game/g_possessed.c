@@ -40,18 +40,18 @@ char *drop_host_noise;
 // resolve the thinkfunc's differently ( ie shotgun, blaster, etc )
 hmove_t soldier[] =
 {
-	{	"stand1",				soldier_stand1		},
-	{	"stand2",				soldier_stand3		},
-	{	"walk1",				soldier_walk1		},
-	{	"walk2",				soldier_walk2		},
-	{	"run_start",			soldier_start_run	},
-	{	"run",					soldier_runp		},
-	{	"attack1",				soldier_attack1		},
-	{	"attack2",				soldier_attack2		},
-	{	"attack3",				soldier_attack3		},	//duck attack
-	{	"attack4",				soldier_attack4		},
-	{	"attack5",				soldier_attack6		},
-	{	"duck",					soldier_duck		},
+	{	"stand1",				soldier_stand1		},	// regular stand
+	{	"stand2",				soldier_stand3		},	// regular stand ( perk up )
+	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
+	{	"walk2",				soldier_walk2		},	// regualr walk
+	{	"run_start",			soldier_start_run	},	// regular run startup
+	{	"run",					soldier_runp		},	// regular run ( stops a bit at end )
+	{	"attack1",				soldier_attack1		},  // stand attack ( arms in )
+	{	"attack2",				soldier_attack2		},	// stand attack ( arm outstretched )
+	{	"duck_attack",			soldier_attack3		},	// duck attack
+	{	"attack4",				soldier_attack4		},	// stand attack ( small step back )
+	{	"run_attack",			soldier_attack6		},	// run attack
+	{	"duck",					soldier_duck		},	// regular duck
 	{	NULL,					NULL				}
 };
 
@@ -116,6 +116,21 @@ host_t hosts[] =
 void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type );
 void SP_Host_Target( edict_t *host, vec3_t origin, qboolean show);
 
+hmove_t * find_host_move ( edict_t *host, char *possible_move ) {		// possible issue with wrong address ( function or data )
+
+	hmove_t		*m;
+
+	for ( m = host->hmove_list; m->move_name; m++ ) {
+		if ( !strcmp( m->move_name, possible_move ) ) {	
+			// found it
+			return m;
+		}
+	}
+
+	//gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
+	return NULL;
+}
+
 // unlike G_SetClientFrame
 // this only sets the currentmove and lets the monster resolve it
 // instead of resolving individual frames here
@@ -123,32 +138,31 @@ void SP_Host_Target( edict_t *host, vec3_t origin, qboolean show);
 // on a per-frame basis
 void set_host_move( edict_t *host, const pmove_t *pm ) {
 
-	// find_host_move ( host, possible_move )
-	// make it a little random if multiple versions of the same thing ( re-do if not found )
-	//  m->hmove( host );	
-
-	// host fidgets in place if aifunc or endfunc cant resolve ( double check this )*************
 	// change: ai_func, thinkfunc, endfunc
 	// change: m_move.c stuff ( because they contain goalentities and no_water_enter stuff )
 	// change: g_combat.c stuff ( reaction to damage, etc )
-	// verifgy m_monster.c stuff
+	// verify m_monster.c stuff
 
 
 	// how does the player handle swimming?
 	// how do monsters handle fly/swim moves?
 
-	// set the host's v_angle according to pm ( this will set the aim direction for shots and movement )
+	// ai_run_slide performs a strafe ( normally only for FL_FLY monsters )
+	// what about HOLDING a duck animation? or fire animation
+
 	// trouble with fly/swim ( or inadvertent fly/swim )?
-
-	// clear out the host's enemies, etc ( re: M_ReactToDamage  from <g_combat.c> )
-
 
 	float xyspeed;
 	qboolean	duck, run, attack;
 	qboolean	allowInterrupt;
+	hmove_t		*perform_move;
 
 	if ( host->host_anim_priority == ANIM_DEATH || host->host_anim_priority == ANIM_PAIN )
 		{ return; }		// stay there
+
+	// set the host angles for the aim direction and movement ( see: ClientThink )
+	VectorCopy( pm->viewangles, host->s.angles ); // PITCH YAW ROLL
+	host->monsterinfo.aiflags = 0;
 
 	xyspeed = sqrt( (float)(pm->s.velocity[0])*(float)(pm->s.velocity[0]) + (float)(pm->s.velocity[1])*(float)(pm->s.velocity[1]) );
 	allowInterrupt = false;
@@ -208,6 +222,13 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 //				ent->s.frame = FRAME_jump1;										//create monster-specific helper func that sets the frame
 //			client->anim_end = FRAME_jump2;
 //		}
+
+/*	
+	// unused soldier moves
+	// also possible that i should move
+	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
+	{	"walk2",				soldier_walk2		},	// regualr walk
+*/
 		if (run)
 		{	// running
 			if (duck)
@@ -225,11 +246,15 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 			{
 				if (attack)
 				{
-				//do a running upright attack
+					//do a running upright attack
+					perform_move = find_host_move ( host, "run_attack" );
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 				else
 				{
-				//do a running move ( no attack )
+					//do a running move ( no attack )
+					perform_move = find_host_move ( host, "run_start" ); // or try just "run"
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 			}
 		}
@@ -239,44 +264,35 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 			{
 				if (attack)
 				{
-				//do a holding-still crouch attack
+					//do a holding-still crouch attack
+					perform_move = find_host_move ( host, "duck_attack" );
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 				else
 				{
-				//do an holding-still crouch ( no attack )
+					//do an holding-still crouch ( no attack )
+					perform_move = find_host_move ( host, "duck" );
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 			}
 			else
 			{
 				if (attack)
 				{
-				//do a holding-still standing attack
+					//do a holding-still standing attack
+					perform_move = find_host_move ( host, "attack1" ); // or try "attack4" or "attack2"
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 				else
 				{
-				//do an holding-still stand ( no attack )
+					//do an holding-still stand ( no attack )
+					perform_move = find_host_move ( host, "stand1" ); // or try "stand2"
+					if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 				}
 			}
 		}
 	}
-
-}
-
-
-hmove_t * find_host_move ( edict_t *host, char *possible_move ) {		// possible issue with wrong address ( function or data )
-
-	hmove_t		*m;
-
-	for ( m = host->hmove_list; m->move_name; m++ ) {
-		if ( !strcmp( m->move_name, possible_move ) ) {	
-			// found it
-			m->hmove ( host );		// test to verify i havent broken it yet
-			return m;
-		}
-	}
-
-	//gi.dprintf ( "%s doesn't have that specific host move defined\n", host->classname );
-	return NULL;
+	gi.linkentity( host );		// the angles were changed
 }
 
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
@@ -299,17 +315,15 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 	// hmove_list will not be set if a host is taken while in RODEO mode then switch to UBERHOST mode******( not really an issue )
 	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { 
 
-		//set_host_move( host, pm );
-
+		set_host_move( host, pm );
 		
 		// works, host defaults to last move, host stops if target is too close ( as expected )
-		if ( pm->cmd.buttons & BUTTON_ATTACK ) { 
-
-			tr = GhostMuzzleTrace( self );	
-			set_host_target( host, &tr, false, UBER_ATTACK );
-			find_host_move ( host, "attack3" );
-		} 
-		
+//		if ( pm->cmd.buttons & BUTTON_ATTACK ) { 
+//
+//			tr = GhostMuzzleTrace( self );	
+//			set_host_target( host, &tr, false, UBER_ATTACK );
+//			find_host_move ( host, "attack3" );
+//		} 
 		//else { set_host_move ( host, "stand1" ); }	//set every ClientThink => doesn't give time to resolve all frames
 	}
 	else {
@@ -376,7 +390,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	gi.sound ( host, CHAN_VOICE, gi.soundindex (take_host_noise), 1, ATTN_NORM, 0);		//potential crash issue if NULL?
 
 	self->client->host		= host;
-	host->possesed			= true;
+	host->possessed			= true;
 	host->old_owner			= host->owner;				// potentially null, but sould be okay
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
@@ -417,7 +431,7 @@ void DropHost ( edict_t *self, int drop_style )
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
 
-	self->client->host->possesed		= false;
+	self->client->host->possessed		= false;
 	self->client->host->owner			= self->client->host->old_owner;	// potentially null
 	self->client->host					= NULL;
 	self->client->hostmode				= false;
@@ -427,7 +441,7 @@ void DropHost ( edict_t *self, int drop_style )
 
 void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
-	if ( self && other && other->possesed ) {
+	if ( self && other && other->possessed ) {
 
 		Com_Printf( "STOP MOVING HOST!\n" );
 
