@@ -571,9 +571,18 @@ void SV_BuildClientFrame (client_t *client)
 
 	c_fullsend = 0;
 
-	for (e=1 ; e<ge->num_edicts ; e++)
-	{
+	for (e=1 ; e<ge->num_edicts ; e++)			// TMF7 GHOST MODE : this loop will decide if a particular client can see a particular entity
+	{											// IMPORTANT: changing this requires compiling the .exe and running that instead of the steam copy
 		ent = EDICT_NUM(e);
+
+//TMF7 BEGIN GHOST MODE
+		
+		// check if ent is a soul and if client is !ghostmode
+		if ( ent->svflags & SVF_SOUL && !(client->edict->svflags & SVF_GHOST) ) {
+			Com_Printf( "SKIPPING A SOUL FOR %s!\n", client->name );
+			continue;
+		}
+//TMF7 END GHOST MODE
 
 		// ignore ents without visible models
 		if (ent->svflags & SVF_NOCLIENT)

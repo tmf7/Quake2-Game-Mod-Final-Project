@@ -2110,7 +2110,6 @@ tank commander's head
 		0,
 /* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	},
-
 	// end of list marker
 	{NULL}
 };

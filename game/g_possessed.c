@@ -37,7 +37,6 @@ char *drop_host_noise;
 //*************
 
 // give all three soldiers the same physical moves
-// resolve the thinkfunc's differently ( ie shotgun, blaster, etc )
 hmove_t soldier[] =
 {
 	{	"stand1",				soldier_stand1		},	// regular stand
@@ -45,7 +44,7 @@ hmove_t soldier[] =
 	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
 	{	"walk2",				soldier_walk2		},	// regualr walk
 	{	"run_start",			soldier_start_run	},	// regular run startup
-	{	"run",					soldier_runp		},	// regular run ( stops a bit at end )
+	{	"run",					soldier_runp		},	// regular run
 	{	"attack1",				soldier_attack1		},  // stand attack ( arms in )
 	{	"attack2",				soldier_attack2		},	// stand attack ( arm outstretched )
 	{	"duck_attack",			soldier_attack3		},	// duck attack
@@ -89,7 +88,7 @@ host_t hosts[] =
 	{ "monster_soldier",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 	{ "monster_soldier_ss",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 
-//	{"monster_tank",			tank		},
+//	{ "monster_tank",			tank		},
 //	{ "monster_tank_commander",	tank		},
 
 //	{ "monster_medic",			medic		},
@@ -347,6 +346,12 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	qboolean foundit =  false;
 	host_t	*h;
 
+	// coop soul collectors
+	if ( host->owner && host->owner->client && host->owner != self ) {
+		gi.centerprintf ( self, "%s occupied by %s\n", host->classname, host->owner->client->pers.netname );
+		return;
+	}
+
 	for ( h = hosts; h->host_name; h++ ) {
 
 		if ( !strcmp( h->host_name, host->classname ) ) {
@@ -376,12 +381,12 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 
 	self->client->host		= host;
 	host->possessed			= true;
-	host->old_owner			= host->owner;				// potentially null, but sould be okay
+	host->old_owner			= host->owner;				// potentially null, but should be okay
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
 	self->client->hostmode	= true;
 
-	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped?
+	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped? shouldn't matter
 				
 	//develop a proper chasecam
 	SetChaseTarget( self, host );
@@ -396,6 +401,8 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 
 void DropHost ( edict_t *self, int drop_style ) 
 {
+	hmove_t *perform_move;
+
 	//make monster-specific
 	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( drop_host_noise ), 1, ATTN_NORM, 0);	//potential crash issue if NULL?
 
@@ -415,6 +422,10 @@ void DropHost ( edict_t *self, int drop_style )
 	}
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
+
+	//prevent NULL-enemy crash mid-fire 
+	perform_move = find_host_move ( self->client->host, "stand2" ); // or try "stand1"
+	if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
 
 	self->client->host->possessed		= false;
 	self->client->host->owner			= self->client->host->old_owner;	// potentially null

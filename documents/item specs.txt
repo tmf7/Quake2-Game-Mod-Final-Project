@@ -1,0 +1,23 @@
+gitem_t items[] =
+...
+
+	{
+		"soul_monster_soul",	// classname
+		Pickup_Health,		// pickup func	( what happens when a soul is picked up )
+		NULL,			// use func		( "" when its used ... like rebreather )
+		NULL,			// drop func	( "" player drops it ) ( monster drop is always Drop_Item ) ( find a body and reanimate? )
+		NULL,			// weaponthink func ( dont use )
+		"items/pkup.wav",	// pickup sound
+		NULL, 0,		// worldmodel, worldmodel_flags
+		NULL,			// viewmodel ( in first person ) ( dont use )
+/* icon */		"i_health",	// icon
+/* pickup */	"Soul",			// pickup name	// for printing on pickup
+/* width */		4,		// countwidth	// number of digits to display by icon ( up to 9999 souls)
+		1,			// quantity		// for ammo how much to give, for weapons how much is used per shot // mult by owner->maxhealth
+		NULL,			// ammo	name	// for weapons
+		IT_SOUL|IT_STAY_COOP,	// flags		// IT_* flags
+		0,			// weaponmodel	// weapon model index (for weapons)
+		NULL,			// info			// weird void pointer...
+		0,			// tag			// ???
+/* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"	// string of all models, sounds, and images this item will use
+	},

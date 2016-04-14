@@ -619,13 +619,54 @@ enum host_control_type {
 	RODEO_ENEMY				// attack a monster
 };
 
-//unlockable abilities
+// unlockable abilities
 enum soul_collector {
-	TARGETED_POSSESSION = 0x00000001,
-	RADIAL_POSSESSION	= 0x00000002,
-	TOUCH_POSSESSION	= 0x00000004,
-	UBERHOST			= 0x00000008,
-	DERP				= 0x00000010
+
+	// Ghost abilities					// soul_collector_level available
+	DRAIN_LIFE			= 0x00000001,	// 1
+	TARGETED_POSSESSION = 0x00000002,	// 3
+	RADIAL_POSSESSION	= 0x00000004,	// 4
+	TOUCH_POSSESSION	= 0x00000008,	// 2
+	DETECT_LIFE			= 0x00000010,	// 3
+	GHOST_FLY			= 0x00000020,	// 4
+	PULL_SOULS			= 0x00000040,	// 3
+	RIP_SOULS			= 0x00000080,	// 4
+
+	// Host abilities
+	UBERHOST			= 0x00000100,	// 3
+	OBLITERATE_HOST		= 0x00000200,	// 4
+	RECRUIT_FOLLOWERS	= 0x00000400,	// 4
+	TRANSFORM_HOST		= 0x00000800,	// 5
+
+	// Husk abilities
+	DAMAGE_HOST			= 0x00001000,	// 4
+	SOUL_SHIELD			= 0x00002000,	// 4
+	WARP_HUSK			= 0x00004000	// 5
+};
+
+enum monster_souls {
+	BERSERK,
+	GLADIATOR,
+	GUNNER,
+	INFANTRY,
+	SOLDIER_LIGHT,
+	SOLDIER,
+	SOLDIER_SS,
+	TANK,
+	TANK_COMMANDER,
+	MEDIC,
+	FLIPPER,
+	CHICK,
+	PARASITE,
+	FLYER,
+	BRAIN,
+	FLOATER,
+	HOVER,
+	MUTANT,
+	SUPERTANK,
+	BOSS2,
+	BOSS3_STAND,
+	JORG
 };
 //TMF7 GHOST MODE
 
@@ -1024,8 +1065,13 @@ struct gclient_s
 	qboolean		ghostmode;
 	qboolean		hostmode;
 	qboolean		huskDamage;
+
 	int				soul_abilities;
 	float			nextPossessTime;
+	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
+	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
+	int				soul_collector_level;				// thresholds unlock abilities ( they all work in tandem )
+
 	edict_t			*host;
 	edict_t			*player_husk;
 //TMF7 END GHOST MODE
@@ -1182,8 +1228,13 @@ struct edict_s
 	monsterinfo_t	monsterinfo;
 
 //TMF7 BEGIN GHOST MODE
+	int				monster_class_index;
+
 	qboolean		possessed;
 	float			huskBeginSearchTime;
+
+	int				mSoulFirstFrame;
+	int				mSoulLastFrame;
 
 	int				host_anim_priority;
 	qboolean		host_anim_duck;
@@ -1192,7 +1243,7 @@ struct edict_s
 	qboolean		host_anim_attack;
 
 	hmove_t			*hmove_list;
-	edict_t			*host_target;		// the movement/attack goal of a possessed host
+	edict_t			*host_target;		// the rodeo movement goal of a possessed host
 	edict_t			*old_owner;			// in case the host had a prior owner
 	void			(*possesed_think)( edict_t *self, edict_t *host, const pmove_t *pm );
 	void			(*husktouch)(edict_t *self, edict_t *husk );

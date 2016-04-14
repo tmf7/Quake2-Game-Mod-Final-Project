@@ -1661,12 +1661,12 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 	if ( self->client->player_husk && self->client->player_husk == other && other->classname && !Q_strncasecmp( other->classname, "husk", 4 ) )  {
 			 
 		//flash the screen for a less sudden transition
+		self->client->bonus_alpha = 0.5;
 
 		gi.centerprintf( self, "BYE BYE HUSK!\n" );
 		self->client->host = NULL;
 		self->client->hostmode = false;
 		self->client->ghostmode = false;
-		//UpdateChaseCam ( self );			//this causes a crash because both ghostmode and hostmode are false
 
 		self->s.renderfx &= ~RF_TRANSLUCENT;
 		self->flags &= ~FL_NOTARGET;
@@ -1674,7 +1674,7 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 		VectorCopy( other->s.origin, self->s.origin );
 
-		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);
+		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);	// change this noise**************
 
 		//transfer all husk enemies back to the player
 		for ( j = 1; j <= globals.num_edicts; j++ ) {
@@ -1696,7 +1696,6 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		}
 
 		G_FreeEdict( other );
-		//self->client->player_husk = NULL; //*******************critical?
 
 		// Force the sight_client back to the player 
 		// to avoid an empty pointer mid-frame 
@@ -1721,11 +1720,7 @@ void ghostmode_protocols ( edict_t *self ) {
 	if ( self && self->client ) { client = self->client; }
 	else { return; }
 
-	//make a ghostly screen effect?
-	//game.clients->damage_alpha;
-	//game.clients->damage_blend;
-	//SV_AddBlend (1.0, 0.3, 0.0, 0.6, self->client->ps.blend);
-	//BE SURE TO CLEAR IT WHEN ghostmode == false;
+	self->svflags |= SVF_GHOST;				// allow server-side per-client monster-soul visiblity check
 
 	//radial possession in ClientCommand
 	if ( client->soul_abilities & TARGETED_POSSESSION ) {
@@ -1875,7 +1870,7 @@ void SP_ClientHusk ( edict_t *self ) {
 
 	VectorCopy ( self->mins, husk->mins );
 	VectorCopy ( self->maxs, husk->maxs );
-	VectorCopy ( self->s.angles, husk->s.angles );
+	husk->s.angles[YAW] = self->s.angles[YAW];
 	VectorClear (husk->velocity);
 
 	gi.setmodel ( husk, "players/male/tris.md2" );
@@ -1925,8 +1920,9 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->huskBeginSearchTime = level.time + 3.0f;			// give a few moments to allow player to leave the husk
 
 	// husk pain animation is handled in husk_think
-	// touch is handled in player_ghost_touch and husk_think
+	// touch is handled in player_husk_touch and husk_think
 	// never dies, only gets freed, player dies
+	// ghostly screen blend added in <p_view.c> SV_CalcBlend
 
 	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
 	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
@@ -1936,7 +1932,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	ChangeWeapon( self );
 
 	//not a PlayerNoise, to avoid alerting monsters
-	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0); 
+	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0); // change this noise**************
 
 	gi.linkentity ( self );
 	gi.linkentity ( husk );
@@ -1978,14 +1974,14 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	pm_passent = ent;
 
 //TMF7 BEGIN GHOST MODE 
-	//TMF7 BEGIN GHOST MODE		(the placement of these two(?) needs to be above the normal pm stuff it looks like)
-	//							(otherwise game crashes when **host dies on its own**)
+
+	// the placement of these two needs to be above the normal pm stuff it looks like)
+	//otherwise game crashes when **host dies on its own**)
 
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
+	else { ent->svflags &= ~SVF_GHOST; }
 
-//TMF7 END GHOST MODE
-
-	if ( client->hostmode ) {		// the host may be null goint into this check
+	if ( client->hostmode ) {		// the host may be null goint into this check, should be okay
 
 		//pm needs to be processed for proper host_target positioning
 
@@ -1996,13 +1992,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		// used to set host yaw, "v_angle" and currentmove
 		gi.Pmove (&pm);
 
-		VectorCopy (pm.viewangles, client->v_angle);		//dont do this once fully controlling the host?
-		VectorCopy (pm.viewangles, client->ps.viewangles);	//dont do this once fully controlling the host?
+		VectorCopy (pm.viewangles, client->v_angle);
+		VectorCopy (pm.viewangles, client->ps.viewangles);
 
 		client->host->possesed_think( ent, client->host, &pm );
 	}
 
-	if ( client->chase_target ) { UpdateChaseCam( ent ); }
+	if ( client->chase_target ) { UpdateChaseCam( ent ); }		// takes care of player's gi.linkentity (ent);
 	
 //TMF7 END GHOST MODE
 
@@ -2161,8 +2157,81 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 			UpdateChaseCam(other);
 	}
 
+//TMF7 BEGIN GHOST MODE
+
 	// needs to be here so the husk can drown the player
-	if ( client->player_husk && !ent->deadflag ) { husk_think( client->player_husk ); }		//TMF7 GHOST MODE
+	if ( client->player_husk && !ent->deadflag ) { husk_think( client->player_husk ); }
+
+	// check pool_of_souls and set the soul_collector_level ONLY on each soul pickup
+	// DONT DO THIS HERE*******************
+/*
+// PROBLEM: want to be able to toggle some of these without losing the ability altogether
+// SOLUTION: if the bind toggle is pressed --> check the soul_collector_level --> toggle it
+// ... negates the need for the second switch statement here?
+// regardless: have a readout of current abilities ( and short explanation in console(?)/HUD(?) )
+// some are passive/always-on, others are toggle-able ( make that distinction in the check? )
+
+	Additional:
+	soul walk duration
+	possession duration
+	husk transfer damage
+
+	// Ghost abilities			// level available
+	DRAIN_LIFE					1						??? I put this in because I want it to be toggled ... ugh
+	TARGETED_POSSESSION			3
+	RADIAL_POSSESSION			4
+	TOUCH_POSSESSION			2
+	DETECT_LIFE					3
+	GHOST_FLY					4
+	PULL_SOULS					3
+	RIP_SOULS					4
+
+	// Host abilities
+	UBERHOST					3
+	OBLITERATE_HOST				4
+	RECRUIT_FOLLOWERS			4
+	TRANSFORM_HOST				5
+
+	// Husk abilities
+	DAMAGE_HOST					4
+	SOUL_SHIELD					4
+	WARP_HUSK					5
+*/
+
+	// balance this level thresholds better
+	if (	client->pool_of_souls >= 100	)	{ client->soul_collector_level = 2; }
+	if (	client->pool_of_souls >= 500	)	{ client->soul_collector_level = 3; }
+	if (	client->pool_of_souls >= 1000	)	{ client->soul_collector_level = 4; }
+	if (	client->pool_of_souls >= 5000	)	{ client->soul_collector_level = 5; }
+
+	// separated to allow for level skip cheats
+	switch ( client->soul_collector_level ) {
+		case 2: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			break; 
+		}
+		case 3: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			break; 
+		}
+		case 4: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			break; 
+		}
+		case 5: {
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			client->soul_abilities |= (TRANSFORM_HOST|WARP_HUSK);
+			break; 
+		}
+	}
+
+//TMF7 END GHOST MODE
+
 }
 
 

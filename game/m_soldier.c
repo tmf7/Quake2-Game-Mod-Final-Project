@@ -1316,6 +1316,8 @@ void SP_monster_soldier_light (edict_t *self)
 	self->s.skinnum = 0;
 	self->health = 20;
 	self->gib_health = -30;
+
+	self->monster_class_index = SOLDIER_LIGHT;		//TMF7 GHOSTMODE
 }
 
 /*QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1337,6 +1339,8 @@ void SP_monster_soldier (edict_t *self)
 	self->s.skinnum = 2;
 	self->health = 30;
 	self->gib_health = -30;
+
+	self->monster_class_index = SOLDIER;		//TMF7 GHOSTMODE
 }
 
 /*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1358,6 +1362,8 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->s.skinnum = 4;
 	self->health = 40;
 	self->gib_health = -30;
+
+	self->monster_class_index = SOLDIER_SS;		//TMF7 GHOSTMODE
 }
 
 //***********************

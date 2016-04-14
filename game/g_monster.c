@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 
 
+void SP_LostMonsterSoul ( edict_t *self );
+
 //
 // monster weapons
 //
@@ -535,6 +537,14 @@ void monster_death_use (edict_t *self)
 	self->flags &= ~(FL_FLY|FL_SWIM);
 	self->monsterinfo.aiflags &= AI_GOOD_GUY;
 
+	//TMF7 BEGIN GHOST MODE ( all monsters drop soul items flagged for visibility in ghostmode )
+	// check if an individual soul can see the player directly ( use pvs too? )
+	// then test if that player is in ghostmode ( don't multicast, only cast to clients in ghostmode )***this?***
+
+	//SPAWN A TRANSLUCENT ANIMATED MODEL OF THE MONSTER HERE************
+	SP_LostMonsterSoul( self );
+	//TMF7 END GHOST MODE
+
 	if (self->item)
 	{
 		Drop_Item (self, self->item);
@@ -600,6 +610,8 @@ qboolean monster_start (edict_t *self)
 		self->s.frame = self->monsterinfo.currentmove->firstframe + (rand() % (self->monsterinfo.currentmove->lastframe - self->monsterinfo.currentmove->firstframe + 1));
 
 	self->possessed = false;	//TMF7 GHOST MODE
+	//initialize the monster soul here
+	//self->soul = FindItem( "soul" ); // put soul item in the gitem_s items[] list
 
 	return true;
 }
@@ -762,3 +774,160 @@ void swimmonster_start (edict_t *self)
 	self->think = swimmonster_start_go;
 	monster_start (self);
 }
+
+
+//***********************
+// TMF7 BEGIN GHOST MODE
+//***********************
+
+
+// forward declare these functions
+
+void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurface_t *surf ) {
+/*
+	//PROBLEM: a ghostmode player cannot touch anything ... ugh ???
+	//SOLUTION: add a secondary G_TouchTriggers loop in ClientThink
+	
+	// only living clients in ghostmode can gather souls
+	if ( !other->client || other->deadflag != DEAD_NO || !other->client->ghostmode ) 
+		{ return; }
+	
+	other->client->pool_of_souls += soul->health;
+	other->client->soulCollection[ soul->monster_class_index ]++;
+
+	VectorCopy( other->s.origin, soul->s.origin );
+	gi.linkentity( soul );
+
+	soul->think = G_FreeEdict;
+	soul->nextthink = level.time + FRAMETIME;*/
+}
+
+void monster_soul_think ( edict_t *soul ) {
+
+	int i;
+	edict_t *ent;
+
+
+/*
+// HANDLE THIS STUFF SERVER-SIDE in sv_ents.c
+
+//	game.clients;
+//	level;
+//	gi.inPVS; // two points
+//	gi.multicast;
+//	gi.unicast;
+//	globals.edicts;
+//	globals.num_edicts;
+
+	for (i=0 ; i<maxclients->value ; i++)
+	{
+		ent = g_edicts + 1 + i;
+		if (!ent->inuse || !ent->client)
+			continue;
+		
+	}
+
+
+	// figure out who can see this soul
+	for ( ent = g_edicts + 1; ent > &g_edicts[MAX_CLIENTS]; ent++ ) { //change these conditions
+		
+		if ( ent->inuse && ent->health > 0 && ent->client->ghostmode )
+		{  set the model or hide the model visibility PER CLIENT(?), LOS/PVS check necessary?  }
+	}
+*/
+	//jump back to idle animation if outside it
+	if ( soul->s.frame > soul->mSoulLastFrame || soul->s.frame < soul->mSoulFirstFrame) { soul->s.frame = soul->mSoulFirstFrame; }
+
+	//continue idle animation
+	if ( soul->s.frame == soul->mSoulLastFrame ) { soul->s.frame = soul->mSoulFirstFrame; }
+	else if ( soul->s.frame < soul->mSoulLastFrame && soul->s.frame >= soul->mSoulFirstFrame ) { soul->s.frame++; }
+
+// unnecessary?
+//	gi.linkentity ( soul );
+
+	soul->nextthink = level.time + FRAMETIME;
+}
+
+void SP_LostMonsterSoul ( edict_t *self ) {
+
+	int savedEntNumber;
+	mmove_t	*move;
+	edict_t	*soul;
+
+	soul = G_Spawn();
+	savedEntNumber		= soul->s.number;
+
+	move = self->monsterinfo.currentmove;
+
+	//prevent memory overload, and ensure there isn't stuff there already
+	memset (soul, 0, sizeof(*soul));
+
+	soul->inuse			= true;
+	soul->gravity		= self->gravity;
+	soul->s.number		= savedEntNumber;
+
+	soul->groundentity = self->groundentity;
+	VectorCopy ( self->s.origin, soul->s.origin );
+	VectorCopy ( soul->s.origin, soul->s.old_origin );
+	
+	soul->takedamage	= DAMAGE_NO;
+	soul->health		= self->max_health;					// strength of soul
+//	soul->mass			= self->mass;						// additional parameter for soul strength?
+
+	soul->classname		= "soul";
+
+	VectorCopy ( self->mins, soul->mins );
+	VectorCopy ( self->maxs, soul->maxs );
+	soul->s.angles[YAW] = self->s.angles[YAW];
+	VectorClear (soul->velocity);
+
+//	gi.setmodel ( soul, self->model );						// POTENTIALLY WRONG****************************
+//	soul->s.modelindex = gi.modelindex ("models/monsters/soldier/tris.md2");
+	gi.setmodel ( soul, "models/monsters/soldier/tris.md2" );
+
+	soul->s.modelindex	= self->s.modelindex;				// will use the skin specified model
+//	soul->s.modelindex2 = self->s.modelindex2;				// custom gun model (change this to something else?)
+//	soul->s.modelindex3 = self->s.modelindex3;				// ctf
+//	soul->s.modelindex4 = self->s.modelindex4;				// derp
+	soul->s.skinnum		= self->s.skinnum;					// self - g_edicts - 1 | weaponnumber?;
+
+//	soul->s.effects		= self->s.effects;
+	soul->s.renderfx	= RF_TRANSLUCENT;		
+
+	soul->s.frame			= self->s.frame;				// idle animation = repeating the last action of the body
+	soul->mSoulFirstFrame	= move->firstframe;
+	soul->mSoulLastFrame	= move->lastframe;
+
+
+// only clients in ghostmode can "pickup" souls
+//	soul->owner			= self;								// owner will not clip against its belongings ( no touch! )
+
+	soul->solid			= SOLID_TRIGGER;
+	soul->clipmask		= self->clipmask;
+	soul->flags		   |= FL_NO_KNOCKBACK;					// set additional flags in monster_soul_think
+	soul->svflags		= SVF_SOUL;							// allow server-side per-client visiblity check
+	soul->movetype		= MOVETYPE_TOSS;
+
+	soul->possessed		= false;
+	soul->monster_class_index = self->monster_class_index;
+
+// necessary?
+//	soul->soulBeginSearchTime = level.time + 3.0f;			// give a few moments to allow something ???
+
+	soul->touch = monster_soul_touch;
+	// never dies, only gets freed
+
+	// add a pickup effect in monster_soul_think
+	// add a pickup sound in monster_soul_think
+
+	soul->think = monster_soul_think;
+	soul->nextthink = level.time + FRAMETIME;
+
+	gi.dprintf( "SOUL SPAWNED\n" );
+
+	gi.linkentity ( soul );
+}
+
+//*************************
+//	TMF7 END GHOST MODE
+//*************************

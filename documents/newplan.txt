@@ -42,16 +42,4 @@ if ( ent->possessed ) { transfer a particular thinkfunc to an override thinkfunc
 	--> also check g_combat.c for various monster reactions to damage, etc
 	--> also verify the functions in m_monster.c
 
-_________________________________________
-
-BUG: whether the v_angles sync up seems random? needs further testing
-
-BUG: doesn't duck ( as expected because player isn't on ground to begin with )
-
-BUG*: if run-shoot and RELEASE host, crash ( prolly because its shooting and has no enemy mid-move )
-	solution(?): save the enemy/goal/target/etc and switch back when released; save the oldMove and switch back when released
-
-BUG: continues repeating pain animation? YES, probably BECAUSE its self->possessed
-
- 
 

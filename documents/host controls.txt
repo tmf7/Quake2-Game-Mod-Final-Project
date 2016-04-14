@@ -39,7 +39,7 @@ Options:
 	--> whatever the forwardmove, sidemove, upmove produces in terms of velocity & origin, clamp it to the ai_func dist ( low|high )???
 	--> pass all the pmove results to the host, not the player (the player does its own pmove results...or not really because its a husk)
 
-5- ???
+5- newplan.txt
 
 
 
@@ -83,15 +83,6 @@ Plan asof 2am:
 --> Group all the forward declarations according to monster
 --> Then somehow set the available currentmoves according to monster classname .... a "movelist"
 
---> BUG: there may be a syncronization issue ( null/empty pointer useage ) when transferring for death/pain
-
-		//ALSO: do not process the mmove_t endfunc ( or at least verify and/or override )
-
--> BUG: currently crashes after a certain amount of uberhost clicks ( overflow? not clearing the invisible targets properly? )
-
-
-TODO:
--> add a centerprintf for possession cooldown ( only for targeted and radial triggers )
--> have rodeo controls check if fly | swim | walk
+--> do not process the mmove_t endfunc ( or at least verify and/or override )
 
 	

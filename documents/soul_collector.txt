@@ -1,12 +1,8 @@
 TODO:
 
-->better host controls
-
 ->player can only pickup dropped dead enemy souls
 
 ->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
-
-->test to see how the third person chasecam affects possesed monsters (will they turn/animate properly when player simply looks around? set their yaw only)
 
 ___________________________________________________________
 TESTING:
@@ -17,6 +13,14 @@ husk holds a weapon (ideally that looks like the players current weapon)...meh (
 BUG: idle animation -->too fast
 
 BUG: fix the clip into walls/ceilings when the host dies
+
+BUG: whether the v_angles sync up seems random? needs further testing ( seems okay 4/13/16 5pm )
+
+BUG: doesn't duck ( as expected because player isn't on ground to begin with )
+
+BUG**: continues repeating pain animation? YES, probably BECAUSE its self->possessed
+
+POTENTIAL BUG: there may be a syncronization issue ( null/empty pointer useage ) when transferring for death/pain
 
 ____________________________________________________________
 
