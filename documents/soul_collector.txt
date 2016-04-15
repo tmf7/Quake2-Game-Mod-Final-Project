@@ -1,26 +1,34 @@
 TODO:
 
-->player can only pickup dropped dead enemy souls
+-> add sounds and hud elements to soul_collector level up ( and soul collection )
 
-->develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
+-> add cheat code for skipping soul_collector_levels
+
+-> add clientcommands for toggle-able abilities
+
+-> fly/swim check for rodeo controls ( and default DropHost )
+
+-> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
 ___________________________________________________________
 TESTING:
 
-husk holds a weapon (ideally that looks like the players current weapon)...meh (stuck on super shotgun)
+-> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
+	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
 
+BUG: weird sequence of levelup prints despite large gap between level thresholds ( eg: printed level 3, then very next soul printed level 4 )
 
-BUG: idle animation -->too fast
+BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop
+
+BUG**: recently killed HOST will have it's deadflag set yet remain alive after spawning its soul ( no secondary soul is spawned )
 
 BUG: fix the clip into walls/ceilings when the host dies
 
-BUG: whether the v_angles sync up seems random? needs further testing ( seems okay 4/13/16 5pm )
+BUG: PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
 
-BUG: doesn't duck ( as expected because player isn't on ground to begin with )
+BUG: ducks TOO MUCH/REPEATEDLY 
 
-BUG**: continues repeating pain animation? YES, probably BECAUSE its self->possessed
-
-POTENTIAL BUG: there may be a syncronization issue ( null/empty pointer useage ) when transferring for death/pain
+BUG**: continues repeating pain animation? YES, because the currentmove continues until interrupted by given conditions ( despite ANIM_BASIC being set at end of anim )
 
 ____________________________________________________________
 

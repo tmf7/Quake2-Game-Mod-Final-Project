@@ -906,7 +906,7 @@ void Cmd_Ghost_f( edict_t *ent ) {
 	if ( !( ent->client->hostmode ) ) {
 		ent->client->ghostmode = !ent->client->ghostmode;
 
-	} else if ( ent->client->hostmode ) { DropHost( ent, HOST_KILL ); }		
+	} else if ( ent->client->hostmode && ent->client->soul_abilities & OBLITERATE_HOST ) { DropHost( ent, HOST_KILL ); }		
 		
 	//clear out the husk if not in either mode
 	if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
@@ -958,17 +958,15 @@ void Cmd_Inhabit_f( edict_t *ent ) {
 
 void Cmd_Uberhost_f (edict_t *ent) {
 
-	//definite crash...maybe
 	char	*msg;
+
+	// check the soul level before toggle ON/OFF*******
 
 	ent->client->soul_abilities ^= UBERHOST;
 	if (!(ent->client->soul_abilities & UBERHOST) )
 		msg = "uberhost OFF\n";
 	else
 		msg = "uberhost ON\n";
-
-	// re-initialize hmove_list
-	if ( ent->client->host ) { TakeHost( ent, ent->client->host, HOST_CHEAT ); }		//potential crash issue
 
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }

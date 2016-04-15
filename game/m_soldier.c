@@ -40,7 +40,7 @@ static int	sound_death;
 static int	sound_death_ss;
 static int	sound_cock;
 
-qboolean possessed_endfunc_verify ( edict_t *self );
+qboolean possessed_soldier_endfunc ( edict_t *self );
 
 void soldier_idle (edict_t *self)
 {
@@ -316,7 +316,7 @@ mmove_t soldier_move_run = {FRAME_run03, FRAME_run08, soldier_frames_run, NULL};
 
 void soldier_run (edict_t *self)
 {
-	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST && possessed_endfunc_verify( self ) ) 
+	if ( self->possessed && self->owner->client->soul_abilities & UBERHOST && possessed_soldier_endfunc( self ) ) 
 		{ return; } //TMF7 GHOST MODE ( override )
 
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
@@ -1317,7 +1317,7 @@ void SP_monster_soldier_light (edict_t *self)
 	self->health = 20;
 	self->gib_health = -30;
 
-	self->monster_class_index = SOLDIER_LIGHT;		//TMF7 GHOSTMODE
+	self->monster_soul_index = SOLDIER_LIGHT;		//TMF7 GHOSTMODE
 }
 
 /*QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1340,7 +1340,7 @@ void SP_monster_soldier (edict_t *self)
 	self->health = 30;
 	self->gib_health = -30;
 
-	self->monster_class_index = SOLDIER;		//TMF7 GHOSTMODE
+	self->monster_soul_index = SOLDIER;		//TMF7 GHOSTMODE
 }
 
 /*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1363,24 +1363,14 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->health = 40;
 	self->gib_health = -30;
 
-	self->monster_class_index = SOLDIER_SS;		//TMF7 GHOSTMODE
+	self->monster_soul_index = SOLDIER_SS;		//TMF7 GHOSTMODE
 }
 
 //***********************
 // TMF7 BEGIN GHOST MODE
 //***********************
 
-/*
-	self->monsterinfo.stand		= soldier_stand;	//done
-	self->monsterinfo.walk		= soldier_walk;		//done
-	self->monsterinfo.run		= soldier_run;		
-	self->monsterinfo.dodge		= soldier_dodge;
-	self->monsterinfo.attack	= soldier_attack;
-	self->monsterinfo.melee		= NULL;
-	self->monsterinfo.sight		= soldier_sight;
-*/
-
-qboolean possessed_endfunc_verify ( edict_t *self ) {
+qboolean possessed_soldier_endfunc ( edict_t *self ) {
 
 		if ( self->monsterinfo.currentmove == &soldier_move_pain1
 		|| self->monsterinfo.currentmove == &soldier_move_pain2 

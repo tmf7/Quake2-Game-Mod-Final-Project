@@ -850,7 +850,7 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 void SP_ClientHusk ( edict_t *self );														//TMF7 GHOST MODE
 void player_husk_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);	//TMF7 GHOST MODE
 trace_t GhostMuzzleTrace ( edict_t *ent );													//TMF7 GHOST MODE
-
+void LevelUpSoulCollector ( edict_t *ent );													//TMF7 GHOST MODE
 
 //
 // g_svcmds.c
@@ -1064,7 +1064,7 @@ struct gclient_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		ghostmode;
 	qboolean		hostmode;
-	qboolean		huskDamage;
+	qboolean		huskDamage;		// temporary set variable to forward damage to player specifically
 
 	int				soul_abilities;
 	float			nextPossessTime;
@@ -1228,7 +1228,7 @@ struct edict_s
 	monsterinfo_t	monsterinfo;
 
 //TMF7 BEGIN GHOST MODE
-	int				monster_class_index;
+	int				monster_soul_index;
 
 	qboolean		possessed;
 	float			huskBeginSearchTime;
@@ -1242,6 +1242,8 @@ struct edict_s
 	qboolean		host_anim_walk;
 	qboolean		host_anim_attack;
 
+	char			*take_host_noise;
+	char			*drop_host_noise;
 	hmove_t			*hmove_list;
 	edict_t			*host_target;		// the rodeo movement goal of a possessed host
 	edict_t			*old_owner;			// in case the host had a prior owner

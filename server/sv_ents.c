@@ -578,8 +578,9 @@ void SV_BuildClientFrame (client_t *client)
 //TMF7 BEGIN GHOST MODE
 		
 		// check if ent is a soul and if client is !ghostmode
-		if ( ent->svflags & SVF_SOUL && !(client->edict->svflags & SVF_GHOST) ) {
-			Com_Printf( "SKIPPING A SOUL FOR %s!\n", client->name );
+		// only souls can see other souls ( including coop player souls )
+		if ( ent->svflags & SVF_SOUL && !(client->edict->svflags & SVF_SOUL) ) {
+			//Com_Printf( "SKIPPING A SOUL FOR %s!\n", client->name );
 			continue;
 		}
 //TMF7 END GHOST MODE

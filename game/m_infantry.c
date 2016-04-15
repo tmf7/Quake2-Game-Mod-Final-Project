@@ -598,6 +598,8 @@ void SP_monster_infantry (edict_t *self)
 	self->monsterinfo.sight = infantry_sight;
 	self->monsterinfo.idle = infantry_fidget;
 
+	self->monster_soul_index = INFANTRY;		//TMF7 GHOST MODE
+
 	gi.linkentity (self);
 
 	self->monsterinfo.currentmove = &infantry_move_stand;

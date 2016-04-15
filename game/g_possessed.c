@@ -29,9 +29,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // NOTE: "#include" a xyz.c by forward declaring the needed function in <g_local.h> then including <g_local.h> in whatever
 // EG: everything that currently includes <g_local.h> has access to ClientEndServerFrame ( ent );
 
-char *take_host_noise;
-char *drop_host_noise;
-
 //*************
 //   SOLDIER
 //*************
@@ -119,6 +116,8 @@ hmove_t * find_host_move ( edict_t *host, char *possible_move ) {		// possible i
 
 	hmove_t		*m;
 
+	if ( host->hmove_list == NULL ) { return; }
+
 	for ( m = host->hmove_list; m->move_name; m++ ) {
 		if ( !strcmp( m->move_name, possible_move ) ) {	
 			// found it
@@ -172,7 +171,7 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	// only set when on the ground ( yoda ain't on the ground ... prollem? )***********
 	// solution: put the host->owner inside the host for reals
 	// and develop a real chasecam
-	if ( pm->s.pm_flags & PMF_DUCKED ) 
+	if ( pm->cmd.upmove < 0 ) //if ( pm->s.pm_flags & PMF_DUCKED ) 
 		{ duck = true; }
 	else 
 		{ duck = false; }
@@ -309,7 +308,7 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 		return; 
 	}
 
-	if ( self->client->soul_abilities & UBERHOST && host->hmove_list != NULL ) { 
+	if ( self->client->soul_abilities & UBERHOST ) { 
 
 		set_host_move( host, pm );
 	}
@@ -343,8 +342,9 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 
 void TakeHost ( edict_t *self, edict_t *host, int take_style ) { 
 
-	qboolean foundit =  false;
 	host_t	*h;
+
+	host->hmove_list = NULL;
 
 	// coop soul collectors
 	if ( host->owner && host->owner->client && host->owner != self ) {
@@ -356,28 +356,21 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 
 		if ( !strcmp( h->host_name, host->classname ) ) {
 
-			// found it, set the available monsterinfo.currentmove(s)
-			foundit = true;
-			if ( self->client->soul_abilities & UBERHOST ) { host->hmove_list = h->host_moves; }
-			else { host->hmove_list = NULL; }	// Rodeo host controls
-			
-			take_host_noise = h->takeNoise;
-			drop_host_noise = h->dropNoise;
+			// found it, grab the available monsterinfo.currentmove(s)
+			host->hmove_list = h->host_moves;
+			host->take_host_noise = h->takeNoise;
+			host->drop_host_noise = h->dropNoise;
 		}
 	}
 
-	// only monster_ classnames are taken ( should only !foundit for the headless strogg_commander )
-	if ( !foundit ) { 
+	// only takes hosts with hmoves ( even if empty )
+	if ( host->hmove_list == NULL ) { 
 		gi.dprintf ( "%s doesn't have any host moves defined\n", host->classname );
 		return;
-	} else {
-		//some debug prints
-		if ( host->hmove_list ) { gi.dprintf( "UBERHOST\n" ); }
-		else { gi.dprintf( "GIDDYUP\n" ); }
 	}
 
-	//make this monster-specific
-	gi.sound ( host, CHAN_VOICE, gi.soundindex (take_host_noise), 1, ATTN_NORM, 0);		//potential crash issue if NULL?
+	//make this monster-specific ( CRASH IF NULL )*************
+	gi.sound ( host, CHAN_VOICE, gi.soundindex (host->take_host_noise), 1, ATTN_NORM, 0);		//potential crash issue if NULL?
 
 	self->client->host		= host;
 	host->possessed			= true;
@@ -403,8 +396,8 @@ void DropHost ( edict_t *self, int drop_style )
 {
 	hmove_t *perform_move;
 
-	//make monster-specific
-	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( drop_host_noise ), 1, ATTN_NORM, 0);	//potential crash issue if NULL?
+	//make monster-specific ( CRASH IF NULL )*************
+	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( self->client->host->drop_host_noise ), 1, ATTN_NORM, 0);
 
 	switch ( drop_style ) {
 
@@ -423,7 +416,7 @@ void DropHost ( edict_t *self, int drop_style )
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
 
-	//prevent NULL-enemy crash mid-fire 
+	//prevent NULL-enemy crash mid-fire in uberhost mode
 	perform_move = find_host_move ( self->client->host, "stand2" ); // or try "stand1"
 	if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
 

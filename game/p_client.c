@@ -175,55 +175,6 @@ void SP_info_player_intermission(void)
 
 //=======================================================================
 
-//TMF7 BEGIN GHOST MODE
-trace_t GhostMuzzleTrace ( edict_t *ent ) {
-
-	trace_t tr;
-	vec3_t forward;	
-	vec3_t fromPos, toPos, targ;
-	edict_t *ignore;
-//	float d = 0;
-
-	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
-	AngleVectors( ent->client->v_angle, forward, NULL, NULL );
-	VectorNormalize( forward );
-
-	//a really long trace along the view direction from the player origin
-	VectorCopy (ent->s.origin, fromPos);
-	fromPos[2] += ent->viewheight;
-
-	VectorMA( fromPos, 4096.0f, forward, toPos );
-
-	tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
-			
-	// continue the trace if this hits the host, host_target, or player_husk
-	while ( tr.fraction < 1.0f && tr.ent  
-		&& ( ( ent->client->host && ent->client->host->host_target && tr.ent == ent->client->host->host_target )
-		||   ( ent->client->host					&& tr.ent == ent->client->host )
-		||   ( ent->client->player_husk				&& tr.ent == ent->client->player_husk ) ) ) {
-
-//		if ( dist ) { 
-//			VectorSubtract( tr.endpos, fromPos, targ );
-//			d += VectorLength( targ ); 
-//		}
-
-		VectorCopy( tr.endpos, fromPos );
-		ignore = tr.ent;
-
-		tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
-	}
-
-
-//	if ( tr.fraction < 1.0f && dist ) { 
-//		VectorSubtract( tr.endpos, fromPos, targ );
-//		*dist = d + VectorLength( targ );
-//
-//	} else if ( dist ) { *dist = 99999; }
-
-	return tr;
-}
-//TMF7 END GHOST MODE
-
 void player_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
 	// player pain is handled at the end of the frame in P_DamageFeedback
@@ -1252,9 +1203,19 @@ void PutClientInServer (edict_t *ent)
 //TMF7 BEGIN GHOST MODE (unsaved)
 	client->ghostmode = false;	
 	client->hostmode = false;
-	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST);		//starting ability set
+
 	client->nextPossessTime = 0;
 	ent->possessed = false;
+
+	client->pool_of_souls = 0;
+	client->soul_collector_level = 1;
+	
+	//starting ability set
+	//client->soul_abilities = DRAIN_LIFE;
+
+	//testing ability set
+	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST|OBLITERATE_HOST);		
+
 	client->huskDamage = false;
 	ent->husktouch = player_husk_touch;
 //TMF7 END GHOST MODE (unsaved)
@@ -1651,6 +1612,123 @@ void PrintPmove (pmove_t *pm)
 //	TMF7 BEGIN GHOST MODE
 //*************************
 
+trace_t GhostMuzzleTrace ( edict_t *ent ) {
+
+	trace_t tr;
+	vec3_t forward;	
+	vec3_t fromPos, toPos, targ;
+	edict_t *ignore;
+//	float d = 0;
+
+	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
+	AngleVectors( ent->client->v_angle, forward, NULL, NULL );
+	VectorNormalize( forward );
+
+	//a really long trace along the view direction from the player origin
+	VectorCopy (ent->s.origin, fromPos);
+	fromPos[2] += ent->viewheight;
+
+	VectorMA( fromPos, 4096.0f, forward, toPos );
+
+	tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
+			
+	// continue the trace if this hits the host, host_target, or player_husk
+	while ( tr.fraction < 1.0f && tr.ent  
+		&& ( ( ent->client->host && ent->client->host->host_target && tr.ent == ent->client->host->host_target )
+		||   ( ent->client->host					&& tr.ent == ent->client->host )
+		||   ( ent->client->player_husk				&& tr.ent == ent->client->player_husk ) ) ) {
+
+//		if ( dist ) { 
+//			VectorSubtract( tr.endpos, fromPos, targ );
+//			d += VectorLength( targ ); 
+//		}
+
+		VectorCopy( tr.endpos, fromPos );
+		ignore = tr.ent;
+
+		tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
+	}
+
+
+//	if ( tr.fraction < 1.0f && dist ) { 
+//		VectorSubtract( tr.endpos, fromPos, targ );
+//		*dist = d + VectorLength( targ );
+//
+//	} else if ( dist ) { *dist = 99999; }
+
+	return tr;
+}
+
+void LevelUpSoulCollector ( edict_t *ent ) {
+
+	gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
+/*
+// PROBLEM: want to be able to toggle some of these without losing the ability altogether
+// SOLUTION: if the bind toggle is pressed --> check the soul_collector_level --> toggle it
+// ... negates the need for the second switch statement here?
+// regardless: have a readout of current abilities ( and short explanation in console(?)/HUD(?) )
+// some are passive/always-on, others are toggle-able ( make that distinction in the check? )
+
+		// play level up noise
+		// display hud element of new abilities ( and explanation )
+		// SET the non-toggle-able abilities HERE
+
+
+	Additional:
+	soul walk duration
+	possession duration
+	husk transfer damage
+
+	// Ghost abilities			// level available
+	DRAIN_LIFE					1						??? I put this in because I want it to be toggled ... ugh
+	TARGETED_POSSESSION			3
+	RADIAL_POSSESSION			4
+	TOUCH_POSSESSION			2
+	DETECT_LIFE					3
+	GHOST_FLY					4
+	PULL_SOULS					3
+	RIP_SOULS					4
+
+	// Host abilities
+	UBERHOST					3
+	OBLITERATE_HOST				4
+	RECRUIT_FOLLOWERS			4
+	TRANSFORM_HOST				5
+
+	// Husk abilities
+	DAMAGE_HOST					4
+	SOUL_SHIELD					4
+	WARP_HUSK					5
+
+
+	// separated to allow for level skip cheats
+	switch ( client->soul_collector_level ) {
+		case 2: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			break; 
+		}
+		case 3: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			break; 
+		}
+		case 4: { 
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			break; 
+		}
+		case 5: {
+			client->soul_abilities |= TOUCH_POSSESSION;
+			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			client->soul_abilities |= (TRANSFORM_HOST|WARP_HUSK);
+			break; 
+		}
+	}
+*/
+}
+
 void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
 	int j;
@@ -1712,15 +1790,16 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 void ghostmode_protocols ( edict_t *self ) {
 
-	trace_t tr;
-	float distance;	
-	gclient_t *client;
-	edict_t *other;
+	int			i, num;
+	trace_t		tr;
+	gclient_t	*client;
+	edict_t		*other;
+	edict_t		*touch[MAX_EDICTS];
 
 	if ( self && self->client ) { client = self->client; }
 	else { return; }
 
-	self->svflags |= SVF_GHOST;				// allow server-side per-client monster-soul visiblity check
+	self->svflags |= SVF_SOUL;				// allow server-side per-client monster-soul visiblity check
 
 	//radial possession in ClientCommand
 	if ( client->soul_abilities & TARGETED_POSSESSION ) {
@@ -1759,6 +1838,26 @@ void ghostmode_protocols ( edict_t *self ) {
 				}
 			}
 		}
+	}
+
+	// touch any nearby ghosts		( change the range and add the PULL/RIP_SOULS abilitiy check here )*********
+	if ( self->health <= 0 )
+		return;
+
+	num = gi.BoxEdicts (self->absmin, self->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
+
+	for ( i = 0; i < num; i++ )
+	{
+		other = touch[i];
+		if (!other->inuse)
+			continue;
+		if (!other->touch)
+			continue;
+		if ( !(other->svflags & SVF_SOUL) )
+			continue;
+		if ( other->client )
+			continue;
+		other->touch (other, self, NULL, NULL);
 	}
 }
 
@@ -1829,9 +1928,11 @@ void husk_think ( edict_t *husk ) {
 	husk->owner->watertype = husk->watertype;
 
 	//if the player uses a powerup in ghostmode reflect that visually in the husk
+	husk->s.effects		= husk->owner->s.effects;
 	husk->s.renderfx	= husk->owner->s.renderfx;
 	husk->s.renderfx   &= ~RF_TRANSLUCENT;
-	husk->s.effects		= husk->owner->s.effects;
+
+	husk->nextthink = level.time + FRAMETIME;
 
 	gi.linkentity ( husk );
 	gi.linkentity ( husk->owner );
@@ -1924,6 +2025,9 @@ void SP_ClientHusk ( edict_t *self ) {
 	// never dies, only gets freed, player dies
 	// ghostly screen blend added in <p_view.c> SV_CalcBlend
 
+	husk->think = husk_think;
+	husk->nextthink = level.time + FRAMETIME;
+
 	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
 	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
 	self->takedamage	= DAMAGE_NO;								
@@ -1979,7 +2083,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	//otherwise game crashes when **host dies on its own**)
 
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
-	else { ent->svflags &= ~SVF_GHOST; }
+	else { ent->svflags &= ~SVF_SOUL; }
 
 	if ( client->hostmode ) {		// the host may be null goint into this check, should be okay
 
@@ -2156,82 +2260,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		if (other->inuse && other->client->chase_target == ent)
 			UpdateChaseCam(other);
 	}
-
-//TMF7 BEGIN GHOST MODE
-
-	// needs to be here so the husk can drown the player
-	if ( client->player_husk && !ent->deadflag ) { husk_think( client->player_husk ); }
-
-	// check pool_of_souls and set the soul_collector_level ONLY on each soul pickup
-	// DONT DO THIS HERE*******************
-/*
-// PROBLEM: want to be able to toggle some of these without losing the ability altogether
-// SOLUTION: if the bind toggle is pressed --> check the soul_collector_level --> toggle it
-// ... negates the need for the second switch statement here?
-// regardless: have a readout of current abilities ( and short explanation in console(?)/HUD(?) )
-// some are passive/always-on, others are toggle-able ( make that distinction in the check? )
-
-	Additional:
-	soul walk duration
-	possession duration
-	husk transfer damage
-
-	// Ghost abilities			// level available
-	DRAIN_LIFE					1						??? I put this in because I want it to be toggled ... ugh
-	TARGETED_POSSESSION			3
-	RADIAL_POSSESSION			4
-	TOUCH_POSSESSION			2
-	DETECT_LIFE					3
-	GHOST_FLY					4
-	PULL_SOULS					3
-	RIP_SOULS					4
-
-	// Host abilities
-	UBERHOST					3
-	OBLITERATE_HOST				4
-	RECRUIT_FOLLOWERS			4
-	TRANSFORM_HOST				5
-
-	// Husk abilities
-	DAMAGE_HOST					4
-	SOUL_SHIELD					4
-	WARP_HUSK					5
-*/
-
-	// balance this level thresholds better
-	if (	client->pool_of_souls >= 100	)	{ client->soul_collector_level = 2; }
-	if (	client->pool_of_souls >= 500	)	{ client->soul_collector_level = 3; }
-	if (	client->pool_of_souls >= 1000	)	{ client->soul_collector_level = 4; }
-	if (	client->pool_of_souls >= 5000	)	{ client->soul_collector_level = 5; }
-
-	// separated to allow for level skip cheats
-	switch ( client->soul_collector_level ) {
-		case 2: { 
-			client->soul_abilities |= TOUCH_POSSESSION;
-			break; 
-		}
-		case 3: { 
-			client->soul_abilities |= TOUCH_POSSESSION;
-			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
-			break; 
-		}
-		case 4: { 
-			client->soul_abilities |= TOUCH_POSSESSION;
-			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
-			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
-			break; 
-		}
-		case 5: {
-			client->soul_abilities |= TOUCH_POSSESSION;
-			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
-			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
-			client->soul_abilities |= (TRANSFORM_HOST|WARP_HUSK);
-			break; 
-		}
-	}
-
-//TMF7 END GHOST MODE
-
 }
 
 
