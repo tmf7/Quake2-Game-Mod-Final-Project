@@ -1214,7 +1214,7 @@ void PutClientInServer (edict_t *ent)
 	//client->soul_abilities = DRAIN_LIFE;
 
 	//testing ability set
-	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST|OBLITERATE_HOST);		
+	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST|OBLITERATE_HOST|PULL_SOULS);		
 
 	client->huskDamage = false;
 	ent->husktouch = player_husk_touch;
@@ -1661,64 +1661,70 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 
 void LevelUpSoulCollector ( edict_t *ent ) {
 
+	gclient_t *client = ent->client;
+
 	gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
+	//make a sound ( diablo level up .wav added to pak0 AND precahed ??? )
+
+	// display hud element of new abilities ( and explanation )
+	// display the soul collector level in the hud popup instead of a centerprint
+	//Cmd_Soul_Abilities_f( ent );
 /*
-// PROBLEM: want to be able to toggle some of these without losing the ability altogether
-// SOLUTION: if the bind toggle is pressed --> check the soul_collector_level --> toggle it
-// ... negates the need for the second switch statement here?
-// regardless: have a readout of current abilities ( and short explanation in console(?)/HUD(?) )
-// some are passive/always-on, others are toggle-able ( make that distinction in the check? )
-
-		// play level up noise
-		// display hud element of new abilities ( and explanation )
-		// SET the non-toggle-able abilities HERE
-
-
 	Additional:
 	soul walk duration
 	possession duration
 	husk transfer damage
 
 	// Ghost abilities			// level available
-	DRAIN_LIFE					1						??? I put this in because I want it to be toggled ... ugh
-	TARGETED_POSSESSION			3
-	RADIAL_POSSESSION			4
-	TOUCH_POSSESSION			2
-	DETECT_LIFE					3
-	GHOST_FLY					4
-	PULL_SOULS					3
-	RIP_SOULS					4
+	DRAIN_LIFE					1						// toggle
+	TARGETED_POSSESSION			3						// passive
+	RADIAL_POSSESSION			4						// passive
+	TOUCH_POSSESSION			2						// passive
+	DETECT_LIFE					3						// toggle ( too many may get annoying )
+	GHOST_FLY					4						// toggle
+	PULL_SOULS					3						// passive
+	RIP_SOULS					4						// toggle
 
 	// Host abilities
-	UBERHOST					3
-	OBLITERATE_HOST				4
-	RECRUIT_FOLLOWERS			4
-	TRANSFORM_HOST				5
+	UBERHOST					3						// toggle
+	OBLITERATE_HOST				4						// passive
+	RECRUIT_FOLLOWERS			4						// passive
+	TRANSFORM_HOST				5						// passive
 
 	// Husk abilities
-	DAMAGE_HOST					4
-	SOUL_SHIELD					4
-	WARP_HUSK					5
+	DAMAGE_HOST					4						// passive
+	SOUL_SHIELD					4						// passive
+	WARP_HUSK					5						// passive
 
+*/
+	client->soul_abilities = 0;
 
 	// separated to allow for level skip cheats
 	switch ( client->soul_collector_level ) {
-		case 2: { 
+		case 1: {
+			client->soul_abilities |= DRAIN_LIFE;
+			break;
+		}
+		case 2: {
+			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			break; 
 		}
-		case 3: { 
+		case 3: {
+			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
 			break; 
 		}
-		case 4: { 
+		case 4: {
+			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
 			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
 			break; 
 		}
 		case 5: {
+			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
 			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
@@ -1726,7 +1732,7 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 			break; 
 		}
 	}
-*/
+
 }
 
 void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
@@ -1752,7 +1758,8 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 		VectorCopy( other->s.origin, self->s.origin );
 
-		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);	// change this noise**************
+		// change this noise**************
+		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);
 
 		//transfer all husk enemies back to the player
 		for ( j = 1; j <= globals.num_edicts; j++ ) {
@@ -1784,7 +1791,6 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 		self->client->newweapon = self->client->pers.lastweapon;		//pickup the prev weapon
 		ChangeWeapon (self);
-		
 	} 
 }
 
@@ -1828,7 +1834,7 @@ void ghostmode_protocols ( edict_t *self ) {
 		if ( !client->host ) {
 			other = NULL;
 
-			while ( ( other = findradius( other, self->s.origin, 60 ) ) != NULL )	{
+			while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
 
 				if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
 				{ 
@@ -1840,10 +1846,27 @@ void ghostmode_protocols ( edict_t *self ) {
 		}
 	}
 
-	// touch any nearby ghosts		( change the range and add the PULL/RIP_SOULS abilitiy check here )*********
-	if ( self->health <= 0 )
-		return;
+	// set all souls in range to be pulled
+	if ( self->client->soul_abilities & PULL_SOULS ) {
 
+		other = NULL;
+		while ( ( other = findradius( other, self->s.origin, SOUL_RANGE ) ) != NULL )	{
+
+			if ( !(other->svflags & SVF_SOUL) )
+				continue;
+			if ( !other->touch )
+				continue;
+			if ( other->owner )		// already being pulled
+				continue;
+
+			if ( other->classname && !Q_strncasecmp( other->classname, "soul", 4 ) ) {
+				other->owner = self;
+				other->s.effects |= EF_IONRIPPER;
+			}
+		}
+	}
+
+	// touch ghosts
 	num = gi.BoxEdicts (self->absmin, self->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	for ( i = 0; i < num; i++ )
@@ -1877,7 +1900,7 @@ void husk_think ( edict_t *husk ) {
 	if ( !client->hostmode && level.time > husk->huskBeginSearchTime ) {
 		other = NULL;
 
-		while ( ( other = findradius( other , husk->s.origin, 60 ) ) != NULL )	{
+		while ( ( other = findradius( other , husk->s.origin, GHOST_RANGE ) ) != NULL )	{
 
 			if ( other == husk->owner && husk->owner->husktouch ) { 	
 				husk->owner->husktouch ( husk->owner, husk ); 
@@ -1930,6 +1953,9 @@ void husk_think ( edict_t *husk ) {
 	//if the player uses a powerup in ghostmode reflect that visually in the husk
 	husk->s.effects		= husk->owner->s.effects;
 	husk->s.renderfx	= husk->owner->s.renderfx;
+
+	husk->s.effects    &= ~EF_TRACKER;
+	husk->s.effects    &= ~EF_TRACKERTRAIL;
 	husk->s.renderfx   &= ~RF_TRANSLUCENT;
 
 	husk->nextthink = level.time + FRAMETIME;
@@ -2028,7 +2054,12 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->think = husk_think;
 	husk->nextthink = level.time + FRAMETIME;
 
+	self->s.effects		= EF_TRACKER;
+	if ( self->client->soul_collector_level >= 3 )
+		self->s.effects	= EF_TRACKERTRAIL;
+
 	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
+	
 	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
 	self->takedamage	= DAMAGE_NO;								
 
@@ -2036,7 +2067,8 @@ void SP_ClientHusk ( edict_t *self ) {
 	ChangeWeapon( self );
 
 	//not a PlayerNoise, to avoid alerting monsters
-	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0); // change this noise**************
+	// change this noise**************
+	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0);
 
 	gi.linkentity ( self );
 	gi.linkentity ( husk );

@@ -601,6 +601,9 @@ typedef enum {
 } fieldtype_t;
 
 //TMF7 GHOST MODE
+#define SOUL_RANGE			300		// radial possession, pull/rip souls
+#define GHOST_RANGE			60		// touch possession, husktouch
+
 enum take_host_style {
 	HOST_TOUCH,
 	HOST_RADIAL,
@@ -626,7 +629,7 @@ enum soul_collector {
 	DRAIN_LIFE			= 0x00000001,	// 1
 	TARGETED_POSSESSION = 0x00000002,	// 3
 	RADIAL_POSSESSION	= 0x00000004,	// 4
-	TOUCH_POSSESSION	= 0x00000008,	// 2
+	TOUCH_POSSESSION	= 0x00000008,	// 2		
 	DETECT_LIFE			= 0x00000010,	// 3
 	GHOST_FLY			= 0x00000020,	// 4
 	PULL_SOULS			= 0x00000040,	// 3
@@ -688,6 +691,8 @@ extern	gitem_t	itemlist[];
 //
 void Cmd_Help_f (edict_t *ent);
 void Cmd_Score_f (edict_t *ent);
+void Cmd_Soul_Abilities_f ( edict_t *ent );		//TMF7 GHOST MODE
+void Cmd_Soul_Collection_f ( edict_t *ent );		//TMF7 GHOST MODE
 
 //
 // g_items.c
@@ -912,7 +917,8 @@ void SetChaseTarget(edict_t *self, edict_t *host);	//TMF7 THIRD PERSON / GHOST M
 //
 void TakeHost( edict_t *self, edict_t *host, int take_style );
 void DropHost( edict_t *self, int drop_style );
-void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );		
+void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );	
+hmove_t * find_host_move ( edict_t *host, char *possible_move );
 //TMF7 END GHOST MODE
 
 //============================================================================
@@ -1235,6 +1241,7 @@ struct edict_s
 
 	int				mSoulFirstFrame;
 	int				mSoulLastFrame;
+	int				soulSpawnTime;
 
 	int				host_anim_priority;
 	qboolean		host_anim_duck;

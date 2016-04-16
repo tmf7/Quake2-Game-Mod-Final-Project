@@ -364,6 +364,7 @@ void M_MoveFrame (edict_t *self)
 {
 	mmove_t	*move;
 	int		index;
+	hmove_t *perform_move;		//TMF7 GHOST MODE
 
 	move = self->monsterinfo.currentmove;
 	self->nextthink = level.time + FRAMETIME;
@@ -372,6 +373,14 @@ void M_MoveFrame (edict_t *self)
 	if ( self->possessed 
 		&& self->owner->client->soul_abilities & UBERHOST 
 		&& self->s.frame == move->lastframe ) {
+
+			if ( self->host_anim_priority == ANIM_PAIN ) {
+
+				// prevent constant-cycle pain animations
+				perform_move = find_host_move ( self, "stand1" ); // or try "stand2"
+				if ( perform_move && perform_move->hmove ) { perform_move->hmove( self ); }
+			}
+
 			self->host_anim_priority = ANIM_BASIC;		// everyone has it, only true uberhosts use it
 	}
 //TMF7 BEGIN GHOST MODE ( overrride )
@@ -774,6 +783,22 @@ void swimmonster_start (edict_t *self)
 // TMF7 BEGIN GHOST MODE
 //***********************
 
+// jump towards the pulling player
+void monster_soul_pull ( edict_t *self, edict_t *soul ) {
+
+	vec3_t dir;
+
+	VectorSubtract ( self->s.origin, soul->s.origin, dir );
+	VectorNormalize( dir );
+
+	soul->s.origin[2] += 1;
+	VectorScale ( dir, 600, soul->velocity );
+	soul->velocity[2] = 250;
+	soul->groundentity = NULL;
+
+	gi.linkentity( soul );
+}
+
 void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
 	int old_soul_collector_level;
@@ -782,16 +807,15 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 	if ( !other->client || other->deadflag != DEAD_NO || !other->client->ghostmode ) 
 		{ return; }
 
-	// add a pickup screen effect***************************
-	// add a pickup sound
-	// update the hud readout for pool_of_souls
+	//pickup verification
+	other->client->bonus_alpha = 0.35;
+	gi.sound ( other, CHAN_VOICE, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
+
+	// update the client hud readout for pool_of_souls*****
 
 	old_soul_collector_level = other->client->soul_collector_level;
 	
 	other->client->pool_of_souls += soul->mass;
-
-	gi.centerprintf( other, "SOUL STRENGTH = %i\n", soul->mass );
-
 	other->client->soulCollection[ soul->monster_soul_index ]++;
 
 	// balance this level thresholds better
@@ -804,14 +828,18 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 		LevelUpSoulCollector( other );
 	}
 
-	VectorCopy( other->s.origin, soul->s.origin );
-	gi.linkentity( soul );
-
-	soul->think = G_FreeEdict;
-	soul->nextthink = level.time + FRAMETIME;
+	G_FreeEdict( soul );
 }
 
 void monster_soul_think ( edict_t *soul ) {
+
+	if ( level.time >= soul->soulSpawnTime ) {	
+		soul->touch = monster_soul_touch;	
+	}
+
+	if ( soul->owner && soul->groundentity ) {
+		monster_soul_pull( soul->owner, soul );
+	}
 
 	//jump back to idle animation if outside it
 	if ( soul->s.frame > soul->mSoulLastFrame || soul->s.frame < soul->mSoulFirstFrame) { soul->s.frame = soul->mSoulFirstFrame; }
@@ -846,7 +874,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	VectorCopy ( soul->s.origin, soul->s.old_origin );
 	
 	soul->takedamage	= DAMAGE_NO;
-	soul->mass			= self->mass;					// strength of soul
+	soul->mass			= self->mass;						// strength of soul
 
 	soul->classname		= "soul";
 
@@ -858,14 +886,12 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	soul->s.modelindex	= self->s.modelindex;				// will use the skin specified model
 	soul->s.skinnum		= self->s.skinnum;
 
-//	soul->s.effects		= self->s.effects;
+	soul->soulSpawnTime = level.time + 5.0;
 	soul->s.renderfx	= RF_TRANSLUCENT;		
 
 	soul->s.frame			= self->s.frame;				// idle animation = repeating the last action of the body
 	soul->mSoulFirstFrame	= move->firstframe;
 	soul->mSoulLastFrame	= move->lastframe;
-
-//	soul->owner			= self;								// owner will not clip against its belongings ( no touch! )
 
 	soul->solid			= SOLID_TRIGGER;
 	soul->clipmask		= self->clipmask;
@@ -875,8 +901,10 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 
 	soul->possessed		= false;
 	soul->monster_soul_index = self->monster_soul_index;
+	soul->take_host_noise = self->drop_host_noise;
 
-	soul->touch = monster_soul_touch;
+	//set in monster_soul_think
+	soul->touch = NULL;
 	// never dies, only gets freed
 
 	soul->think = monster_soul_think;

@@ -25,10 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "g_possessed.h"
 
-// How player frames are handled ( extra in T_Damage, ChangeWeapon, WeaponGeneric ) would be more precise
-// NOTE: "#include" a xyz.c by forward declaring the needed function in <g_local.h> then including <g_local.h> in whatever
-// EG: everything that currently includes <g_local.h> has access to ClientEndServerFrame ( ent );
-
 //*************
 //   SOLDIER
 //*************
@@ -161,17 +157,14 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	VectorCopy( pm->viewangles, host->s.angles ); // PITCH YAW ROLL
 	host->monsterinfo.aiflags = 0;
 
-	// tested: 0 = stand, 200 = walk, 400 = run
+	// tested: 0 = stand, 200 = walk, 400 = run ( holding forward and side causes a run-fast also )
 	xyspeed = sqrt( (float)(pm->cmd.forwardmove)*(float)(pm->cmd.forwardmove) + (float)(pm->cmd.sidemove)*(float)(pm->cmd.sidemove) );
 	allowInterrupt = false;
 	perform_move = NULL;
 
-	// relink here to fix random no-sync issue?
+	// relink here to fix rare no-sync issue?
 
-	// only set when on the ground ( yoda ain't on the ground ... prollem? )***********
-	// solution: put the host->owner inside the host for reals
-	// and develop a real chasecam
-	if ( pm->cmd.upmove < 0 ) //if ( pm->s.pm_flags & PMF_DUCKED ) 
+	if ( pm->cmd.upmove < 0 ) //if ( pm->s.pm_flags & PMF_DUCKED ) // PMF_DUCKED only set when user has a groundentity
 		{ duck = true; }
 	else 
 		{ duck = false; }
@@ -199,8 +192,8 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 		{ allowInterrupt = true; }
 	if ( slow != host->host_anim_walk && host->host_anim_priority == ANIM_BASIC )
 		{ allowInterrupt = true; }
-	if ( !host->groundentity && host->host_anim_priority == ANIM_BASIC )
-		{ allowInterrupt = true; }
+//	if ( !host->groundentity && host->host_anim_priority == ANIM_BASIC )		// jumping, flying, swimming ?
+//		{ allowInterrupt = true; }
 
 	if ( allowInterrupt ) {
 
@@ -417,11 +410,15 @@ void DropHost ( edict_t *self, int drop_style )
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
 
 	//prevent NULL-enemy crash mid-fire in uberhost mode
-	perform_move = find_host_move ( self->client->host, "stand2" ); // or try "stand1"
-	if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
+	if ( self->client->host->deadflag == DEAD_NO ) {
+		
+		// NOTE: ensure the flying/swimming equivalent*****
+		perform_move = find_host_move ( self->client->host, "stand1" ); // or try "stand2"
+		if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
+	}
 
 	self->client->host->possessed		= false;
-	self->client->host->owner			= self->client->host->old_owner;	// potentially null
+	self->client->host->owner			= self->client->host->old_owner;	// potentially null, should be okay
 	self->client->host					= NULL;
 	self->client->hostmode				= false;
 	self->client->ghostmode				= true;

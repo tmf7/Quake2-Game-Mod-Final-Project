@@ -7,6 +7,7 @@ TODO:
 -> add clientcommands for toggle-able abilities
 
 -> fly/swim check for rodeo controls ( and default DropHost )
+	--> and default drop-host/return-rodeo/end-pain transition move
 
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
@@ -16,20 +17,18 @@ TESTING:
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
 
-BUG: weird sequence of levelup prints despite large gap between level thresholds ( eg: printed level 3, then very next soul printed level 4 )
+BUG: not all soldier souls make a sound when picked up ???
 
-BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop
-
-BUG**: recently killed HOST will have it's deadflag set yet remain alive after spawning its soul ( no secondary soul is spawned )
+BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
 
 BUG: fix the clip into walls/ceilings when the host dies
 
-BUG: PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
+BUG: host PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
 
-BUG: ducks TOO MUCH/REPEATEDLY 
-
-BUG**: continues repeating pain animation? YES, because the currentmove continues until interrupted by given conditions ( despite ANIM_BASIC being set at end of anim )
-
+BUG: ducks TOO MUCH/REPEATEDLY ... right into floors if duck, then duck-shoot ( bbox lowerd, then again )
+	// specifically write a new duck move (if the monster has the animations )
+	// set an array, make a callback to it, declare in possessed.h
+	// check if the host is already ducked/standing before performing the move/transition
 ____________________________________________________________
 
 
@@ -50,6 +49,23 @@ GHOST MODE key-binds:
 NORMAL MODE key-binds:
 "inhabit" [ eg 'r' ] -> nothing.
 "ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls).
+
+"uberhost" [ eg 'v' ] -> toggle between uberhost and rodeo host controls
+___________________________________________________________
+
+f = "ghost"
+r = "inhabit"
+v = "uberhost"
+y = "rip_souls"
+
+o = "drain_life"
+n = "detect_life"
+m = "ghost_fly"
+
+F7 = "soul_abilities"
+F8 = "soul_collection"
+
+cheatcode: soullevel [1-5] ( default displays usage )
 
 ______________________________________________
 

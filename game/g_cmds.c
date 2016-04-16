@@ -935,7 +935,7 @@ void Cmd_Inhabit_f( edict_t *ent ) {
 
 				//find the first monster in range
 				other = NULL;
-				while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
+				while ( ( other = findradius( other, ent->s.origin, SOUL_RANGE ) ) != NULL ) {
 
 					if ( other == ent )
 					{ continue; }
@@ -956,17 +956,106 @@ void Cmd_Inhabit_f( edict_t *ent ) {
 	gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
 }
 
+// 'o' is bound to "drain_life" toggle
+void Cmd_Drain_Life_f( edict_t * ent ) {
+
+}
+
+// 'n' is bound to "detect_life" toggle
+void Cmd_Detect_Life_f( edict_t *ent ) {
+		
+	if ( ent->client->soul_collector_level < 3 )
+		return;
+}
+
+// 'm' is bound to "ghost_fly" toggle
+void Cmd_Ghost_Fly_f( edict_t *ent ) {
+		
+	if ( ent->client->soul_collector_level < 4 )
+		return;
+}
+
+// 'y' is bound to radial insta-kill soul-rip
+void Cmd_Rip_Souls_f( edict_t *ent ) {
+
+	if ( ent->client->soul_collector_level < 4 )
+		return;
+	/*
+
+	// rip souls kills the in-range monsters (which spawns a soul) then player passively soul-pulls automatically
+	// => must have same range as soul pull, or less  SOUL_RANGE
+
+	edict_t *other;
+
+	if ( ent->client->ghostmode ) { 
+
+		if ( ent->client->soul_abilities & RADIAL_POSSESSION ) { 
+
+			if ( level.time >= ent->client->nextPossessTime ) {
+
+				//find the first monster in range
+				other = NULL;
+				while ( ( other = findradius( other, ent->s.origin, 300 ) ) != NULL ) {
+
+					if ( other == ent )
+					{ continue; }
+
+					if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+					{ continue; }
+
+					if ( !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) { break; }
+				}
+
+				if ( other ) { TakeHost( ent, other, HOST_RADIAL ); } 
+				else { gi.centerprintf ( ent, "NO HOSTS IN RANGE\n" ); }
+
+			} else { gi.centerprintf ( ent, "POSSESSION RECHARGHING" );  }
+		}
+	} else if ( ent->client->hostmode ) { DropHost( ent, HOST_NO_HARM ); }
+
+	gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
+	*/
+}
+
+void Cmd_Set_Soul_Level_f( edict_t *ent ) {
+	
+	int		desired_level;
+
+	desired_level = atoi (gi.argv(1));
+
+	switch ( desired_level ) {
+		case 1: { ent->client->soul_collector_level = 1; LevelUpSoulCollector( ent ); break; }
+		case 2: { ent->client->soul_collector_level = 2; LevelUpSoulCollector( ent ); break; }
+		case 3: { ent->client->soul_collector_level = 3; LevelUpSoulCollector( ent ); break; }
+		case 4: { ent->client->soul_collector_level = 4; LevelUpSoulCollector( ent ); break; }
+		case 5: { ent->client->soul_collector_level = 5; LevelUpSoulCollector( ent ); break; }
+		default:{ gi.cprintf( ent, PRINT_HIGH, "Set Soul Collector Level. USAGE: soullevel [1-5] EXAMPLE: soullevel 3\n" ); break; }
+	}
+}
+
+// 'v' is bound to "uberhost" toggle
 void Cmd_Uberhost_f (edict_t *ent) {
 
 	char	*msg;
+	hmove_t *perform_move;
 
-	// check the soul level before toggle ON/OFF*******
+	if ( ent->client->soul_collector_level < 3 )
+		return;
 
 	ent->client->soul_abilities ^= UBERHOST;
 	if (!(ent->client->soul_abilities & UBERHOST) )
 		msg = "uberhost OFF\n";
 	else
 		msg = "uberhost ON\n";
+
+	if ( ent->client->host ) {
+
+		if ( ent->client->host->host_target ) { G_FreeEdict( ent->client->host->host_target ); }
+
+		// prevent mid-fire crash
+		perform_move = find_host_move ( ent->client->host, "stand1" ); // or try "stand2"
+		if ( perform_move && perform_move->hmove ) { perform_move->hmove( ent->client->host ); }
+	}
 
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
@@ -1013,6 +1102,18 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
+// TMF7 BEGIN GHOST MODE
+	if (Q_stricmp (cmd, "soul_abilities") == 0)
+	{
+		Cmd_Soul_Abilities_f (ent);
+		return;
+	}	
+	if (Q_stricmp (cmd, "soul_collection") == 0)
+	{
+		Cmd_Soul_Collection_f (ent);
+		return;
+	}
+// TMF7 END GHOST MODE
 
 	if (level.intermissiontime)
 		return;
@@ -1068,6 +1169,16 @@ void ClientCommand (edict_t *ent)
 		Cmd_Ghost_f( ent );
 	else if ( Q_stricmp(cmd, "inhabit") == 0 )	
 		Cmd_Inhabit_f( ent );
+	else if ( Q_stricmp(cmd, "drain_life") == 0 )	
+		Cmd_Drain_Life_f( ent );
+	else if ( Q_stricmp(cmd, "detect_life") == 0 )	
+		Cmd_Detect_Life_f( ent );
+	else if ( Q_stricmp(cmd, "ghost_fly") == 0 )	
+		Cmd_Ghost_Fly_f( ent );
+	else if ( Q_stricmp(cmd, "rip_souls") == 0 )	
+		Cmd_Rip_Souls_f( ent );
+	else if ( Q_stricmp(cmd, "soullevel") == 0 )	
+		Cmd_Set_Soul_Level_f( ent );
 //TMF7 END GHOST MODE
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
