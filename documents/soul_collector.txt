@@ -1,15 +1,16 @@
 TODO:
 
--> add sounds and hud elements to soul_collector level up ( and soul collection )
-
--> add cheat code for skipping soul_collector_levels
-
--> add clientcommands for toggle-able abilities
+-> hud elements to soul_collector level up ( and soul collection )
 
 -> fly/swim check for rodeo controls ( and default DropHost )
-	--> and default drop-host/return-rodeo/end-pain transition move
 
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
+
+-> add slighost sounds for recruiting/controlling new monsters ( control a list/group, re-purpose other binds if in hostmode, add hud help )
+
+-> display different information in soulabilities hud popup depending on ghostmode, hostmode, none
+
+-> do husk armor (orbit max_items num reduced by damage, regen over time )
 
 ___________________________________________________________
 TESTING:
@@ -17,7 +18,11 @@ TESTING:
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
 
-BUG: not all soldier souls make a sound when picked up ???
+BUG: weird angels on detect_life in hover hostmode ( disable, or wait until better chasecam )
+
+BUG: not all soldier souls make a sound when picked up ??? ( because they get freed before their sound pointer is used? )
+
+BUG: spawnsoul noise randomly repeats until interrupted post-soul-spawn
 
 BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
 
@@ -55,10 +60,10 @@ ___________________________________________________________
 
 f = "ghost"
 r = "inhabit"
-v = "uberhost"
+v = "uberhost" & "drain_life"
 y = "rip_souls"
 
-o = "drain_life"
+o = unbound
 n = "detect_life"
 m = "ghost_fly"
 

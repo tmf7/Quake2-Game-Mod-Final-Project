@@ -137,7 +137,6 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	// change: g_combat.c stuff ( reaction to damage, etc )
 	// verify m_monster.c stuff
 
-
 	// how does the player handle swimming?
 	// how do monsters handle fly/swim moves?
 
@@ -381,7 +380,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 		case HOST_TOUCH:	{ gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_RADIAL:	{ gi.centerprintf( self, "RADIAL POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_TARGETED:	{ gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", host->classname ); break;}
-		case HOST_CHEAT:	{ break;}
+		case HOST_NEW_BODY:	{ gi.centerprintf (self, "HOST UPGRADE TO: %s\n", host->classname ); break;}
 	}
 }
 
@@ -405,6 +404,8 @@ void DropHost ( edict_t *self, int drop_style )
 		}
 
 		case HOST_DEATH: { gi.centerprintf( self, "HOST DIED ON ITS OWN, GHOST MODE ENABLED\n" ); break; }
+
+		case HOST_TRANSFORM: { break; }
 	}
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }
@@ -445,6 +446,8 @@ void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface
 
 			other->monsterinfo.stand( other ); 
 		} 
+
+		gi.sound (other, CHAN_VOICE, gi.soundindex ("slighost/freeze.wav"), 1, ATTN_NORM, 0);
 		G_FreeEdict ( self );
 	}
 
@@ -479,7 +482,8 @@ void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_typ
 		case RODEO_ENEMY: {
 			host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr->ent;
 			host->target_ent = NULL;
-			
+			gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/getem.wav"), 1, ATTN_NORM, 0);
+
 			// get rid of any leftover benign target edict
 			if ( host->host_target ) { G_FreeEdict( host->host_target ); }
 			break;
@@ -520,9 +524,11 @@ void SP_Host_Target ( edict_t *host, vec3_t origin, qboolean show ) {
 	targ->flags		   |= FL_NO_KNOCKBACK;
 	targ->takedamage	= DAMAGE_NO;
 	targ->movetype		= MOVETYPE_NONE;
-	targ->touch			= host_target_touch;			// change this depending on UBERHOST status???
+	targ->touch			= host_target_touch;
 	//targ->owner		= host->owner;					// not necessary
 	targ->classname		= "host_target";
+
+	gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/bleh.wav"), 1, ATTN_NORM, 0);
 	
 	gi.linkentity( targ );
 }

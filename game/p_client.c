@@ -1662,13 +1662,6 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 void LevelUpSoulCollector ( edict_t *ent ) {
 
 	gclient_t *client = ent->client;
-
-	gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
-	//make a sound ( diablo level up .wav added to pak0 AND precahed ??? )
-
-	// display hud element of new abilities ( and explanation )
-	// display the soul collector level in the hud popup instead of a centerprint
-	//Cmd_Soul_Abilities_f( ent );
 /*
 	Additional:
 	soul walk duration
@@ -1683,7 +1676,7 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 	DETECT_LIFE					3						// toggle ( too many may get annoying )
 	GHOST_FLY					4						// toggle
 	PULL_SOULS					3						// passive
-	RIP_SOULS					4						// toggle
+	RIP_SOULS					4						// passive ( cmd )
 
 	// Host abilities
 	UBERHOST					3						// toggle
@@ -1733,6 +1726,43 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 		}
 	}
 
+	// display the soul collector level in the hud popup instead of a centerprint
+	gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
+	gi.sound (ent, CHAN_VOICE, gi.soundindex ("husk/levelup.wav"), 1, ATTN_NORM, 0);
+
+	// display hud element of new abilities ( and explanation )
+	//Cmd_Soul_Abilities_f( ent );
+}
+
+void detect_life ( edict_t *self ) {
+
+	vec3_t	life_point;
+	edict_t *other;
+
+	//draw a line to  all monsters in range
+	other = NULL;
+	while ( ( other = findradius( other, self->s.origin, LIFE_RANGE ) ) != NULL ) {
+
+		if ( other == self )
+		{ continue; }
+
+		if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+		{ continue; }
+
+		if ( other->deadflag != DEAD_NO )
+		{ continue; }
+
+		if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) { 
+			
+			VectorMA (other->absmin, 0.5, other->size, life_point);
+			gi.WriteByte (svc_temp_entity);
+			gi.WriteByte (TE_BFG_LASER);
+			gi.WritePosition (self->s.origin);
+			gi.WritePosition (life_point);
+			//gi.multicast (self->s.origin, MULTICAST_PHS);
+			gi.unicast( self, true );
+		}
+	}
 }
 
 void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
@@ -1756,10 +1786,13 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		self->flags &= ~FL_NOTARGET;
 		self->takedamage = DAMAGE_AIM;
 
-		VectorCopy( other->s.origin, self->s.origin );
-
-		// change this noise**************
-		gi.sound (self, CHAN_VOICE, gi.soundindex ("mutant/mutdeth1.wav"), 1, ATTN_NORM, 0);
+		// jump back to the husk spawn
+		if ( !(self->client->soul_abilities & WARP_HUSK) ) {
+			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/enterhusk.wav"), 1, ATTN_STATIC, 0);
+			VectorCopy( other->s.origin, self->s.origin );
+		} else {
+			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/warphusk.wav"), 1, ATTN_STATIC, 0);
+		}
 
 		//transfer all husk enemies back to the player
 		for ( j = 1; j <= globals.num_edicts; j++ ) {
@@ -1771,7 +1804,6 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 				if ( oldEnemy->svflags & SVF_MONSTER ) {
 					oldEnemy->monsterinfo.aiflags = 0;
-					//oldEnemy->monsterinfo.aiflags &= ~AI_LOST_SIGHT; 
 				}
 				oldEnemy->goalentity = 
 				oldEnemy->movetarget = 
@@ -1829,19 +1861,23 @@ void ghostmode_protocols ( edict_t *self ) {
 		} 
 	}
 
-	if ( client->soul_abilities & TOUCH_POSSESSION ) {
 
-		if ( !client->host ) {
-			other = NULL;
+	if ( !client->host ) {
+		other = NULL;
 
-			while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
+		while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
 
-				if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
-				{ 
+			if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
+			{ 
+				if ( client->soul_abilities & TOUCH_POSSESSION ) {
+
 					if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
 					else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
-					break; 
+
+				} else if ( client->soul_abilities & DRAIN_LIFE ) {
+					// T_Damage a little bit ( because just health-- wont actully kill...i dont think
 				}
+				break; 
 			}
 		}
 	}
@@ -1866,7 +1902,7 @@ void ghostmode_protocols ( edict_t *self ) {
 		}
 	}
 
-	// touch ghosts
+	// touch souls
 	num = gi.BoxEdicts (self->absmin, self->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	for ( i = 0; i < num; i++ )
@@ -2067,8 +2103,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	ChangeWeapon( self );
 
 	//not a PlayerNoise, to avoid alerting monsters
-	// change this noise**************
-	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("mutant/mutpain2.wav"), 1, ATTN_NORM, 0);
+	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("husk/leavehusk.wav"), 1, ATTN_NORM, 0);
 
 	gi.linkentity ( self );
 	gi.linkentity ( husk );
@@ -2116,6 +2151,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
 	else { ent->svflags &= ~SVF_SOUL; }
+
+	if ( client->soul_abilities & DETECT_LIFE ) { detect_life ( ent ); }
 
 	if ( client->hostmode ) {		// the host may be null goint into this check, should be okay
 

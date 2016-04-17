@@ -603,18 +603,20 @@ typedef enum {
 //TMF7 GHOST MODE
 #define SOUL_RANGE			300		// radial possession, pull/rip souls
 #define GHOST_RANGE			60		// touch possession, husktouch
+#define LIFE_RANGE			400		// detect life
 
 enum take_host_style {
 	HOST_TOUCH,
 	HOST_RADIAL,
 	HOST_TARGETED,
-	HOST_CHEAT
+	HOST_NEW_BODY
 };
 
 enum drop_host_style {
 	HOST_NO_HARM,
 	HOST_KILL,
-	HOST_DEATH
+	HOST_DEATH,
+	HOST_TRANSFORM
 };
 
 enum host_control_type {

@@ -783,10 +783,17 @@ void swimmonster_start (edict_t *self)
 // TMF7 BEGIN GHOST MODE
 //***********************
 
-// jump towards the pulling player
+// jump towards the pulling player ( owner )
 void monster_soul_pull ( edict_t *self, edict_t *soul ) {
 
+	int num;
 	vec3_t dir;
+	char *sound;
+
+	num = rand()%2;
+
+	sound = va( "soul/pullsoul%i.wav", num );
+	gi.sound (soul, CHAN_VOICE, gi.soundindex( sound ), 1, ATTN_NORM, 0);
 
 	VectorSubtract ( self->s.origin, soul->s.origin, dir );
 	VectorNormalize( dir );
@@ -809,9 +816,9 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 
 	//pickup verification
 	other->client->bonus_alpha = 0.35;
-	gi.sound ( other, CHAN_VOICE, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
+	gi.sound ( other, CHAN_ITEM, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
 
-	// update the client hud readout for pool_of_souls*****
+	// update the client hud readout for pool_of_souls hud*****
 
 	old_soul_collector_level = other->client->soul_collector_level;
 	
@@ -833,8 +840,18 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 
 void monster_soul_think ( edict_t *soul ) {
 
+	int num;
+	char *sound;
+
 	if ( level.time >= soul->soulSpawnTime ) {	
-		soul->touch = monster_soul_touch;	
+		soul->touch = monster_soul_touch;
+		
+		num = rand()%5;
+
+		sound = va( "soul/wailingsoul%i.wav", num );
+		gi.sound (soul, CHAN_VOICE, gi.soundindex( sound ), 1, ATTN_NORM, 0);
+
+		soul->soulSpawnTime = level.time + 10.0;
 	}
 
 	if ( soul->owner && soul->groundentity ) {
@@ -910,6 +927,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	soul->think = monster_soul_think;
 	soul->nextthink = level.time + FRAMETIME;
 
+	gi.sound (soul, CHAN_VOICE, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0);
 //	gi.dprintf( "SOUL SPAWNED\n" );
 
 	gi.linkentity ( soul );
