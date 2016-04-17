@@ -18,6 +18,16 @@ TESTING:
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
 
+BUG: soul abilities, etc NOT PERSISTANT between levels (fix that)
+
+BUG: leech life inaccessable beyond first level BUT STILL TOGGLABLE
+
+BUG: getRidOfWeaon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
+
+BUG: if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
+	-> flags get saved into savedFlags in PERSISTANT DATA
+	-> solution: actively clear the husk between scenes
+
 BUG: weird angels on detect_life in hover hostmode ( disable, or wait until better chasecam )
 
 BUG: not all soldier souls make a sound when picked up ??? ( because they get freed before their sound pointer is used? )

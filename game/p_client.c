@@ -1200,21 +1200,17 @@ void PutClientInServer (edict_t *ent)
 	ent->flags &= ~FL_NO_KNOCKBACK;
 	ent->svflags &= ~SVF_DEADMONSTER;
 
-//TMF7 BEGIN GHOST MODE (unsaved)
+//TMF7 BEGIN GHOST MODE (unsaved) MOVE ALL THS TO CLIENT PERSISTENT DATA FOR LEVEL CHANGES
 	client->ghostmode = false;	
 	client->hostmode = false;
 
 	client->nextPossessTime = 0;
+	client->drainLifeTime = 0;
 	ent->possessed = false;
 
 	client->pool_of_souls = 0;
 	client->soul_collector_level = 1;
-	
-	//starting ability set
-	//client->soul_abilities = DRAIN_LIFE;
-
-	//testing ability set
-	client->soul_abilities = (TARGETED_POSSESSION|RADIAL_POSSESSION|TOUCH_POSSESSION|UBERHOST|OBLITERATE_HOST|PULL_SOULS);		
+	LevelUpSoulCollector( ent );
 
 	client->huskDamage = false;
 	ent->husktouch = player_husk_touch;
@@ -1821,8 +1817,9 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 		gi.linkentity( self );
 
-		self->client->newweapon = self->client->pers.lastweapon;		//pickup the prev weapon
-		ChangeWeapon (self);
+	//	self->client->ps.gunindex = gi.modelindex(self->client->pers.weapon->view_model);
+		self->client->newweapon = self->client->pers.lastweapon;							// crashes between scenes
+		ChangeWeapon( self );
 	} 
 }
 
@@ -1862,23 +1859,22 @@ void ghostmode_protocols ( edict_t *self ) {
 	}
 
 
-	if ( !client->host ) {
-		other = NULL;
 
-		while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
+	other = NULL;
+	while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
 
-			if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
-			{ 
-				if ( client->soul_abilities & TOUCH_POSSESSION ) {
+		if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
+		{ 
+			if ( !client->host && client->soul_abilities & TOUCH_POSSESSION ) {
 
-					if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
-					else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
+				if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
+				else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
 
-				} else if ( client->soul_abilities & DRAIN_LIFE ) {
-					// T_Damage a little bit ( because just health-- wont actully kill...i dont think
-				}
-				break; 
+			} else if ( client->soul_abilities & DRAIN_LIFE && level.time >= self->client->drainLifeTime ) {
+				T_Damage ( other, other, other, vec3_origin, self->s.origin, vec3_origin, 10, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+				self->client->drainLifeTime = level.time + 2.0f;
 			}
+			break; 
 		}
 	}
 
@@ -2036,12 +2032,11 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->s.angles[YAW] = self->s.angles[YAW];
 	VectorClear (husk->velocity);
 
-	gi.setmodel ( husk, "players/male/tris.md2" );
+//	gi.setmodel ( husk, "players/male/tris.md2" );
 	husk->s.modelindex	= self->s.modelindex;				// will use the skin specified model
 	husk->s.modelindex2 = self->s.modelindex2;				// custom gun model (change this to something else?)
 	husk->s.modelindex3 = self->s.modelindex3;				// ctf
 	husk->s.modelindex4 = self->s.modelindex4;				// derp
-	husk->s.skinnum		= self->s.skinnum;					// self - g_edicts - 1 | weaponnumber?;
 
 	husk->s.renderfx	= self->s.renderfx;	
 	husk->s.effects		= self->s.effects;	
@@ -2095,11 +2090,12 @@ void SP_ClientHusk ( edict_t *self ) {
 		self->s.effects	= EF_TRACKERTRAIL;
 
 	self->s.renderfx	|= RF_TRANSLUCENT;					// make the player ghostlike (not tangible yet, need a proper chasecam)
-	
+
 	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
 	self->takedamage	= DAMAGE_NO;								
 
-	self->client->newweapon = NULL;
+//	self->client->ps.gunindex = 0;							// doesn't prevent firing
+	self->client->newweapon = NULL;							// crashes between scenes
 	ChangeWeapon( self );
 
 	//not a PlayerNoise, to avoid alerting monsters
@@ -2147,8 +2143,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 //TMF7 BEGIN GHOST MODE 
 
 	// the placement of these two needs to be above the normal pm stuff it looks like)
-	//otherwise game crashes when **host dies on its own**)
-
+	// otherwise game crashes when **host dies on its own**)
+	
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
 	else { ent->svflags &= ~SVF_SOUL; }
 

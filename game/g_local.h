@@ -694,7 +694,7 @@ extern	gitem_t	itemlist[];
 void Cmd_Help_f (edict_t *ent);
 void Cmd_Score_f (edict_t *ent);
 void Cmd_Soul_Abilities_f ( edict_t *ent );		//TMF7 GHOST MODE
-void Cmd_Soul_Collection_f ( edict_t *ent );		//TMF7 GHOST MODE
+void Cmd_Soul_Collection_f ( edict_t *ent );	//TMF7 GHOST MODE
 
 //
 // g_items.c
@@ -1076,6 +1076,7 @@ struct gclient_s
 
 	int				soul_abilities;
 	float			nextPossessTime;
+	float			drainLifeTime;
 	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
 	int				soul_collector_level;				// thresholds unlock abilities ( they all work in tandem )
