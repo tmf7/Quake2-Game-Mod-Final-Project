@@ -41,10 +41,17 @@ void SV_BuildClientFrame (client_t *client)
 
 
 
+_______________________________________________
+<cl_scrn.c>
+/*
+==================
+SCR_UpdateScreen
 
-
-C:\Program Files (x86)\Steam\SteamApps\common\Quake2\quake2.exe
-.\release\quake2.exe
+This is called every frame, and can also be called explicitly to flush
+text to the screen.
+==================
+*/
+void SCR_UpdateScreen (void)
 
 
 

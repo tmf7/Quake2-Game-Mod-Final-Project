@@ -1212,7 +1212,6 @@ void PutClientInServer (edict_t *ent)
 	client->soul_collector_level = 1;
 	LevelUpSoulCollector( ent );
 
-	client->huskDamage = false;
 	ent->husktouch = player_husk_touch;
 //TMF7 END GHOST MODE (unsaved)
 
@@ -1865,7 +1864,7 @@ void ghostmode_protocols ( edict_t *self ) {
 
 		if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
 		{ 
-			if ( !client->host && client->soul_abilities & TOUCH_POSSESSION ) {
+			if ( !client->host && !(client->soul_abilities & DRAIN_LIFE) && client->soul_abilities & TOUCH_POSSESSION ) {
 
 				if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
 				else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }

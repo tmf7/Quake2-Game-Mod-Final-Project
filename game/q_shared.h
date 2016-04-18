@@ -83,7 +83,7 @@ typedef enum {false, true}	qboolean;
 #define	MAX_IMAGES			256
 #define	MAX_ITEMS			256
 #define MAX_GENERAL			(MAX_CLIENTS*2)	// general config strings
-#define MAX_SOUL_TYPES		22		// TMF7 GHOST MODE ( there are 22 types of monsters, not counting humans )
+#define MAX_SOUL_TYPES		20		// TMF7 GHOST MODE ( there are 22 types of monsters, not counting humans, soldier types combined )
 
 // game print flags
 #define	PRINT_LOW			0		// pickup messages
@@ -1005,9 +1005,12 @@ typedef enum
 #define	STAT_SELECTED_ITEM		12
 #define	STAT_LAYOUTS			13
 #define	STAT_FRAGS				14
-#define	STAT_FLASHES			15		// cleared each frame, 1 = health, 2 = armor
+#define	STAT_FLASHES			15		// cleared each frame, 1 = health, 2 = armor, 8 = souls
 #define STAT_CHASE				16
 #define STAT_SPECTATOR			17
+#define STAT_SOULS_ICON			18		// TMF7 GHOST MODE ( ghud )
+#define STAT_SOULS				19		// TMF7 GHOST MODE ( ghud )
+#define STAT_SOULS_STRING		20		// TMF7 GHOST MODE ( ghud )
 
 #define	MAX_STATS				32
 

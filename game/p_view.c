@@ -87,6 +87,13 @@ void P_DamageFeedback (edict_t *player)
 		client->ps.stats[STAT_FLASHES] |= 1;
 	if (client->damage_armor && !(player->flags & FL_GODMODE) && (client->invincible_framenum <= level.framenum))
 		client->ps.stats[STAT_FLASHES] |= 2;
+//TMF7 BEGIN GHOST MODE ( ghud )
+	if ( client->soulChange )
+	{	
+		client->ps.stats[STAT_FLASHES] |= 8;
+		client->soulChange = false;
+	}
+//TMF7 END GHOST MODE ( ghud )
 
 	// total points of damage shot at the player this frame
 	count = (client->damage_blood + client->damage_armor + client->damage_parmor);

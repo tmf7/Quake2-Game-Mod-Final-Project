@@ -471,6 +471,8 @@ void Cmd_Inven_f (edict_t *ent)
 
 	cl->showscores = false;
 	cl->showhelp = false;
+	cl->showabilities = false;		//TMF7 GHOST MODE ( ghud )
+	cl->showcollection = false;		//TMF7 GHOST MODE ( ghud )
 
 	if (cl->showinventory)
 	{

@@ -384,18 +384,18 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int			psave;
 	int			te_sparks;
 
-	if (!targ->takedamage && !( targ->client && ( targ->client->huskDamage || attacker == world ) ) )	//TMF7 GHOST MODE
+	// TMF7 GHOST MODE ( new second condition: check for client-direct drowning/buring --> waterlevel/type transferred by husk )
+	if (!targ->takedamage && !( targ->client && attacker == world ) )
 		return;
-
-	if ( targ->client ) { targ->client->huskDamage = false;	}					//TMF7 GHOST MODE
 
 //TMF7 BEGIN GHOST MODE
 	
-	//pass husk damage along to the player itself
+	//pass husk damage along to the player/host itself
 	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) ) { 
-		targ->owner->client->huskDamage = true;
-		T_Damage ( targ->owner, inflictor, attacker, dir, point, normal, damage, knockback, dflags, mod);
-		return;
+
+		if ( targ->owner->client->host && targ->owner->client->soul_abilities & DAMAGE_HOST ) { targ = targ->owner->client->host; }
+		else { targ = targ->owner; }
+
 	}
 //TMF7 END GHOST MODE
 

@@ -277,6 +277,8 @@ void Cmd_Score_f (edict_t *ent)
 {
 	ent->client->showinventory = false;
 	ent->client->showhelp = false;
+	ent->client->showabilities = false;			//TMF7 GHOST MODE ( ghud )
+	ent->client->showcollection = false;		//TMF7 GHOST MODE ( ghud )
 
 	if (!deathmatch->value && !coop->value)
 		return;
@@ -354,6 +356,8 @@ void Cmd_Help_f (edict_t *ent)
 
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
+	ent->client->showabilities = false;		//TMF7 GHOST MODE ( ghud )
+	ent->client->showcollection = false;		//TMF7 GHOST MODE ( ghud )
 
 	if (ent->client->showhelp && (ent->client->pers.game_helpchanged == game.helpchanged))
 	{
@@ -495,9 +499,9 @@ void G_SetStats (edict_t *ent)
 		if (ent->client->showinventory && ent->client->pers.health > 0)
 			ent->client->ps.stats[STAT_LAYOUTS] |= 2;
 	}
-	else
-	{
-		if (ent->client->showscores || ent->client->showhelp)
+	else															
+	{											// TMF7 GHOST MODE ( two new conditions here for soul ability/collection layouts )
+		if (ent->client->showscores || ent->client->showhelp || ent->client->showcollection || ent->client->showabilities )	
 			ent->client->ps.stats[STAT_LAYOUTS] |= 1;
 		if (ent->client->showinventory && ent->client->pers.health > 0)
 			ent->client->ps.stats[STAT_LAYOUTS] |= 2;
@@ -520,6 +524,26 @@ void G_SetStats (edict_t *ent)
 		ent->client->ps.stats[STAT_HELPICON] = 0;
 
 	ent->client->ps.stats[STAT_SPECTATOR] = 0;
+
+// TMF7 BEGIN GHOST MODE ( ghud )
+	//
+	// souls
+	//
+	if ( ent->client->pool_of_souls ) {
+		ent->client->ps.stats[STAT_SOULS_ICON] = gi.imageindex ("turtle");
+		ent->client->ps.stats[STAT_SOULS] = ent->client->pool_of_souls;
+	} else {
+		ent->client->ps.stats[STAT_SOULS_ICON] = 0;
+		ent->client->ps.stats[STAT_SOULS] = 0;
+	}
+
+	//
+	// soul pickup message
+	//
+	if ( level.time > ent->client->pickup_soul_msg_time ) {
+		ent->client->ps.stats[STAT_SOULS_STRING] = CS_ITEMS+game.num_items+MAX_SOUL_TYPES+1;	// because 0 displays the level name
+	}
+// TMF7 END GHOST MODE ( ghud )
 }
 
 /*
@@ -570,107 +594,123 @@ void G_SetSpectatorStats (edict_t *ent)
 }
 
 //TMF7 BEGIN GHOST MODE
+/*
+collection layout
+### type      ### type
+003 Berserk   003 Gladiator
+003 Gunner    003 Infantry
+003 Soldier   003 Tank
+003 Commander 003 Medic
+003 Flipper   003 Maiden
+003 Parasite  003 Flyer
+003 Brain     003 Floater
+003 Hover     003 Mutant
+003 Supertank 003 Hornet
+003 Makron    003 Jorg
+*/
 void SoulCollection (edict_t *ent)
 {
-	/*
 	char	string[1024];
-	char	*sk;
 
-	if (skill->value == 0)
-		sk = "easy";
-	else if (skill->value == 1)
-		sk = "medium";
-	else if (skill->value == 2)
-		sk = "hard";
-	else
-		sk = "hard+";
+	char *soul_name, *xxv, *yyv, *amt;
+	char display_name[30];
+	char display_amt[10];
+	int index, x, y;
+	char xv[10], yv[10];
 
-	// send the layout
-	Com_sprintf (string, sizeof(string),
-		"xv 32 yv 8 picn help "			// background
-		"xv 202 yv 12 string2 \"%s\" "		// skill
-		"xv 0 yv 24 cstring2 \"%s\" "		// level name
-		"xv 0 yv 54 cstring2 \"%s\" "		// help 1
-		"xv 0 yv 110 cstring2 \"%s\" "		// help 2
-		"xv 50 yv 164 string2 \" kills     goals    secrets\" "
-		"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ", 
-		sk,
-		level.level_name,
-		game.helpmessage1,
-		game.helpmessage2,
-		level.killed_monsters, level.total_monsters, 
-		level.found_goals, level.total_goals,
-		level.found_secrets, level.total_secrets);
+	memset( string, 0, sizeof(string) );
+	strcat( string,  "xv 32 yv 8 picn inventory " );
+	strcat( string, "xv 56 yv 32 string2 \"### type      ### type\" " );
+	strcat( string, "xv 56 yv 40 string2 \"--- ----      --- ----\" " );
+
+	// starting soul text position - 8
+	y = 40;
+
+	// each loop produces an additional:
+	// "xv 50 yv 172 string2 \"%3i %s\" "
+	for( index = 0; index < MAX_SOUL_TYPES; index++ ) {
+
+		if ( index%2 == 1 ) {
+			x = 168;
+		} else {
+			x = 56;
+			y += 8;
+		}		
+		
+		if ( !(ent->client->soulCollection[ index ]) )
+			continue;
+
+		// position
+		memset( xv, 0, sizeof(xv) );
+		memset( yv, 0, sizeof(yv) );
+		xxv = va( " %3i ", x );
+		yyv = va( " %3i ", y );
+		strcat( xv, xxv );
+		strcat( yv, yyv );
+
+		// value
+		memset( display_amt, 0, sizeof(display_amt) );
+		amt = va( "%.3i", ent->client->soulCollection[ index ] );
+		strcat( display_amt, amt );
+		
+		// name
+		memset( display_name, 0, sizeof(display_name) );
+		soul_name = GetMonsterByIndex( index );
+		strncpy( display_name, soul_name, strlen(soul_name)-5 );		// get rid of " Soul"
+
+		strcat( string, "xv" );
+		strcat( string, xv );
+		strcat( string, "yv" );
+		strcat( string, yv );
+		strcat( string, "string2 " );
+		strcat( string, "\"" );
+		strcat( string, display_amt );
+		strcat( string, " " );
+		strcat( string, display_name );
+		strcat( string, "\" " );
+
+		// debug print verify
+		//gi.dprintf( "x = %i\ny = %i\nxv = %s\nyv = %s\n", x, y, xv, yv );
+	}
+
+	// debug verify
+	//gi.dprintf( string );
 
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 	gi.unicast (ent, true);
-	*/
-////////////////////////////////////////
-	/*
-	num = 0;
-	selected_num = 0;
-	for (i=0 ; i<MAX_ITEMS ; i++)
-	{
-		if (i==selected)
-			selected_num = num;
-		if (cl.inventory[i])
-		{
-			index[num] = i;
-			num++;
-		}
-	}
+	
 
-	// determine scroll point
-	top = selected_num - DISPLAY_ITEMS/2;
-	if (num - top < DISPLAY_ITEMS)
-		top = num - DISPLAY_ITEMS;
-	if (top < 0)
-		top = 0;
-
-	x = (viddef.width-256)/2;
-	y = (viddef.height-240)/2;
-
-	// repaint everything next frame
-	SCR_DirtyScreen ();
-
-	re.DrawPic (x, y+8, "inventory");
-
-	y += 24;
-	x += 24;
-	Inv_DrawString (x, y, "hotkey ### item");
-	Inv_DrawString (x, y+8, "------ --- ----");
-	y += 16;
-	for (i=top ; i<num && i < top+DISPLAY_ITEMS ; i++)
-	{
-		item = index[i];
-		// search for a binding
-		Com_sprintf (binding, sizeof(binding), "use %s", cl.configstrings[CS_ITEMS+item]);
-		bind = "";
-		for (j=0 ; j<256 ; j++)
-			if (keybindings[j] && !Q_stricmp (keybindings[j], binding))
-			{
-				bind = Key_KeynumToString(j);
-				break;
-			}
-
-		Com_sprintf (string, sizeof(string), "%6s %3i %s", bind, cl.inventory[item],
-			cl.configstrings[CS_ITEMS+item] );
-		if (item != selected)
-			SetStringHighBit (string);
-		else	// draw a blinky cursor by the selected item
-		{
-			if ( (int)(cls.realtime*10) & 1)
-				re.DrawChar (x-8, y, 15);
-		}
-		Inv_DrawString (x, y, string);
-		y += 8;
-	}
-	*/
 }
 
+/*
+ability layout
+soul collector rank: #			header1
+active mode: ghost/host/none	header2
+hotkey ability					1
+------ -------					2
+     r radial possession		3 ( release host, nothing)
+	 f body return/warp			4 ( obliterate host, spawn ghost )
+	 v drain life				5 ( uberhost/rodeo )
+	 n detect life				6 
+	 m ghost fly				7
+	 y rip souls				8
+mouse1 targeted possession		9
+ touch touch possession			10
+---other---						11
+passive pull souls				12
+ damage host/self				13	
+   soul shield					14
+								15 ( recruit followers ) ...
+								16 ( o transform host )
+								17 ( order followers )...
+*/
 void SoulAbilities (edict_t *ent)
 {
+	// check ghostmode, hostmode, or levelup
+	// produce the level appropriate string
+	// include: soul level, bind key, short description
+
 	/*
 	char	string[1024];
 	char	*sk;
@@ -771,53 +811,35 @@ void SoulAbilities (edict_t *ent)
 // F7 is bound to "soul_abilities" hud toggle
 void Cmd_Soul_Abilities_f (edict_t *ent)
 {
-	/*
-	// this is for backwards compatability
-	if (deathmatch->value)
-	{
-		Cmd_Score_f (ent);
-		return;
-	}
-
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
+	ent->client->showhelp = false;
+	ent->client->showabilities = false;
 
-	if (ent->client->showhelp && (ent->client->pers.game_helpchanged == game.helpchanged))
-	{
-		ent->client->showhelp = false;
+	if ( ent->client->showcollection ) {
+		ent->client->showcollection = false;
 		return;
 	}
 
-	ent->client->showhelp = true;
-	ent->client->pers.helpchanged = 0;
+	ent->client->showcollection = true;
 	SoulAbilities( ent );
-	*/
 }
 
 // F8 is bound to "soul_abilities" hud toggle
 void Cmd_Soul_Collection_f (edict_t *ent)
 {
-	/*
-	// this is for backwards compatability
-	if (deathmatch->value)
-	{
-		Cmd_Score_f (ent);
-		return;
-	}
-
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
+	ent->client->showhelp = false;
+	ent->client->showcollection = false;
 
-	if (ent->client->showhelp && (ent->client->pers.game_helpchanged == game.helpchanged))
-	{
-		ent->client->showhelp = false;
+	if ( ent->client->showabilities ) {
+		ent->client->showabilities = false;
 		return;
 	}
 
-	ent->client->showhelp = true;
-	ent->client->pers.helpchanged = 0;
+	ent->client->showabilities = true;
 	SoulCollection( ent );
-	*/
 }
 
 //TMF7 END GHOST MODE

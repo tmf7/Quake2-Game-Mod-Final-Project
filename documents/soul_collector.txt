@@ -7,36 +7,39 @@ TODO:
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
 -> add slighost sounds for recruiting/controlling new monsters ( control a list/group, re-purpose other binds if in hostmode, add hud help )
+	--> 'help' gathers all nearby monsters to fight the HOST's current enemy ( or just gathers them to near the host if no enemy )
 
 -> display different information in soulabilities hud popup depending on ghostmode, hostmode, none
 
 -> do husk armor (orbit max_items num reduced by damage, regen over time )
 
-___________________________________________________________
-TESTING:
+--> make an INSTALLATION batch file ( copy FROM the batch's current folder itself TO the steam folder )
 
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
 
-BUG: soul abilities, etc NOT PERSISTANT between levels (fix that)
+___________________________________________________________
 
-BUG: leech life inaccessable beyond first level BUT STILL TOGGLABLE
 
-BUG: getRidOfWeaon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
+BUG: soul collection amt/name strings not in horizontal alignment
 
-BUG: if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
+*BUG: soul abilities, etc NOT PERSISTANT between levels (fix that)
+
+*BUG(1of2): getRidOfWeaon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
+
+*BUG(2of2): if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
 	-> flags get saved into savedFlags in PERSISTANT DATA
 	-> solution: actively clear the husk between scenes
 
-BUG: weird angels on detect_life in hover hostmode ( disable, or wait until better chasecam )
+*BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
+
+*BUG: fix the clip into walls/ceilings when the host dies
+
+BUG: weird angles on detect_life in hover hostmode ( disable, or wait until better chasecam )
 
 BUG: not all soldier souls make a sound when picked up ??? ( because they get freed before their sound pointer is used? )
 
-BUG: spawnsoul noise randomly repeats until interrupted post-soul-spawn
-
-BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
-
-BUG: fix the clip into walls/ceilings when the host dies
+BUG: spawnsoul noise randomly repeats until interrupted post-soul-spawn ( even plays over the console dropdown when other sounds dont )
 
 BUG: host PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
 
@@ -73,7 +76,7 @@ r = "inhabit"
 v = "uberhost" & "drain_life"
 y = "rip_souls"
 
-o = unbound
+o = ***unbound***
 n = "detect_life"
 m = "ghost_fly"
 
@@ -87,3 +90,4 @@ ______________________________________________
 EXTRA:
 
 ->allow host persistance between levels ( free and reset the husk near the new player spawn point, OR obliterate the host and "teleport" the "husk" to that origin )
+	--> only when able to warp_husk at higher levels

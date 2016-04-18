@@ -600,7 +600,7 @@ typedef enum {
 	F_IGNORE
 } fieldtype_t;
 
-//TMF7 GHOST MODE
+//TMF7 BEGIN GHOST MODE
 #define SOUL_RANGE			300		// radial possession, pull/rip souls
 #define GHOST_RANGE			60		// touch possession, husktouch
 #define LIFE_RANGE			400		// detect life
@@ -654,9 +654,7 @@ enum monster_souls {
 	GLADIATOR,
 	GUNNER,
 	INFANTRY,
-	SOLDIER_LIGHT,
 	SOLDIER,
-	SOLDIER_SS,
 	TANK,
 	TANK_COMMANDER,
 	MEDIC,
@@ -673,7 +671,7 @@ enum monster_souls {
 	BOSS3_STAND,
 	JORG
 };
-//TMF7 GHOST MODE
+//TMF7 END GHOST MODE
 
 typedef struct
 {
@@ -787,6 +785,8 @@ void M_CatagorizePosition (edict_t *ent);
 qboolean M_CheckAttack (edict_t *self);
 void M_FlyCheck (edict_t *self);
 void M_CheckGround (edict_t *ent);
+void SetMonsterNames (void);						// TMF7 GHOST MODE ( ghud )
+char * GetMonsterByIndex (int index);				// TMF7 GHOST MODE ( ghud )
 
 //
 // g_misc.c
@@ -1072,11 +1072,14 @@ struct gclient_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		ghostmode;
 	qboolean		hostmode;
-	qboolean		huskDamage;		// temporary set variable to forward damage to player specifically
 
+	qboolean		showabilities;
+	qboolean		showcollection;
+	qboolean		soulChange;
 	int				soul_abilities;
 	float			nextPossessTime;
 	float			drainLifeTime;
+	float			pickup_soul_msg_time;
 	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
 	int				soul_collector_level;				// thresholds unlock abilities ( they all work in tandem )
@@ -1237,11 +1240,11 @@ struct edict_s
 	monsterinfo_t	monsterinfo;
 
 //TMF7 BEGIN GHOST MODE
-	int				monster_soul_index;
-
 	qboolean		possessed;
 	float			huskBeginSearchTime;
 
+	int				monster_soul_index;
+	char*			monster_soul_name;
 	int				mSoulFirstFrame;
 	int				mSoulLastFrame;
 	int				soulSpawnTime;

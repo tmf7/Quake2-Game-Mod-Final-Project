@@ -701,6 +701,20 @@ char *single_statusbar =
 "	xv	148 "
 "	pic	11 "
 "endif "
+
+//TMF7 BEGIN GHOST MODE ( ghud )
+"yb	-76 "
+// souls / soul icon / soul label
+"if 18 "
+"	xv	0 "
+"	snum "
+"	xv	50 "
+"	pic 18 "
+"	xv	0 "
+"	yb	-84 "
+"	stat_string 20 "
+"endif "
+//TMF7 END GHOST MODE ( ghud )
 ;
 
 char *dm_statusbar =
@@ -807,6 +821,9 @@ void SP_worldspawn (edict_t *ent)
 
 	// set configstrings for items
 	SetItemNames ();
+
+	// set configstrings for monster souls
+	SetMonsterNames ();							// TMF7 GHOST MODE ( ghud )
 
 	if (st.nextmap)
 		strcpy (level.nextmap, st.nextmap);

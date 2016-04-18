@@ -1,0 +1,146 @@
+*****************Soul Ability / Soul Collection PLAN:
+
+create two MORE ->showscores (etc) variables that are also mutually exclusive ( use Cmd_PutAway_f ) for a blanket shutout
+
+potentially create a 3rd and 4th bit (cl.frame.playerstate.stats[STAT_LAYOUTS] & 4 ... & 8)
+	for the soul ability and soul collection draws
+OR repurpose the FIRST bit for a pure layout ( like the helpmenu does )
+
+17-19 rows available in the inventory pic ( soul collection will have to double down due to 22 monsters )
+
+
+****************SOULS PLAN:
+
+add a new index for the stats array
+
+find where:
+void SCR_DrawStats (void)
+{
+	SCR_ExecuteLayoutString (cl.configstrings[CS_STATUSBAR]);
+}
+actually sets the layout string for the stats array ( ie: positions of images and numbers )
+
+==> CS_STATUSBAR -->
+<g_spawn.c>
+SP_worldspawn(edict_t *ent){
+...
+	// status bar program
+	if (deathmatch->value)
+		gi.configstring (CS_STATUSBAR, dm_statusbar);
+	else
+		gi.configstring (CS_STATUSBAR, single_statusbar);
+...
+}
+
+char *single_statusbar =  ****THIS****
+
+put it at the top center, put an icon, the pool_of_souls number, and the text "Pool of Souls"
+_____________________________________________________
+<q_shared.h>
+//
+// config strings are a general means of communication from
+// the server to all connected clients.
+// Each config string can be at most MAX_QPATH characters.
+//
+#define	CS_NAME				0
+#define	CS_CDTRACK			1
+#define	CS_SKY				2
+#define	CS_SKYAXIS			3		// %f %f %f format
+#define	CS_SKYROTATE			4
+#define	CS_STATUSBAR			5		// display program string
+
+
+<cl_strn.c>
+
+SCR_UpdateScree(void) {
+...
+
+	SCR_DrawStats ();
+
+	if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
+		SCR_DrawLayout ();
+	if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
+		CL_DrawInventory ();
+...
+}
+
+void SCR_DrawStats (void)
+{
+	SCR_ExecuteLayoutString (cl.configstrings[CS_STATUSBAR]);
+}
+
+void SCR_ExecuteLayoutString (char *s) // parses a layout string passed to the client derps
+
+<p_hud.c>
+
+	// ammo
+	item = &itemlist[ent->client->ammo_index];
+	ent->client->ps.stats[STAT_AMMO_ICON] = gi.imageindex (item->icon);
+	ent->client->ps.stats[STAT_AMMO] = ent->client->pers.inventory[ent->client->ammo_index];
+
+	// timer
+	if (ent->client->quad_framenum > level.framenum)
+	{
+		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_quad");
+		ent->client->ps.stats[STAT_TIMER] = (ent->client->quad_framenum - level.framenum)/10;
+	}
+
+
+	//
+	// layouts
+	//
+	ent->client->ps.stats[STAT_LAYOUTS] = 0;
+
+	if (deathmatch->value)
+	{
+		if (ent->client->pers.health <= 0 || level.intermissiontime
+			|| ent->client->showscores)
+			ent->client->ps.stats[STAT_LAYOUTS] |= 1;
+		if (ent->client->showinventory && ent->client->pers.health > 0)
+			ent->client->ps.stats[STAT_LAYOUTS] |= 2;
+	}
+	else
+	{
+		if (ent->client->showscores || ent->client->showhelp)
+			ent->client->ps.stats[STAT_LAYOUTS] |= 1;
+		if (ent->client->showinventory && ent->client->pers.health > 0)
+			ent->client->ps.stats[STAT_LAYOUTS] |= 2;
+	}
+
+///////////////////////	1 => SCR_DrawLayout ();
+/////////////////////// 2 => CL_DrawInventory ();
+
+
+<g_cmd.c>
+
+these three values are NOT MUTUALLY EXCLUSIVE => one always turns the other off
+
+	ent->client->showscores = false;
+	ent->client->showhelp = false;
+	ent->client->showinventory = false;
+
+_________________________________________________________________________
+<g_items.c>
+
+// establishes/caches the strings associated with a specific index
+// --> FOR: DrawString (x, y, cl.configstrings[index]); in <cl_scrn.c>
+
+// for specific monster soul pickups run a loop during worldspawn that sets the MONSTER configstrings
+
+void SetItemNames (void)
+{
+	int		i;
+	gitem_t	*it;
+
+	for (i=0 ; i<game.num_items ; i++)
+	{
+		it = &itemlist[i];
+		gi.configstring (CS_ITEMS+i, it->pickup_name);
+	}
+
+	jacket_armor_index = ITEM_INDEX(FindItem("Jacket Armor"));
+	combat_armor_index = ITEM_INDEX(FindItem("Combat Armor"));
+	body_armor_index   = ITEM_INDEX(FindItem("Body Armor"));
+	power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
+	power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
+}

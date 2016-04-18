@@ -1163,6 +1163,26 @@ void SCR_ExecuteLayoutString (char *s)
 			continue;
 		}
 
+// TMF7 BEGIN GHOST MODE ( ghud )
+		if (!strcmp(token, "snum"))
+		{	// soul number
+			int		color;
+
+			width = 3;
+			value = cl.frame.playerstate.stats[STAT_SOULS];
+			if (value < 1)
+				continue;
+			else
+				color = 0;
+
+			if (cl.frame.playerstate.stats[STAT_FLASHES] & 8)
+				re.DrawPic (x, y, "field_3");
+
+			SCR_DrawField (x, y, color, width, value);
+			continue;
+		}
+// TMF7 ENG GHOST MODE ( ghud )
+
 
 		if (!strcmp(token, "stat_string"))
 		{

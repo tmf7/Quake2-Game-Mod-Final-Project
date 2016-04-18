@@ -809,29 +809,41 @@ void monster_soul_pull ( edict_t *self, edict_t *soul ) {
 void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
 	int old_soul_collector_level;
+	int new_soul_collector_level;
 	
 	// only living clients in ghostmode can gather souls
 	if ( !other->client || other->deadflag != DEAD_NO || !other->client->ghostmode ) 
 		{ return; }
 
+	new_soul_collector_level = 1;
+
 	//pickup verification
 	other->client->bonus_alpha = 0.35;
-	gi.sound ( other, CHAN_ITEM, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
+	gi.sound ( other, CHAN_BODY, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
 
-	// update the client hud readout for pool_of_souls hud*****
+// BEGIN ( ghud )
+	// flash the pool_of_souls hud number ( also flash it when losing souls ) ***********************************
+	other->client->soulChange = true;
+
+	// the "string" is a hardcoded value via SetMonsterNames(void) initialized at worldspawn
+	other->client->ps.stats[STAT_SOULS_STRING] = CS_ITEMS + game.num_items + (soul->monster_soul_index); 
+	other->client->pickup_soul_msg_time = level.time + 3.0;
+// END ( ghud )
 
 	old_soul_collector_level = other->client->soul_collector_level;
 	
 	other->client->pool_of_souls += soul->mass;
 	other->client->soulCollection[ soul->monster_soul_index ]++;
 
-	// balance this level thresholds better
-	if (	other->client->pool_of_souls >= 500		)	{ other->client->soul_collector_level = 2; }
-	if (	other->client->pool_of_souls >= 3000	)	{ other->client->soul_collector_level = 3; }
-	if (	other->client->pool_of_souls >= 10000	)	{ other->client->soul_collector_level = 4; }
-	if (	other->client->pool_of_souls >= 50000	)	{ other->client->soul_collector_level = 5; }
+	// balance these level thresholds better
+	if (	other->client->pool_of_souls >= 50		)	{ new_soul_collector_level = 2; }
+	if (	other->client->pool_of_souls >= 300		)	{ new_soul_collector_level = 3; }
+	if (	other->client->pool_of_souls >= 1000	)	{ new_soul_collector_level = 4; }
+	if (	other->client->pool_of_souls >= 5000	)	{ new_soul_collector_level = 5; }
 
-	if ( other->client->soul_collector_level > old_soul_collector_level ) {
+	if ( new_soul_collector_level > old_soul_collector_level ) {
+
+		other->client->soul_collector_level = new_soul_collector_level;
 		LevelUpSoulCollector( other );
 	}
 
@@ -891,7 +903,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	VectorCopy ( soul->s.origin, soul->s.old_origin );
 	
 	soul->takedamage	= DAMAGE_NO;
-	soul->mass			= self->mass;						// strength of soul
+	soul->mass			= ( self->mass / 10 );						// strength of soul
 
 	soul->classname		= "soul";
 
@@ -927,11 +939,107 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	soul->think = monster_soul_think;
 	soul->nextthink = level.time + FRAMETIME;
 
-	gi.sound (soul, CHAN_VOICE, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0);
+//	gi.sound (soul, CHAN_VOICE, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0);		// BUG: why does this constantly repeat?
 //	gi.dprintf( "SOUL SPAWNED\n" );
 
 	gi.linkentity ( soul );
 }
+
+//*****************
+// BEGIN GHUD INFO
+//*****************
+
+/* 
+// FROM <g_local.h>
+
+enum monster_souls {
+	BERSERK,
+	GLADIATOR,
+	GUNNER,
+	INFANTRY,
+	SOLDIER_LIGHT,
+	SOLDIER,
+	SOLDIER_SS,
+	TANK,
+	TANK_COMMANDER,
+	MEDIC,
+	FLIPPER,
+	CHICK,
+	PARASITE,
+	FLYER,
+	BRAIN,
+	FLOATER,
+	HOVER,
+	MUTANT,
+	SUPERTANK,
+	BOSS2,
+	BOSS3_STAND,
+	JORG
+};
+*/
+
+// In each xyzmonster.c ( eg: soldier.c ) when a specific monster type spawns
+// it grabs a name out of this list according to its monster_soul_index
+char * monster_souls[] =
+{
+	"Beserk Soul",
+	"Gladiator Soul",
+	"Gunner Soul",
+	"Infantry Soul",
+	"Soldier Soul",
+	"Tank Soul",
+	"Commander Soul",
+	"Medic Soul",
+	"Flipper Soul",
+	"Maiden Soul",
+	"Parasite Soul",
+	"Flyer Soul",
+	"Brain Soul",
+	"Floater Soul",
+	"Hover Soul",
+	"Mutant Soul",
+	"Supertank Soul",
+	"Hornet Soul",		// BOSS2
+	"Makron Soul",		// BOSS3_STAND
+	"Jorg Soul"			// JORG
+};
+
+
+/*
+===============
+SetMonsterNames
+
+Called by worldspawn
+===============
+*/
+void SetMonsterNames (void)
+{
+	int		i;
+	char	*monser_name;
+
+	// adding configstrings in the buffer area: (CS_ITEMS+MAX_ITEMS) - (game.num_items)
+	// at the end of the items list but before the CS_PLAYERSKINS indexes
+	for ( i = 0; i < MAX_SOUL_TYPES; i++ ) {
+
+		if ( CS_ITEMS+game.num_items+i >= CS_PLAYERSKINS )
+			break;
+
+		monser_name = monster_souls[i];
+		gi.configstring( CS_ITEMS+game.num_items+i, monser_name );
+	}
+}
+
+char * GetMonsterByIndex (int index)
+{
+	if ( index < 0 || index >= MAX_SOUL_TYPES )
+		return NULL;
+
+	return monster_souls[index];
+}
+
+//***************
+// END GHUD INFO
+//***************
 
 //*************************
 //	TMF7 END GHOST MODE
