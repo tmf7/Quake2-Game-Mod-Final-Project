@@ -596,8 +596,10 @@ void G_SetSpectatorStats (edict_t *ent)
 //TMF7 BEGIN GHOST MODE
 /*
 collection layout
-### type      ### type
-003 Berserk   003 Gladiator
+      souls captured
+### strogg    ### strogg
+--- ------    --- ------
+003 Berserker 003 Gladiator
 003 Gunner    003 Infantry
 003 Soldier   003 Tank
 003 Commander 003 Medic
@@ -608,23 +610,26 @@ collection layout
 003 Supertank 003 Hornet
 003 Makron    003 Jorg
 */
-void SoulCollection (edict_t *ent)
+
+void SoulCollection( edict_t *ent )
 {
 	char	string[1024];
 
-	char *soul_name, *xxv, *yyv, *amt;
+	char *soul_name, *amt;
 	char display_name[30];
 	char display_amt[10];
 	int index, x, y;
-	char xv[10], yv[10];
+	char xv[10];
+	char yv[10];
 
 	memset( string, 0, sizeof(string) );
 	strcat( string,  "xv 32 yv 8 picn inventory " );
-	strcat( string, "xv 56 yv 32 string2 \"### type      ### type\" " );
-	strcat( string, "xv 56 yv 40 string2 \"--- ----      --- ----\" " );
+	strcat( string, "xv 56 yv 32 string2 \"      souls captured\" " );
+	strcat( string, "xv 56 yv 40 string2 \"### strogg    ### strogg\" " );
+	strcat( string, "xv 56 yv 48 string2 \"--- ------    --- ------\" " );
 
 	// starting soul text position - 8
-	y = 40;
+	y = 48;
 
 	// each loop produces an additional:
 	// "xv 50 yv 172 string2 \"%3i %s\" "
@@ -642,11 +647,10 @@ void SoulCollection (edict_t *ent)
 
 		// position
 		memset( xv, 0, sizeof(xv) );
+		strcat( xv, va( "%i", x ) );
+		
 		memset( yv, 0, sizeof(yv) );
-		xxv = va( " %3i ", x );
-		yyv = va( " %3i ", y );
-		strcat( xv, xxv );
-		strcat( yv, yyv );
+		strcat( yv, va( "%i", y ) );
 
 		// value
 		memset( display_amt, 0, sizeof(display_amt) );
@@ -656,13 +660,13 @@ void SoulCollection (edict_t *ent)
 		// name
 		memset( display_name, 0, sizeof(display_name) );
 		soul_name = GetMonsterByIndex( index );
-		strncpy( display_name, soul_name, strlen(soul_name)-5 );		// get rid of " Soul"
+		strncpy( display_name, soul_name, strlen(soul_name)-5 );		// dont use " Soul"
 
-		strcat( string, "xv" );
+		strcat( string, "xv " );
 		strcat( string, xv );
-		strcat( string, "yv" );
+		strcat( string, " yv " );
 		strcat( string, yv );
-		strcat( string, "string2 " );
+		strcat( string, " string2 " );
 		strcat( string, "\"" );
 		strcat( string, display_amt );
 		strcat( string, " " );
@@ -679,72 +683,134 @@ void SoulCollection (edict_t *ent)
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 	gi.unicast (ent, true);
-	
-
 }
 
-/*
+/* 27-28 horizontal characters available************************
 ability layout
-soul collector rank: #			header1
-active mode: ghost/host/none	header2
-hotkey ability					1
------- -------					2
-     r radial possession		3 ( release host, nothing)
-	 f body return/warp			4 ( obliterate host, spawn ghost )
-	 v drain life				5 ( uberhost/rodeo )
-	 n detect life				6 
-	 m ghost fly				7
-	 y rip souls				8
-mouse1 targeted possession		9
- touch touch possession			10
----other---						11
-passive pull souls				12
- damage host/self				13	
-   soul shield					14
-								15 ( recruit followers ) ...
-								16 ( o transform host )
-								17 ( order followers )...
+rank-up ( ghost )          header1
+soul collector rank: #     header2
+usekey ability			   1
+------ -------			   2
+shoot targeted possession  3 ( rodeo chase target / shoot ) // hostmode only, ( mouse3 push beasts ) // normal mode only
+    r radial possession    4 ( release host )
+	f warp body to ghost   5 ( obliterate host, spawn ghost )
+	v drain life toggle    6 ( uberhost/rodeo toggle )
+	n detect life	 	   7 // all modes
+	m ghost fly	 		   8 // possible slot for hostmode cmd***************
+	y shield of souls	   9 // all modes
+    ---touch---			   10
+proximity possession	   11
+proximity drain life	   12
+    ---passive---		   13	
+pull nearby souls		   14 ( damage transfer to host )
+soul-walk duration: ###/###15 ( recruit followers ) ...
+						   16 ( o transform host )
+						   17 ( order followers )...
 */
-void SoulAbilities (edict_t *ent)
+
+/*
+	Additional:
+	soul walk duration
+	possession duration
+	husk transfer damage ( to player )
+
+	// Ghost abilities			// level available
+	DRAIN_LIFE					1						// toggle
+	TARGETED_POSSESSION			3						// passive
+	RADIAL_POSSESSION			4						// passive
+	TOUCH_POSSESSION			2						// passive
+	DETECT_LIFE					3						// toggle ( too many may get annoying )
+	GHOST_FLY					4						// toggle
+	PULL_SOULS					3						// passive
+	PUSH_BEASTS					4						// passive ( cmd )
+
+	// Host abilities
+	UBERHOST					3						// toggle
+	OBLITERATE_HOST				4						// passive
+	RECRUIT_FOLLOWERS			4						// passive
+	TRANSFORM_HOST				5						// passive
+
+	// Husk abilities
+	DAMAGE_HOST					4						// passive
+	SOUL_SHIELD					4						// passive
+	WARP_HUSK					5						// passive
+
+*/
+
+// produce the level and mode appropriate readout
+// extremely ugly, I know...
+void SoulAbilities( edict_t *ent )
 {
-	// check ghostmode, hostmode, or levelup
-	// produce the level appropriate string
-	// include: soul level, bind key, short description
-
-	/*
 	char	string[1024];
-	char	*sk;
 
-	if (skill->value == 0)
-		sk = "easy";
-	else if (skill->value == 1)
-		sk = "medium";
-	else if (skill->value == 2)
-		sk = "hard";
-	else
-		sk = "hard+";
+	memset( string, 0, sizeof(string) );
+										  strcat( string,  "xv 32 yv 8 picn inventory " );
 
-	// send the layout
-	Com_sprintf (string, sizeof(string),
-		"xv 32 yv 8 picn help "			// background
-		"xv 202 yv 12 string2 \"%s\" "		// skill
-		"xv 0 yv 24 cstring2 \"%s\" "		// level name
-		"xv 0 yv 54 cstring2 \"%s\" "		// help 1
-		"xv 0 yv 110 cstring2 \"%s\" "		// help 2
-		"xv 50 yv 164 string2 \" kills     goals    secrets\" "
-		"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ", 
-		sk,
-		level.level_name,
-		game.helpmessage1,
-		game.helpmessage2,
-		level.killed_monsters, level.total_monsters, 
-		level.found_goals, level.total_goals,
-		level.found_secrets, level.total_secrets);
+	if ( ent->client->newSoulLevel )	{ strcat( string, "xv 56 yv 32 string2 \"rank-up " );	}
+	else								{ strcat( string, "xv 56 yv 32 string2 \"        " );	}
+
+	if ( ent->client->ghostmode )		{ strcat( string, "***ghost***\" " );						}
+	else if ( ent->client->hostmode )	{ strcat( string, "***host***\" " );						}
+	else								{ strcat( string, "***corporeal***\" " );					}
+
+										  strcat( string, "xv 56 yv 40 string2 \"soul collector rank: " );
+										  strcat( string, va( "%i", ent->client->soul_collector_level ) );
+										  strcat( string, "\" " );
+										  strcat( string, "xv 56 yv 48 string2 \"usekey ability\" " );
+										  strcat( string, "xv 56 yv 56 string2 \"------ -------\" " );
+
+	if ( ent->client->ghostmode ) { // done
+		// 14 lines
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 64 string2 \"  shoot targeted possession\" " ); }
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 72 string2 \"      r radial possession\" "   ); }
+		if ( ent->client->soul_collector_level >= 5 ) { strcat( string, "xv 56 yv 80 string2 \"shift+f warp body to ghost\" "  ); } 
+														strcat( string, "xv 56 yv 88 string2 \"      f return to body\" "	   );	
+														strcat( string, "xv 56 yv 96 string2 \"      v drain life toggle\" "   );
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 104 string2 \"      n detect life toggle\" " ); }
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 112 string2 \"      m ghost fly\" "		   );
+														strcat( string, "xv 56 yv 120 string2 \"      y shield of souls\" "	   ); }
+														strcat( string, "xv 56 yv 128 string2 \"    ---touch---\" "			   );
+		if ( ent->client->soul_collector_level >= 2 ) { strcat( string, "xv 56 yv 136 string2 \"proximity possession\" "	   ); }
+														strcat( string, "xv 56 yv 144 string2 \"proximity drain life\" "	   );
+														strcat( string, "xv 56 yv 152 string2 \"    ---passive---\" "		   );
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 160 string2 \"pull nearby souls\" "		   ); }
+		//												strcat( string, "xv 56 yv 168 string2 \"ghost-walk duration: ###/###\" " ); // CHANGE 
+
+	} else if ( ent->client->hostmode ) {
+		// check if uberhost/rodeo
+		// ### lines
+		/*
+		strcat( string, "xv 56 yv 64 string2 \"shoot rodeo chase target\" " );
+		strcat( string, "xv 56 yv 64 string2 \"shoot shoot\" " );
+		//strcat( string, "xv 56 yv 64 string2 \"alt+shoot say hi\" " );
+
+
+		strcat( string, "xv 56 yv 72 string2 \"    r release host unharmed\" "   ); 
+		strcat( string, "xv 56 yv 80 string2 \"    f obliterate host\" "   ); 
+		strcat( string, "xv 56 yv 80 string2 \"    f return to body\" "	);
+		strcat( string, "xv 56 yv 88 string2 \"    v uberhost toggle\" "	 );
+		strcat( string, "xv 56 yv 96 string2 \"    n detect life toggle\" "	 );	
+		//strcat( string, "xv 56 yv 104 string2 \"   m ghost fly\" "			 );
+		strcat( string, "xv 56 yv 112 string2 \"   y shield of souls\" "	 );	
+		strcat( string, "xv 56 yv 144 string2 \"    ---passive---\" "		 );
+		strcat( string, "xv 56 yv 152 string2 \"damage transfer to host\" "		 );	
+		//strcat( string, "xv 56 yv 160 string2 \"ghost-walk duration: ###/###\" " ); // CHANGE 
+		*/
+
+	} else { // done
+		// 4 lines
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 64 string2 \"mouse3 push beasts\" "		 ); }
+														strcat( string, "xv 56 yv 72 string2 \"     f ghost-walk\" "		 );
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 80 string2 \"     n detect life toggle\" " );	}
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 88 string2 \"     y shield of souls\" "	 );	}
+	}
+
+	// debug verify
+	//gi.dprintf( string );
 
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 	gi.unicast (ent, true);
-	*/
 ///////////////////////////////
 	/*
 	num = 0;
@@ -814,14 +880,14 @@ void Cmd_Soul_Abilities_f (edict_t *ent)
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
-	ent->client->showabilities = false;
+	ent->client->showcollection = false;
 
-	if ( ent->client->showcollection ) {
-		ent->client->showcollection = false;
+	if ( ent->client->showabilities ) {
+		ent->client->showabilities = false;
 		return;
 	}
 
-	ent->client->showcollection = true;
+	ent->client->showabilities = true;
 	SoulAbilities( ent );
 }
 
@@ -831,14 +897,14 @@ void Cmd_Soul_Collection_f (edict_t *ent)
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
-	ent->client->showcollection = false;
+	ent->client->showabilities = false;
 
-	if ( ent->client->showabilities ) {
-		ent->client->showabilities = false;
+	if ( ent->client->showcollection ) {
+		ent->client->showcollection = false;
 		return;
 	}
 
-	ent->client->showabilities = true;
+	ent->client->showcollection = true;
 	SoulCollection( ent );
 }
 

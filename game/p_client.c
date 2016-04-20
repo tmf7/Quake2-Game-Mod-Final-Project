@@ -1661,7 +1661,7 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 	Additional:
 	soul walk duration
 	possession duration
-	husk transfer damage
+	husk transfer damage ( to player )
 
 	// Ghost abilities			// level available
 	DRAIN_LIFE					1						// toggle
@@ -1671,7 +1671,7 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 	DETECT_LIFE					3						// toggle ( too many may get annoying )
 	GHOST_FLY					4						// toggle
 	PULL_SOULS					3						// passive
-	RIP_SOULS					4						// passive ( cmd )
+	PUSH_BEASTS					4						// passive ( cmd )
 
 	// Host abilities
 	UBERHOST					3						// toggle
@@ -1708,25 +1708,28 @@ void LevelUpSoulCollector ( edict_t *ent ) {
 			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
-			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|PUSH_BEASTS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
 			break; 
 		}
 		case 5: {
 			client->soul_abilities |= DRAIN_LIFE;
 			client->soul_abilities |= TOUCH_POSSESSION;
 			client->soul_abilities |= (TARGETED_POSSESSION|DETECT_LIFE|PULL_SOULS|UBERHOST);
-			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|RIP_SOULS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
+			client->soul_abilities |= (RADIAL_POSSESSION|GHOST_FLY|PUSH_BEASTS|OBLITERATE_HOST|RECRUIT_FOLLOWERS|DAMAGE_HOST|SOUL_SHIELD);
 			client->soul_abilities |= (TRANSFORM_HOST|WARP_HUSK);
 			break; 
 		}
 	}
 
 	// display the soul collector level in the hud popup instead of a centerprint
-	gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
+	//gi.centerprintf( ent, "SOUL COLLECTOR LEVEL = %i\n", ent->client->soul_collector_level );
 	gi.sound (ent, CHAN_VOICE, gi.soundindex ("husk/levelup.wav"), 1, ATTN_NORM, 0);
 
-	// display hud element of new abilities ( and explanation )
-	//Cmd_Soul_Abilities_f( ent );
+	// force-display hud element of new abilities
+	client->newSoulLevel = true;
+	Cmd_PutAway_f( ent );
+	client->showabilities = true;
+	SoulAbilities( ent );
 }
 
 void detect_life ( edict_t *self ) {
@@ -1781,12 +1784,12 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		self->flags &= ~FL_NOTARGET;
 		self->takedamage = DAMAGE_AIM;
 
-		// jump back to the husk spawn
-		if ( !(self->client->soul_abilities & WARP_HUSK) ) {
+		// jump back to the husk spawn ( or warp to ghost location )
+		if ( (self->client->soul_abilities & WARP_HUSK) && ((self->client->latched_buttons|self->client->buttons) & BUTTON_SHIFT) ) {
+			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/warphusk.wav"), 1, ATTN_STATIC, 0);
+		} else {
 			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/enterhusk.wav"), 1, ATTN_STATIC, 0);
 			VectorCopy( other->s.origin, self->s.origin );
-		} else {
-			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/warphusk.wav"), 1, ATTN_STATIC, 0);
 		}
 
 		//transfer all husk enemies back to the player
@@ -1858,23 +1861,33 @@ void ghostmode_protocols ( edict_t *self ) {
 	}
 
 
+	// check for touch possession
+	if ( !client->host && !(client->soul_abilities & DRAIN_LIFE) && client->soul_abilities & TOUCH_POSSESSION ) {
+		
+		other = NULL;
+		while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
 
-	other = NULL;
-	while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
-
-		if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
-		{ 
-			if ( !client->host && !(client->soul_abilities & DRAIN_LIFE) && client->soul_abilities & TOUCH_POSSESSION ) {
-
+			if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) 
+			{ 
 				if ( level.time >= client->nextPossessTime ) { TakeHost( self, other, HOST_TOUCH ); }
 				else { gi.centerprintf (self, "POSSESSION RECHARGHING" ); }
-
-			} else if ( client->soul_abilities & DRAIN_LIFE && level.time >= self->client->drainLifeTime ) {
-				T_Damage ( other, other, other, vec3_origin, self->s.origin, vec3_origin, 10, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
-				self->client->drainLifeTime = level.time + 2.0f;
+				
+				break;
 			}
-			break; 
 		}
+	}
+
+	// damage all monsters in range on a continuous pulse cycle
+	if ( client->soul_abilities & DRAIN_LIFE && level.time >= self->client->drainLifeTime ) {
+
+		other = NULL;
+		while ( ( other = findradius( other, self->s.origin, GHOST_RANGE ) ) != NULL )	{
+
+			if ( other->classname && !Q_strncasecmp( other->classname, "monster_", 8 ) && other->deadflag == DEAD_NO ) {
+				T_Damage( other, other, other, vec3_origin, self->s.origin, vec3_origin, 10, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+			} 
+		}
+		self->client->drainLifeTime = level.time + 2.0f;
 	}
 
 	// set all souls in range to be pulled
@@ -2145,7 +2158,14 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	// otherwise game crashes when **host dies on its own**)
 	
 	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
-	else { ent->svflags &= ~SVF_SOUL; }
+	else { 
+		ent->svflags &= ~SVF_SOUL;
+
+		if ( ent->client->soul_abilities & DRAIN_LIFE ) {
+			ent->client->soul_abilities &= ~DRAIN_LIFE;
+			gi.cprintf( ent, PRINT_HIGH, "Drain Life OFF\n" );
+		}
+	}
 
 	if ( client->soul_abilities & DETECT_LIFE ) { detect_life ( ent ); }
 
@@ -2168,6 +2188,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 	if ( client->chase_target ) { UpdateChaseCam( ent ); }		// takes care of player's gi.linkentity (ent);
 	
+	// actively update readouts
+//	if ( ent->client->showcollection )	{ SoulCollection( ent ); }
+//	if ( ent->client->showabilities )	{ SoulAbilities( ent );  }
 //TMF7 END GHOST MODE
 
 	if (ent->client->chase_target) {			//TMF7 vanilla chasecam stuff (this prevents normal pm processing)

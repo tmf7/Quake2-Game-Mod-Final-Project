@@ -828,6 +828,8 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 	// the "string" is a hardcoded value via SetMonsterNames(void) initialized at worldspawn
 	other->client->ps.stats[STAT_SOULS_STRING] = CS_ITEMS + game.num_items + (soul->monster_soul_index); 
 	other->client->pickup_soul_msg_time = level.time + 3.0;
+
+	other->client->newSoulLevel = false;
 // END ( ghud )
 
 	old_soul_collector_level = other->client->soul_collector_level;
@@ -836,10 +838,10 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 	other->client->soulCollection[ soul->monster_soul_index ]++;
 
 	// balance these level thresholds better
-	if (	other->client->pool_of_souls >= 50		)	{ new_soul_collector_level = 2; }
-	if (	other->client->pool_of_souls >= 300		)	{ new_soul_collector_level = 3; }
-	if (	other->client->pool_of_souls >= 1000	)	{ new_soul_collector_level = 4; }
-	if (	other->client->pool_of_souls >= 5000	)	{ new_soul_collector_level = 5; }
+	if (	other->client->pool_of_souls >= 5	)	{ new_soul_collector_level = 2; }
+	if (	other->client->pool_of_souls >= 30	)	{ new_soul_collector_level = 3; }
+	if (	other->client->pool_of_souls >= 100	)	{ new_soul_collector_level = 4; }
+	if (	other->client->pool_of_souls >= 500	)	{ new_soul_collector_level = 5; }
 
 	if ( new_soul_collector_level > old_soul_collector_level ) {
 
@@ -903,7 +905,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	VectorCopy ( soul->s.origin, soul->s.old_origin );
 	
 	soul->takedamage	= DAMAGE_NO;
-	soul->mass			= ( self->mass / 10 );						// strength of soul
+	soul->mass			= ( self->mass / 100 );				// strength of soul
 
 	soul->classname		= "soul";
 
@@ -982,7 +984,7 @@ enum monster_souls {
 // it grabs a name out of this list according to its monster_soul_index
 char * monster_souls[] =
 {
-	"Beserk Soul",
+	"Beserker Soul",
 	"Gladiator Soul",
 	"Gunner Soul",
 	"Infantry Soul",

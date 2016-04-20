@@ -1,19 +1,22 @@
+TESTING:
+
+
+___________________________
 TODO:
 
 -> hud elements to soul_collector level up ( and soul collection )
+
+-> give drain life a shell in 3rd person ( so its obvious )
+
+-> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
+
+-> show player-soul cheat code ( instead of vanishing into the host )
 
 -> fly/swim check for rodeo controls ( and default DropHost )
 
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
--> add slighost sounds for recruiting/controlling new monsters ( control a list/group, re-purpose other binds if in hostmode, add hud help )
-	--> 'help' gathers all nearby monsters to fight the HOST's current enemy ( or just gathers them to near the host if no enemy )
-
--> display different information in soulabilities hud popup depending on ghostmode, hostmode, none
-
--> do husk armor (orbit max_items num reduced by damage, regen over time )
-
---> make an INSTALLATION batch file ( copy FROM the batch's current folder itself TO the steam folder )
+--> make installation README ( not a batch )
 
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
@@ -21,11 +24,11 @@ TODO:
 ___________________________________________________________
 
 
-BUG: soul collection amt/name strings not in horizontal alignment
+BUG: fall damage still hurts ghost player
 
-*BUG: soul abilities, etc NOT PERSISTANT between levels (fix that)
+*BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
 
-*BUG(1of2): getRidOfWeaon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
+*BUG(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
 
 *BUG(2of2): if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
 	-> flags get saved into savedFlags in PERSISTANT DATA
@@ -49,32 +52,11 @@ BUG: ducks TOO MUCH/REPEATEDLY ... right into floors if duck, then duck-shoot ( 
 	// check if the host is already ducked/standing before performing the move/transition
 ____________________________________________________________
 
-
-add a boolean flag for player in "ghost mode"
-
-add a boolean flag for player in "host mode"
-
-add a boolean flag for enemy "possesed" (supplant think commands)
-
-HOST MODE key-binds:
-"inhabit" [ eg 'r' ] -> leave inhabited enemy (instead of going to player).
-"ghost" [ eg 'f' ]   -> explode/gib inhabited enemy.
-
-GHOST MODE key-binds:
-"inhabit" [ eg 'r' ] -> inhabit the nearest enemy.
-"ghost" [ eg 'f' ]   -> return to player.
-
-NORMAL MODE key-binds:
-"inhabit" [ eg 'r' ] -> nothing.
-"ghost" [ eg 'f' ]   -> spawn a 3rd person ghost entity that flies in control of the player (still collides with walls).
-
-"uberhost" [ eg 'v' ] -> toggle between uberhost and rodeo host controls
-___________________________________________________________
-
 f = "ghost"
 r = "inhabit"
 v = "uberhost" & "drain_life"
-y = "rip_souls"
+y = "soul_shield"**********************************
+mouse3 = "push_beasts"
 
 o = ***unbound***
 n = "detect_life"
@@ -84,6 +66,8 @@ F7 = "soul_abilities"
 F8 = "soul_collection"
 
 cheatcode: soullevel [1-5] ( default displays usage )
+
+cheatcode: showsoul ( makes player soul visible within host )***********
 
 ______________________________________________
 

@@ -663,11 +663,12 @@ Cmd_PutAway_f
 */
 void Cmd_PutAway_f (edict_t *ent)
 {
+	ent->client->showinventory = false;
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
-	ent->client->showinventory = false;
+	ent->client->showcollection = false;		//TMF7 GHOST MODE ( ghud )
+	ent->client->showabilities = false;			//TMF7 GHOST MODE ( ghud )
 }
-
 
 int PlayerSort (void const *a, void const *b)
 {
@@ -982,48 +983,48 @@ void Cmd_Ghost_Fly_f( edict_t *ent ) {
 		return;
 }
 
-// 'y' is bound to radial insta-kill soul-rip
-void Cmd_Rip_Souls_f( edict_t *ent ) {
+// 'mouse3' is bound to radial monster push
+void Cmd_Push_Beasts_f( edict_t *ent ) {
 
-	int killCount;
+	int pushCount;
+	vec3_t dir;
 	edict_t *other;
 
 	// passive
-	if ( !(ent->client->soul_abilities & RIP_SOULS) )
+	if ( !(ent->client->soul_abilities & PUSH_BEASTS ) )
 		return;
 
-	if ( ent->client->ghostmode ) { 
+	if ( level.time >= ent->client->nextPossessTime ) {
 
-		if ( level.time >= ent->client->nextPossessTime ) {
+		//push all monsters in range
+		pushCount = 0;
+		other = NULL;
+		while ( ( other = findradius( other, ent->s.origin, SOUL_RANGE ) ) != NULL ) {
 
-			//kill all monsters in range
-			killCount = 0;
-			other = NULL;
-			while ( ( other = findradius( other, ent->s.origin, SOUL_RANGE ) ) != NULL ) {
+			if ( other == ent )
+			{ continue; }
 
-				if ( other == ent )
-				{ continue; }
+			if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+			{ continue; }
 
-				if ( !(other->svflags & SVF_MONSTER) || (other->client) )
-				{ continue; }
+			if ( other->deadflag != DEAD_NO )
+			{ continue; }
 
-				if ( other->deadflag != DEAD_NO )
-				{ continue; }
-
-				if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) { 
-					T_Damage ( other, ent, ent, vec3_origin, ent->s.origin, vec3_origin, other->health, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);				
-					killCount++;
-				}
+			if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) {
+				VectorSubtract( other->s.origin, ent->s.origin, dir );
+				VectorNormalize( dir );
+				T_Damage ( other, ent, ent, dir, ent->s.origin, vec3_origin, 5, 1000, DAMAGE_NO_PROTECTION, MOD_FALLING);				
+				pushCount++;
 			}
+		}
 
-			if ( !killCount ) { gi.centerprintf ( ent, "NO BEASTS IN RANGE\n" ); }
-			else { 
-				ent->client->nextPossessTime = level.time + 10.0f;
-				gi.sound ( ent, CHAN_VOICE, gi.soundindex( "husk/ripsouls.wav" ), 1, ATTN_NORM, 0); 
-			}
+		if ( !pushCount ) { gi.centerprintf ( ent, "NO BEASTS IN RANGE\n" ); }
+		else { 
+			ent->client->nextPossessTime = level.time + 3.0f;
+			gi.sound ( ent, CHAN_VOICE, gi.soundindex( "husk/pushbeasts.wav" ), 1, ATTN_NORM, 0); 
+		}
 
-		} else { gi.centerprintf ( ent, "RECHARGHING" );  }
-	}
+	} else { gi.centerprintf ( ent, "RECHARGHING" );  }
 }
 
 void Cmd_Set_Soul_Level_f( edict_t *ent ) {
@@ -1084,6 +1085,19 @@ void Cmd_Uber_f (edict_t *ent) {
 
 		gi.cprintf (ent, PRINT_HIGH, msg);
 	}
+}
+
+// 'y' is bound to shield of souls refresh
+void Cmd_Soul_Shield_f( edict_t *ent ) {
+
+	// passive
+	if ( !(ent->client->soul_abilities & SOUL_SHIELD ) )
+		return;
+	
+	// spawn a bunch of svc_tempentity/edict_t to "orbit"/orbit the owner ( player or husk ) ( from the current number to max_orbiting )
+	// if there is any health left in the soul_shield then have it take the hit ( dont carry over extra damage )
+	// give it a pain and die function ( which reduces the number orbiting and makes separate pain and die noises in the players ear )
+	// no active shield transfers damage as normal
 }
 
 //TMF7 END GHOST MODE
@@ -1199,8 +1213,10 @@ void ClientCommand (edict_t *ent)
 		Cmd_Detect_Life_f( ent );
 	else if ( Q_stricmp(cmd, "ghost_fly") == 0 )	
 		Cmd_Ghost_Fly_f( ent );
-	else if ( Q_stricmp(cmd, "rip_souls") == 0 )	
-		Cmd_Rip_Souls_f( ent );
+	else if ( Q_stricmp(cmd, "push_beasts") == 0 )	
+		Cmd_Push_Beasts_f( ent );
+	else if ( Q_stricmp(cmd, "soul_shield") == 0 )
+		Cmd_Soul_Shield_f( ent );
 	else if ( Q_stricmp(cmd, "soullevel") == 0 )	
 		Cmd_Set_Soul_Level_f( ent );
 //TMF7 END GHOST MODE

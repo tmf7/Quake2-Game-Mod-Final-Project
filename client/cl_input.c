@@ -349,6 +349,16 @@ void CL_FinishMove (usercmd_t *cmd)
 		cmd->buttons |= BUTTON_USE;
 	in_use.state &= ~2;
 
+//TMF7 GHOST MODE
+	if (in_speed.state & 3)
+		cmd->buttons |= BUTTON_SHIFT;
+	in_speed.state &= ~2;
+
+	if (in_strafe.state & 3)
+		cmd->buttons |= BUTTON_ALT;
+	in_strafe.state &= ~2;
+//TMF7 GHOST MODE
+
 	if (anykeydown && cls.key_dest == key_game)
 		cmd->buttons |= BUTTON_ANY;
 

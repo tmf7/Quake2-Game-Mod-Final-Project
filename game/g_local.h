@@ -635,7 +635,7 @@ enum soul_collector {
 	DETECT_LIFE			= 0x00000010,	// 3
 	GHOST_FLY			= 0x00000020,	// 4
 	PULL_SOULS			= 0x00000040,	// 3
-	RIP_SOULS			= 0x00000080,	// 4
+	PUSH_BEASTS			= 0x00000080,	// 4
 
 	// Host abilities
 	UBERHOST			= 0x00000100,	// 3
@@ -691,8 +691,11 @@ extern	gitem_t	itemlist[];
 //
 void Cmd_Help_f (edict_t *ent);
 void Cmd_Score_f (edict_t *ent);
+void Cmd_PutAway_f (edict_t *ent);
 void Cmd_Soul_Abilities_f ( edict_t *ent );		//TMF7 GHOST MODE
 void Cmd_Soul_Collection_f ( edict_t *ent );	//TMF7 GHOST MODE
+void SoulAbilities( edict_t *ent );				//TMF7 GHOST MODE
+void SoulCollection( edict_t *ent );			//TMF7 GHOST MODE
 
 //
 // g_items.c
@@ -1075,6 +1078,7 @@ struct gclient_s
 
 	qboolean		showabilities;
 	qboolean		showcollection;
+	qboolean		newSoulLevel;
 	qboolean		soulChange;
 	int				soul_abilities;
 	float			nextPossessTime;

@@ -502,6 +502,8 @@ typedef struct
 //
 #define	BUTTON_ATTACK		1
 #define	BUTTON_USE			2
+#define BUTTON_SHIFT		4			//TMF7 GHOST MODE ( set via <cl_input.c> CL_FinishMove )
+#define BUTTON_ALT			8			//TMF7 GHOST MODE ( set via <cl_input.c> CL_FinishMove )
 #define	BUTTON_ANY			128			// any key whatsoever
 
 

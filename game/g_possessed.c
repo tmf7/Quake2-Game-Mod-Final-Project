@@ -300,6 +300,8 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 		return; 
 	}
 
+	// FIXME: add host latched_buttons and buttons variables
+	// to ensure the button is held between two frames before issuing any command
 	if ( self->client->soul_abilities & UBERHOST ) { 
 
 		set_host_move( host, pm );
