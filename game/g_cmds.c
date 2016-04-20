@@ -983,7 +983,7 @@ void Cmd_Ghost_Fly_f( edict_t *ent ) {
 		return;
 }
 
-// 'mouse3' is bound to radial monster push
+// 'mouse3' is bound to radial monster push, and host-speak
 void Cmd_Push_Beasts_f( edict_t *ent ) {
 
 	int pushCount;
@@ -994,37 +994,60 @@ void Cmd_Push_Beasts_f( edict_t *ent ) {
 	if ( !(ent->client->soul_abilities & PUSH_BEASTS ) )
 		return;
 
-	if ( level.time >= ent->client->nextPossessTime ) {
+	if ( !ent->client->hostmode ) {
 
-		//push all monsters in range
-		pushCount = 0;
-		other = NULL;
-		while ( ( other = findradius( other, ent->s.origin, SOUL_RANGE ) ) != NULL ) {
+		if ( level.time >= ent->client->nextPossessTime ) {
 
-			if ( other == ent )
-			{ continue; }
+			//push all monsters in range
+			pushCount = 0;
+			other = NULL;
+			while ( ( other = findradius( other, ent->s.origin, SOUL_RANGE ) ) != NULL ) {
 
-			if ( !(other->svflags & SVF_MONSTER) || (other->client) )
-			{ continue; }
+				if ( other == ent )
+				{ continue; }
 
-			if ( other->deadflag != DEAD_NO )
-			{ continue; }
+				if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+				{ continue; }
 
-			if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) {
-				VectorSubtract( other->s.origin, ent->s.origin, dir );
-				VectorNormalize( dir );
-				T_Damage ( other, ent, ent, dir, ent->s.origin, vec3_origin, 5, 1000, DAMAGE_NO_PROTECTION, MOD_FALLING);				
-				pushCount++;
+				if ( other->deadflag != DEAD_NO )
+				{ continue; }
+
+				if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) {
+					VectorSubtract( other->s.origin, ent->s.origin, dir );
+					VectorNormalize( dir );
+					T_Damage ( other, ent, ent, dir, ent->s.origin, vec3_origin, 5, 1000, DAMAGE_NO_PROTECTION, MOD_FALLING);				
+					pushCount++;
+				}
 			}
-		}
 
-		if ( !pushCount ) { gi.centerprintf ( ent, "NO BEASTS IN RANGE\n" ); }
-		else { 
-			ent->client->nextPossessTime = level.time + 3.0f;
-			gi.sound ( ent, CHAN_VOICE, gi.soundindex( "husk/pushbeasts.wav" ), 1, ATTN_NORM, 0); 
-		}
+			if ( !pushCount ) { gi.centerprintf ( ent, "NO BEASTS IN RANGE\n" ); }
+			else { 
+				ent->client->nextPossessTime = level.time + 3.0f;
+				gi.sound ( ent, CHAN_VOICE, gi.soundindex( "husk/pushbeasts.wav" ), 1, ATTN_NORM, 0); 
+			}
 
-	} else { gi.centerprintf ( ent, "RECHARGHING" );  }
+		} else { gi.centerprintf ( ent, "RECHARGHING" );  }
+	} else {
+/*
+		// uberhost
+		hi 	= get targeted monster's attention 											( shift+shoot w/o follower )
+		chuckle = no targetd monster to say "hi" to
+		bleh	= didn't give attentive monster an order ( time limit )
+
+		help	= recruit all monsters to fight current host's enemy ( not follow ) 	( 'mouse3' )
+		what	= host doesn't have an enemy when trying "help" sligspeak
+
+		getem	= tell attentive monster who to attack 									( shift+shoot monster )
+		hereboy = tell attentive monster to permanently follow 							( shift+shoot world )
+		stay	= tell current follower to go away ( break follow ) 					( shift+mouse3 )
+
+		lookout = causes all nearby monsters to start running ( breaking hiding )		( alt+mouse3 )
+
+		freeze	= tell specific follower to stay until ordered otherwise 				( shift+shoot follower )
+
+		highbuzz/lowbuzz = made when host's enemy dies ( a few times on a random loop )**** also in rodeo ******
+*/
+	}
 }
 
 void Cmd_Set_Soul_Level_f( edict_t *ent ) {
@@ -1098,6 +1121,19 @@ void Cmd_Soul_Shield_f( edict_t *ent ) {
 	// if there is any health left in the soul_shield then have it take the hit ( dont carry over extra damage )
 	// give it a pain and die function ( which reduces the number orbiting and makes separate pain and die noises in the players ear )
 	// no active shield transfers damage as normal
+}
+
+// 'o' is bound to host transformation/upgrade
+void Cmd_Transform_Host_f( edict_t *ent ) {
+
+	// passive
+	if ( !(ent->client->soul_abilities & TRANSFORM_HOST ) )
+		return;
+	
+	// gib the current host ( auto-drops )
+	// spawn a new monster fully ( TakeHost of it )
+	// maximum upgrade according to level ( one at a time )
+	// long soulpower regen/reuse time
 }
 
 //TMF7 END GHOST MODE
@@ -1217,6 +1253,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_Push_Beasts_f( ent );
 	else if ( Q_stricmp(cmd, "soul_shield") == 0 )
 		Cmd_Soul_Shield_f( ent );
+	else if ( Q_stricmp(cmd, "transform") == 0 )
+		Cmd_Transform_Host_f( ent );
 	else if ( Q_stricmp(cmd, "soullevel") == 0 )	
 		Cmd_Set_Soul_Level_f( ent );
 //TMF7 END GHOST MODE

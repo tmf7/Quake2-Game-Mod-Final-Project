@@ -385,7 +385,8 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int			te_sparks;
 
 	// TMF7 GHOST MODE ( new second condition: check for client-direct drowning/buring --> waterlevel/type transferred by husk )
-	if (!targ->takedamage && !( targ->client && attacker == world ) )
+	// CHEAT: only allowing drowning world-damage as ghost => player can spawn a husk mid-fall and prevent fall-damage
+	if (!targ->takedamage && !( targ->client && attacker == world && targ->waterlevel > 0 ) )
 		return;
 
 //TMF7 BEGIN GHOST MODE

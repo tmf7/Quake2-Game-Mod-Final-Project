@@ -1,21 +1,28 @@
-// rodeo
+// rodeo ( only mouse1)
 bleh 	= rodeo light point
 freeze 	= rodeo light point touch
 getem 	= rodeo monster attack
 
+highbuzz/lowbuzz = made when host's enemy dies ( a few times on a random loop )
+
+
+
+
+
 // uberhost
-hi 	= get closest monster's attention
-chuckle = no nearby monster to say "hi" to
+hi 	= get targeted monster's attention 					( shift+shoot w/o follower )
+chuckle = no targetd monster to say "hi" to
 bleh	= didn't give attentive monster an order ( time limit )
 
-help	= recruit all monsters to fight current host's enemy ( not follow )
+help	= recruit all monsters to fight current host's enemy ( not follow ) 	( 'm' )
 what	= host doesn't have an enemy when trying "help" sligspeak
 
-getem	= tell attentive monster who to attack ( alt+shoot )
-hereboy = tell attentive monster to permanently follow
-stay	= tell current followers to stay ( break all follow )
-lookout = causes all nearby monsters to start running ( breaking hiding )
+getem	= tell attentive monster who to attack 					( shift+shoot monster )
+hereboy = tell attentive monster to permanently follow 				( shift+shoot world )
+stay	= tell current follower to go away ( break follow ) 			( shift+m )
 
-freeze	= tell specific follower to stay ( alt+shoot follower, break 1 follow )
+lookout = causes all nearby monsters to start running ( breaking hiding )	( alt+m )
+
+freeze	= tell specific follower to stay until ordered otherwise 		( shift+shoot follower )
 
 highbuzz/lowbuzz = made when host's enemy dies ( a few times on a random loop )

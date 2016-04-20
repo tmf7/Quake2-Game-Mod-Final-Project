@@ -4,8 +4,6 @@ TESTING:
 ___________________________
 TODO:
 
--> hud elements to soul_collector level up ( and soul collection )
-
 -> give drain life a shell in 3rd person ( so its obvious )
 
 -> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
@@ -23,8 +21,6 @@ TODO:
 
 ___________________________________________________________
 
-
-BUG: fall damage still hurts ghost player
 
 *BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
 
@@ -56,9 +52,9 @@ f = "ghost"
 r = "inhabit"
 v = "uberhost" & "drain_life"
 y = "soul_shield"**********************************
-mouse3 = "push_beasts"
+mouse3 = "push_beasts"*************and host-speak**********
 
-o = ***unbound***
+o = "transform"*********************
 n = "detect_life"
 m = "ghost_fly"
 

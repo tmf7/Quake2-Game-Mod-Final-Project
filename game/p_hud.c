@@ -685,7 +685,7 @@ void SoulCollection( edict_t *ent )
 	gi.unicast (ent, true);
 }
 
-/* 27-28 horizontal characters available************************
+/* 27 vertical columns available
 ability layout
 rank-up ( ghost )          header1
 soul collector rank: #     header2
@@ -696,16 +696,16 @@ shoot targeted possession  3 ( rodeo chase target / shoot ) // hostmode only, ( 
 	f warp body to ghost   5 ( obliterate host, spawn ghost )
 	v drain life toggle    6 ( uberhost/rodeo toggle )
 	n detect life	 	   7 // all modes
-	m ghost fly	 		   8 // possible slot for hostmode cmd***************
+	m ghost fly	 		   8 
 	y shield of souls	   9 // all modes
     ---touch---			   10
 proximity possession	   11
 proximity drain life	   12
     ---passive---		   13	
-pull nearby souls		   14 ( damage transfer to host )
-soul-walk duration: ###/###15 ( recruit followers ) ...
+pull nearby souls		   14 
+ghost-walk time: ###/###   15 ( damage transfer to host )
 						   16 ( o transform host )
-						   17 ( order followers )...
+						   17 ( recruit/order followers )...
 */
 
 /*
@@ -737,21 +737,23 @@ soul-walk duration: ###/###15 ( recruit followers ) ...
 
 */
 
-// produce the level and mode appropriate readout
+// produce the rank and mode appropriate readout
 // extremely ugly, I know...
+// this would be better as a svc_inventory
+// with a new function in <cl_inven.c>
 void SoulAbilities( edict_t *ent )
 {
 	char	string[1024];
 
 	memset( string, 0, sizeof(string) );
-										  strcat( string,  "xv 32 yv 8 picn inventory " );
+										  strcat( string,  "xv 32 yv 8 picn inventory "	   );
 
 	if ( ent->client->newSoulLevel )	{ strcat( string, "xv 56 yv 32 string2 \"rank-up " );	}
 	else								{ strcat( string, "xv 56 yv 32 string2 \"        " );	}
 
-	if ( ent->client->ghostmode )		{ strcat( string, "***ghost***\" " );						}
-	else if ( ent->client->hostmode )	{ strcat( string, "***host***\" " );						}
-	else								{ strcat( string, "***corporeal***\" " );					}
+	if ( ent->client->ghostmode )		{ strcat( string,                 "---ghost---\" " );	}
+	else if ( ent->client->hostmode )	{ strcat( string,                  "---host---\" " );	}
+	else								{ strcat( string,             "---corporeal---\" " );	}
 
 										  strcat( string, "xv 56 yv 40 string2 \"soul collector rank: " );
 										  strcat( string, va( "%i", ent->client->soul_collector_level ) );
@@ -759,9 +761,9 @@ void SoulAbilities( edict_t *ent )
 										  strcat( string, "xv 56 yv 48 string2 \"usekey ability\" " );
 										  strcat( string, "xv 56 yv 56 string2 \"------ -------\" " );
 
-	if ( ent->client->ghostmode ) { // done
+	if ( ent->client->ghostmode ) {
 		// 14 lines
-		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 64 string2 \"  shoot targeted possession\" " ); }
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 64 string2 \"   fire targeted possession\" " ); }
 		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 72 string2 \"      r radial possession\" "   ); }
 		if ( ent->client->soul_collector_level >= 5 ) { strcat( string, "xv 56 yv 80 string2 \"shift+f warp body to ghost\" "  ); } 
 														strcat( string, "xv 56 yv 88 string2 \"      f return to body\" "	   );	
@@ -774,30 +776,31 @@ void SoulAbilities( edict_t *ent )
 														strcat( string, "xv 56 yv 144 string2 \"proximity drain life\" "	   );
 														strcat( string, "xv 56 yv 152 string2 \"    ---passive---\" "		   );
 		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 160 string2 \"pull nearby souls\" "		   ); }
-		//												strcat( string, "xv 56 yv 168 string2 \"ghost-walk duration: ###/###\" " ); // CHANGE 
+		//												strcat( string, "xv 56 yv 168 string2 \"ghost-walk time: ###/###\" " ); // CHANGE 
 
 	} else if ( ent->client->hostmode ) {
-		// check if uberhost/rodeo
-		// ### lines
-		/*
-		strcat( string, "xv 56 yv 64 string2 \"shoot rodeo chase target\" " );
-		strcat( string, "xv 56 yv 64 string2 \"shoot shoot\" " );
-		//strcat( string, "xv 56 yv 64 string2 \"alt+shoot say hi\" " );
+		// 9 or 13 lines
+		if ( ent->client->soul_abilities & UBERHOST ) { 
+														strcat( string, "xv 56 yv 64 string2 \"  fire attack\" "			    );
+														// appears at bottom
+														strcat( string, "xv 56 yv 144 string2 \"    ---host speak---\" "	    );
+														strcat( string, "xv 56 yv 152 string2 \"shift+fire follower control\" " );
+														strcat( string, "xv 56 yv 160 string2 \"shift+mouse3 free follower\" "  );
+														strcat( string, "xv 56 yv 168 string2 \"  alt+mouse3 shout an alert\" " );
+														strcat( string, "xv 56 yv 176 string2 \"      mouse3 call for help\" "  );
+		} else {										strcat( string, "xv 56 yv 64 string2 \"  fire set chase target\" "    ); }
 
+														strcat( string, "xv 56 yv 72 string2 \"     r release host\" "		); 
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 80 string2 \"     f obliterate host\" "	); }
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 88 string2 \"     v uberhost toggle\" "	); }
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 96 string2 \"     n detect life toggle\" "	); }
+		if ( ent->client->soul_collector_level >= 5 ) { strcat( string, "xv 56 yv 104 string2 \"     o transform host\" "	); }
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 112 string2 \"     y shield of souls\" "	); }
+														strcat( string, "xv 56 yv 120 string2 \"    ---passive---\" "		);
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 128 string2 \"damage transfer to host\" "	); }
+		//												strcat( string, "xv 56 yv 136 string2 \"possession time: ###/###\" "); // CHANGE 
 
-		strcat( string, "xv 56 yv 72 string2 \"    r release host unharmed\" "   ); 
-		strcat( string, "xv 56 yv 80 string2 \"    f obliterate host\" "   ); 
-		strcat( string, "xv 56 yv 80 string2 \"    f return to body\" "	);
-		strcat( string, "xv 56 yv 88 string2 \"    v uberhost toggle\" "	 );
-		strcat( string, "xv 56 yv 96 string2 \"    n detect life toggle\" "	 );	
-		//strcat( string, "xv 56 yv 104 string2 \"   m ghost fly\" "			 );
-		strcat( string, "xv 56 yv 112 string2 \"   y shield of souls\" "	 );	
-		strcat( string, "xv 56 yv 144 string2 \"    ---passive---\" "		 );
-		strcat( string, "xv 56 yv 152 string2 \"damage transfer to host\" "		 );	
-		//strcat( string, "xv 56 yv 160 string2 \"ghost-walk duration: ###/###\" " ); // CHANGE 
-		*/
-
-	} else { // done
+	} else { // normal mode
 		// 4 lines
 		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 64 string2 \"mouse3 push beasts\" "		 ); }
 														strcat( string, "xv 56 yv 72 string2 \"     f ghost-walk\" "		 );
@@ -805,73 +808,9 @@ void SoulAbilities( edict_t *ent )
 		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 88 string2 \"     y shield of souls\" "	 );	}
 	}
 
-	// debug verify
-	//gi.dprintf( string );
-
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 	gi.unicast (ent, true);
-///////////////////////////////
-	/*
-	num = 0;
-	selected_num = 0;
-	for (i=0 ; i<MAX_ITEMS ; i++)
-	{
-		if (i==selected)
-			selected_num = num;
-		if (cl.inventory[i])
-		{
-			index[num] = i;
-			num++;
-		}
-	}
-
-	// determine scroll point
-	top = selected_num - DISPLAY_ITEMS/2;
-	if (num - top < DISPLAY_ITEMS)
-		top = num - DISPLAY_ITEMS;
-	if (top < 0)
-		top = 0;
-
-	x = (viddef.width-256)/2;
-	y = (viddef.height-240)/2;
-
-	// repaint everything next frame
-	SCR_DirtyScreen ();
-
-	re.DrawPic (x, y+8, "inventory");
-
-	y += 24;
-	x += 24;
-	Inv_DrawString (x, y, "hotkey ### item");
-	Inv_DrawString (x, y+8, "------ --- ----");
-	y += 16;
-	for (i=top ; i<num && i < top+DISPLAY_ITEMS ; i++)
-	{
-		item = index[i];
-		// search for a binding
-		Com_sprintf (binding, sizeof(binding), "use %s", cl.configstrings[CS_ITEMS+item]);
-		bind = "";
-		for (j=0 ; j<256 ; j++)
-			if (keybindings[j] && !Q_stricmp (keybindings[j], binding))
-			{
-				bind = Key_KeynumToString(j);
-				break;
-			}
-
-		Com_sprintf (string, sizeof(string), "%6s %3i %s", bind, cl.inventory[item],
-			cl.configstrings[CS_ITEMS+item] );
-		if (item != selected)
-			SetStringHighBit (string);
-		else	// draw a blinky cursor by the selected item
-		{
-			if ( (int)(cls.realtime*10) & 1)
-				re.DrawChar (x-8, y, 15);
-		}
-		Inv_DrawString (x, y, string);
-		y += 8;
-	}
-	*/
 }
 
 // F7 is bound to "soul_abilities" hud toggle
