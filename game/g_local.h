@@ -1110,6 +1110,7 @@ struct gclient_s
 	float			orbitTime;
 	float			nextPossessTime;
 	float			drainLifeTime;
+	float			giveOrdersTime;
 	float			pickup_soul_msg_time;
 	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
@@ -1271,6 +1272,7 @@ struct edict_s
 	monsterinfo_t	monsterinfo;
 
 //TMF7 BEGIN GHOST MODE
+	qboolean		hostLaugh;
 	qboolean		possessed;
 	float			huskBeginSearchTime;
 
@@ -1290,7 +1292,6 @@ struct edict_s
 	char			*drop_host_noise;
 	hmove_t			*hmove_list;
 	edict_t			*host_target;		// the rodeo movement goal of a possessed host
-	edict_t			*old_owner;			// in case the host had a prior owner
 	void			(*possesed_think)( edict_t *self, edict_t *host, const pmove_t *pm );
 	void			(*husktouch)(edict_t *self, edict_t *husk );
 //TMF7 END GHOST MODE

@@ -1207,6 +1207,7 @@ void PutClientInServer (edict_t *ent)
 	client->orbitTime = 0;
 	client->nextPossessTime = 0;
 	client->drainLifeTime = 0;
+	client->giveOrdersTime = 0;
 	ent->possessed = false;
 
 	client->numOrbitingSouls = 0;

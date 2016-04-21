@@ -87,7 +87,7 @@ hmove_t * find_host_move ( edict_t *host, char *possible_move ) {
 // instead of resolving individual frames here
 // However, it does determine the conditions for currentmove interrupt/change
 // on a per-frame basis
-void set_host_move( edict_t *host, const pmove_t *pm ) {
+void set_host_move( edict_t *self, edict_t *host, const pmove_t *pm ) {
 
 	// change: ai_func, thinkfunc, endfunc
 	// change: m_move.c stuff ( because they contain goalentities and no_water_enter stuff )
@@ -134,7 +134,7 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	else 
 		{ run = false; }
 
-	if ( pm->cmd.buttons & BUTTON_ATTACK )
+	if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_ATTACK)
 		{ attack = true; }
 	else 
 		{ attack = false; }
@@ -240,6 +240,7 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 { 
+	int			num;
 	trace_t		tr;
 	edict_t		*target;
 	char		*selected_move;
@@ -255,23 +256,50 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 		return; 
 	}
 
-	// FIXME: add host latched_buttons and buttons variables
-	// to ensure the button is held between two frames before issuing any command
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
-		set_host_move( host, pm );
-	}
-	else {
+		set_host_move( self, host, pm );
+
+		if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_SHIFT ) {
+			
+			tr = GhostMuzzleTrace( self );
+
+			if ( tr.fraction < 1.0f && tr.ent ) {
+
+				if ( tr.ent->classname 
+					&& !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) 
+					&& tr.ent->deadflag == DEAD_NO ) {
+
+						if ( tr.ent->owner == host ) { /*freeze follower*/ }
+						else if ( 1 /*a follower exists*/ ) { /*attack an anemy, getem*/ }
+						else { 
+							// say hi to a potential follower
+							// have the monster reciprocate a noise...hi? from their position a second later
+							// have the monster face us and stand w/o flags or some such
+							gi.sound ( host, CHAN_VOICE, gi.soundindex( "slighost/hi.wav" ), 1, ATTN_NORM, 0);
+							self->client->giveOrdersTime = level.time + 3.0f;
+						}
+
+				} else if ( tr.ent == world && 1 /*a attentive monster OR follower exists, also check for misc_explodebox attack here*/) { 
+					// hereboy
+					// set permanent follower pointer here ( if not already set )
+				} else {
+					num = (rand()%2)+1;
+					gi.sound ( host, CHAN_VOICE, gi.soundindex( va("slighost/buzz%i.wav", num) ), 1, ATTN_NORM, 0); 
+				}
+			}
+		}
+	} else {
 
 		//RODEO HOST CONTROLS
-		if ( pm->cmd.buttons & BUTTON_ATTACK ) {
+		if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_ATTACK ) {
 
 			tr = GhostMuzzleTrace( self );
 
 			//set the movement goal, and enemy, based on the muzzle trace
 			if ( tr.fraction < 1.0f ) { 
 
-				if ( tr.ent && tr.ent->classname && !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) ) {
+				if ( tr.ent && tr.ent->classname && ( !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) || !Q_strcasecmp( tr.ent->classname, "misc_explobox" ) ) ) {
 				
 					gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
 					set_host_target( host, &tr, false, RODEO_ENEMY );
@@ -287,6 +315,13 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 			}
 		}
 	}
+
+	if ( host->hostLaugh ) {
+		gi.sound( host, CHAN_VOICE, gi.soundindex( "slighost/chuckle.wav" ), 1, ATTN_NORM, 0.1 );
+		host->hostLaugh = false;
+	}
+
+	// check here if giveOrdersTime is exceeded following clicks ( make a noise if so and have the monster wander off )
 }
 
 void TakeHost ( edict_t *self, edict_t *host, int take_style ) { 
@@ -373,7 +408,6 @@ void DropHost ( edict_t *self, int drop_style )
 	}
 
 	self->client->host->possessed		= false;
-	self->client->host->owner			= self->client->host->old_owner;	// potentially null, should be okay
 	self->client->host					= NULL;
 	self->client->hostmode				= false;
 	self->client->ghostmode				= true;

@@ -546,7 +546,12 @@ void monster_death_use (edict_t *self)
 	self->flags &= ~(FL_FLY|FL_SWIM);
 	self->monsterinfo.aiflags &= AI_GOOD_GUY;
 
-	SP_LostMonsterSoul( self );	//TMF7 GHOST MODE
+// TMF7 BEGIN GHOST MODE
+	SP_LostMonsterSoul( self );
+	
+	if ( self->enemy && self->enemy->possessed ) 
+		self->enemy->hostLaugh = true;
+// TMF7 END GHOST MODE
 	
 	if (self->item)
 	{

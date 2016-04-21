@@ -35,8 +35,6 @@ ___________________________________________________________
 
 BUG: weird angles on detect_life in hover hostmode ( disable, or wait until better chasecam )
 
-BUG: not all soldier souls make a sound when picked up ??? ( because they get freed before their sound pointer is used? )
-
 BUG: spawnsoul noise randomly repeats until interrupted post-soul-spawn ( even plays over the console dropdown when other sounds dont )
 
 BUG: host PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
@@ -50,7 +48,7 @@ ____________________________________________________________
 f = "ghost"
 r = "inhabit"
 v = "uberhost" & "drain_life"
-y = "soul_shield"**********************************
+y = "soul_shield"
 mouse3 = "push_beasts"*************and host-speak**********
 
 o = "transform"
