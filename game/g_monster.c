@@ -939,7 +939,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	soul->think = monster_soul_think;
 	soul->nextthink = level.time + FRAMETIME;
 
-//	gi.sound (soul, CHAN_VOICE, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0);		// BUG: why does this constantly repeat?
+//	gi.sound (soul, CHAN_AUTO, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0 );		// BUG: why does this constantly repeat?
 //	gi.dprintf( "SOUL SPAWNED\n" );
 
 	gi.linkentity ( soul );

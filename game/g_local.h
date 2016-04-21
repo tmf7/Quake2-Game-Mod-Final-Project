@@ -468,6 +468,13 @@ typedef struct
 	char		*host_classname;
 	int			host_rank;
 } transform_t;
+
+typedef struct
+{
+	vec3_t		origin;
+	vec3_t		velocity;
+	float		angle;
+} temp_soul_t;
 //TMF7 END GHOST MODE
 
 
@@ -607,9 +614,14 @@ typedef enum {
 } fieldtype_t;
 
 //TMF7 BEGIN GHOST MODE
+
 #define SOUL_RANGE			300		// radial possession, pull/rip souls
 #define GHOST_RANGE			60		// touch possession, husktouch
 #define LIFE_RANGE			400		// detect life
+#define ORBIT_RADIUS		80		// soul shield
+#define ORBIT_SPEED			30		// soul shield
+#define MAX_ORBITS			5		// soul shield
+#define MAX_SOUL_TYPES		20		// 22 types of monsters, not counting humans, soldier types combined
 
 enum take_host_style {
 	HOST_TOUCH,
@@ -1092,13 +1104,16 @@ struct gclient_s
 	qboolean		newSoulLevel;
 	qboolean		soulChange;
 	int				soul_abilities;
+	int				numOrbitingSouls;
+	temp_soul_t		soul_shield[MAX_ORBITS];
 
+	float			orbitTime;
 	float			nextPossessTime;
 	float			drainLifeTime;
 	float			pickup_soul_msg_time;
 	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
-	int				soul_collector_level;				// thresholds unlock abilities ( they all work in tandem )
+	int				soul_collector_level;				// thresholds unlock abilities
 
 	edict_t			*host;
 	edict_t			*player_husk;

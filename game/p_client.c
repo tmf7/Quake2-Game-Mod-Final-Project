@@ -1204,10 +1204,12 @@ void PutClientInServer (edict_t *ent)
 	client->ghostmode = false;	
 	client->hostmode = false;
 
+	client->orbitTime = 0;
 	client->nextPossessTime = 0;
 	client->drainLifeTime = 0;
 	ent->possessed = false;
 
+	client->numOrbitingSouls = 0;
 	client->pool_of_souls = 0;
 	client->soul_collector_level = 1;
 	LevelUpSoulCollector( ent );
@@ -1652,6 +1654,49 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 //	} else if ( dist ) { *dist = 99999; }
 
 	return tr;
+}
+
+void UpdateSoulShield ( edict_t *self ) {
+
+	float raise;
+	temp_soul_t	*orbitSoul;
+	vec3_t	origin, normal;
+	gclient_t *client = self->client;
+
+	if ( self->client->player_husk && !Q_strncasecmp( self->client->player_husk->classname, "husk", 4 ) ) {
+		VectorCopy ( self->client->player_husk->s.origin, origin );
+		raise = (float)self->client->player_husk->viewheight/3.0f;
+	}
+	else {
+		VectorCopy ( self->s.origin, origin );
+		raise = (float)self->viewheight/3.0f;
+	}
+
+
+	// update all possible orbiting souls
+	for ( orbitSoul = client->soul_shield; orbitSoul < &client->soul_shield[MAX_ORBITS]; orbitSoul++ ) {
+			
+		orbitSoul->angle = anglemod( orbitSoul->angle + (float)ORBIT_SPEED/(float)ORBIT_RADIUS );
+		orbitSoul->origin[0] = origin[0] + ORBIT_RADIUS*cos(orbitSoul->angle); 
+		orbitSoul->origin[1] = origin[1] + ORBIT_RADIUS*sin(orbitSoul->angle); 
+		orbitSoul->origin[2] = origin[2] + raise;
+	}
+
+	if ( level.time >= client->orbitTime ) {
+
+		AngleVectors( client->v_angle, NULL, normal, NULL );
+		VectorNormalize( normal );
+
+		// actually multicast the ones left
+		for ( orbitSoul = client->soul_shield; orbitSoul < &client->soul_shield[client->numOrbitingSouls]; orbitSoul++ ) {
+			gi.WriteByte (svc_temp_entity);
+			gi.WriteByte (TE_BLOOD);
+			gi.WritePosition (orbitSoul->origin);
+			gi.WriteDir( normal ); 
+			gi.multicast (orbitSoul->origin, MULTICAST_PVS);
+		}
+		client->orbitTime = level.time + 2*FRAMETIME;
+	}
 }
 
 void LevelUpSoulCollector ( edict_t *ent ) {
@@ -2187,6 +2232,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 	if ( client->chase_target ) { UpdateChaseCam( ent ); }		// takes care of player's gi.linkentity (ent);
 	
+	if ( client->numOrbitingSouls ) { UpdateSoulShield( ent ); }
+
 	// actively update readouts
 //	if ( ent->client->showcollection )	{ SoulCollection( ent ); }
 //	if ( ent->client->showabilities )	{ SoulAbilities( ent );  }

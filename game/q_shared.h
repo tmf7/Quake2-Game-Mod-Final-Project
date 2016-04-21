@@ -83,7 +83,6 @@ typedef enum {false, true}	qboolean;
 #define	MAX_IMAGES			256
 #define	MAX_ITEMS			256
 #define MAX_GENERAL			(MAX_CLIENTS*2)	// general config strings
-#define MAX_SOUL_TYPES		20		// TMF7 GHOST MODE ( there are 22 types of monsters, not counting humans, soldier types combined )
 
 // game print flags
 #define	PRINT_LOW			0		// pickup messages

@@ -783,11 +783,11 @@ void SoulAbilities( edict_t *ent )
 		if ( ent->client->soul_abilities & UBERHOST ) { 
 														strcat( string, "xv 56 yv 64 string2 \"  fire attack\" "			    );
 														// appears at bottom
-														strcat( string, "xv 56 yv 152 string2 \"    ---host speak---\" "	    );
-														strcat( string, "xv 56 yv 160 string2 \"shift+fire follower control\" " );
-														strcat( string, "xv 56 yv 168 string2 \"shift+mouse3 free follower\" "  );
-														strcat( string, "xv 56 yv 176 string2 \"  alt+mouse3 shout an alert\" " );
-														strcat( string, "xv 56 yv 184 string2 \"      mouse3 call for help\" "  );
+														strcat( string, "xv 56 yv 144 string2 \"    ---host speak---\" "	    );
+														strcat( string, "xv 56 yv 152 string2 \"shift+fire follower control\" " );
+														strcat( string, "xv 56 yv 160 string2 \"shift+mouse3 free follower\" "  );
+														strcat( string, "xv 56 yv 168 string2 \"  alt+mouse3 shout an alert\" " );
+														strcat( string, "xv 56 yv 172 string2 \"      mouse3 call for help\" "  );
 		} else {										strcat( string, "xv 56 yv 64 string2 \"  fire set chase target\" "      ); }
 
 														strcat( string, "xv 56 yv 72 string2 \"     r release host\" "		); 
@@ -799,7 +799,6 @@ void SoulAbilities( edict_t *ent )
 		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 120 string2 \"     y shield of souls\" "	); }
 														strcat( string, "xv 56 yv 128 string2 \"    ---passive---\" "		);
 		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 136 string2 \"damage transfer to host\" "	); }
-		//												strcat( string, "xv 56 yv 144 string2 \"possession time: ###/###\" "); // CHANGE 
 
 	} else { // normal mode
 		// 4 lines

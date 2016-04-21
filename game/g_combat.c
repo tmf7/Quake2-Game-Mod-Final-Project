@@ -390,13 +390,23 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		return;
 
 //TMF7 BEGIN GHOST MODE
-	
-	//pass husk damage along to the player/host itself
+
+	// pass husk damage along to the player/host itself
 	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) ) { 
 
 		if ( targ->owner->client->host && targ->owner->client->soul_abilities & DAMAGE_HOST ) { targ = targ->owner->client->host; }
 		else { targ = targ->owner; }
 
+	}
+
+	// soul shield damage cancellation
+	// weak against multi-shot/rapid-fire things like shotguns/bfg
+	if ( targ->client && targ->client->numOrbitingSouls && level.time < targ->client->orbitTime ) 
+		return; 
+	else if ( targ->client && targ->client->numOrbitingSouls ) {
+		gi.sound( targ, CHAN_VOICE, gi.soundindex("husk/soulshieldhurt.wav"), 1, ATTN_STATIC, 0 );
+		targ->client->numOrbitingSouls--; 
+		return;
 	}
 //TMF7 END GHOST MODE
 
@@ -504,7 +514,6 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 			SpawnDamage (TE_BLOOD, point, normal, take);
 		else
 			SpawnDamage (te_sparks, point, normal, take);
-
 
 		targ->health = targ->health - take;
 			

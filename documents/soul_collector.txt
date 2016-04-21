@@ -21,8 +21,6 @@ TODO:
 ___________________________________________________________
 
 
-BUG: crashes if TakeHost in Uberhost ( with host already ) with no hostmoves available ( normally taking a host is disallowed w/o hmoves )
-
 *BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
 
 *BUG(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
@@ -55,7 +53,7 @@ v = "uberhost" & "drain_life"
 y = "soul_shield"**********************************
 mouse3 = "push_beasts"*************and host-speak**********
 
-o = "transform"*********************
+o = "transform"
 n = "detect_life"
 m = "ghost_fly"
 

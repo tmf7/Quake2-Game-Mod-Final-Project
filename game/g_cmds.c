@@ -138,6 +138,61 @@ void ValidateSelectedItem (edict_t *ent)
 	SelectNextItem (ent, -1);
 }
 
+// TMF7 BEGIN GHOST MODE
+void SP_OrbitingSoul ( edict_t *self ) {
+
+	int savedEntNumber;
+	edict_t	*soul;
+
+	soul = G_Spawn();
+	savedEntNumber		= soul->s.number;
+
+	//prevent memory overload, and ensure there isn't stuff there already
+	memset (soul, 0, sizeof(*soul));
+
+	soul->inuse			= true;
+	soul->gravity		= self->gravity;
+	soul->s.number		= savedEntNumber;
+
+	soul->groundentity = NULL;
+//	VectorCopy ( self->s.origin, soul->s.origin );
+//	VectorCopy ( soul->s.origin, soul->s.old_origin );
+	
+	soul->takedamage	= DAMAGE_NO;
+	soul->classname		= "soul";
+
+	VectorCopy ( self->mins, soul->mins );
+	VectorCopy ( self->maxs, soul->maxs );
+	soul->s.angles[YAW] = self->s.angles[YAW];
+	VectorClear (soul->velocity);
+
+//	soul->s.modelindex	= self->s.modelindex;				// will use the skin specified model
+//	soul->s.skinnum		= self->s.skinnum;
+
+//	soul->soulSpawnTime = level.time + 5.0;
+	soul->s.renderfx	= RF_TRANSLUCENT;		
+
+//	soul->s.frame			= self->s.frame;				// idle animation = repeating the last action of the body
+
+	soul->solid			= SOLID_NOT;
+	soul->clipmask		= self->clipmask;
+	soul->flags		   |= FL_NO_KNOCKBACK;					// set additional flags in monster_soul_think
+	soul->svflags		= SVF_SOUL;							// allow server-side per-client visiblity check
+	soul->movetype		= MOVETYPE_TOSS;
+
+	soul->possessed		= false;
+
+	// never dies, only gets freed
+//	soul->think = obiting_soul_think;
+	soul->nextthink = level.time + FRAMETIME;
+
+//	gi.sound (soul, CHAN_VOICE, gi.soundindex ("soul/soulspawn.wav"), 1, ATTN_NORM, 0);		// BUG: why does this constantly repeat?
+//	gi.dprintf( "SOUL SPAWNED\n" );
+
+	gi.linkentity ( soul );
+}
+// TMF7 END GHOST MODE
+
 
 //=================================================================================
 
@@ -1127,14 +1182,31 @@ void Cmd_Uber_f (edict_t *ent) {
 // 'y' is bound to shield of souls refresh
 void Cmd_Soul_Shield_f( edict_t *ent ) {
 
+	float yaw;
+	temp_soul_t *orbitSoul;
+
 	// passive
 	if ( !(ent->client->soul_abilities & SOUL_SHIELD ) )
 		return;
 	
-	// spawn a bunch of svc_tempentity/edict_t to "orbit"/orbit the owner ( player or husk ) ( from the current number to max_orbiting )
-	// if there is any health left in the soul_shield then have it take the hit ( dont carry over extra damage )
-	// give it a pain and die function ( which reduces the number orbiting and makes separate pain and die noises in the players ear )
-	// no active shield transfers damage as normal
+	if ( ent->client->numOrbitingSouls == MAX_ORBITS ) { 
+		gi.centerprintf( ent, "SHIELD OF SOULS AT MAX\n" ); 
+		return;
+	}
+
+	if ( ent->client->pool_of_souls >= 10 ) {
+
+		// re-initialize the angles
+		for ( yaw = 0, orbitSoul = &ent->client->soul_shield[0]; orbitSoul < &ent->client->soul_shield[MAX_ORBITS]; orbitSoul++, yaw += (360/MAX_ORBITS) ) {
+			orbitSoul->angle = anglemod( yaw*M_PI*2 / 360);
+		}
+
+		ent->client->soulChange = true;
+		ent->client->pool_of_souls -= 10;
+		ent->client->numOrbitingSouls = MAX_ORBITS;
+		gi.sound( ent, CHAN_VOICE, gi.soundindex("husk/soulshield.wav"), 1, ATTN_STATIC, 0 );
+
+	} else { gi.centerprintf( ent, "NOT ENOUGH SOULS" ); }
 }
 
 
@@ -1205,8 +1277,7 @@ void Cmd_Transform_Host_f( edict_t *ent ) {
 	desiredRank = oldRank;
 
 	// enough to upgrade and desire to upgrade?
-	if ( ent->client->pool_of_souls 
-		&& ent->client->pool_of_souls%10 
+	if ( ent->client->pool_of_souls >= 10 
 		&& ((ent->client->latched_buttons|ent->client->buttons) & BUTTON_ALT) ) 
 		{ desiredRank++; }
 
