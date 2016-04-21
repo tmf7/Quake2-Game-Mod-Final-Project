@@ -851,6 +851,12 @@ void SP_monster_tank (edict_t *self)
 
 	walkmonster_start(self);
 
-	if (strcmp(self->classname, "monster_tank_commander") == 0)
+	self->monster_soul_index = TANK;										//TMF7 GHOST MODE
+	self->monster_soul_name = GetMonsterByIndex( TANK );					//TMF7 GHOSTMODE
+
+	if (strcmp(self->classname, "monster_tank_commander") == 0) {
 		self->s.skinnum = 2;
+		self->monster_soul_index = TANK_COMMANDER;							//TMF7 GHOST MODE
+		self->monster_soul_name = GetMonsterByIndex( TANK_COMMANDER );		//TMF7 GHOSTMODE
+	}
 }

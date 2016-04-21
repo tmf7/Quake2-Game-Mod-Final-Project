@@ -32,13 +32,6 @@ void soldier_walk2		( edict_t *self );
 void soldier_start_run	( edict_t *self );	// primary
 void soldier_runp		( edict_t *self );	// secondary
 
-// self->pain = soldier_pain; ( each type makes a different pain noise )
-// Let T_Damage take care of these frames
-// void soldier_pain1		( edict_t *self );
-// void soldier_pain2		( edict_t *self );
-// void soldier_pain3		( edict_t *self );
-// void soldier_pain4		( edict_t *self );
-
 void soldier_attack1	( edict_t *self ); // s & sl
 void soldier_attack2	( edict_t *self ); // s & sl
 void soldier_attack3	( edict_t *self ); // all, duck-attack
@@ -48,16 +41,396 @@ void soldier_attack6	( edict_t *self ); // all on-sight
 // skill level dependent
 void soldier_duck		( edict_t *self );
 
-// self->die = soldier_die; ( each type makes a different death noise )
-// Let T_Damage take care of these frames
-// void soldier_death1		( edict_t *self );
-// void soldier_death2		( edict_t *self );
-// void soldier_death3		( edict_t *self );
-// void soldier_death4		( edict_t *self );
-// void soldier_death5		( edict_t *self );
-// void soldier_death6		( edict_t *self );
-
 
 //*************
 //   INFANTRY
 //*************
+
+
+
+
+/////////////////////////////////////////////
+// per-monster currentmove callback arrays //
+/////////////////////////////////////////////
+
+//*************
+//   BERSERK
+//*************
+
+hmove_t berserk[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   GLADIATOR
+//*************
+
+hmove_t gladiator[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   GUNNER
+//*************
+
+hmove_t gunner[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   INFANTRY
+//*************
+
+hmove_t infantry[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   SOLDIER
+//*************
+
+// give all three soldiers the same physical moves
+hmove_t soldier[] =
+{
+	{	"stand1",				soldier_stand1		},	// regular stand
+	{	"stand2",				soldier_stand3		},	// regular stand ( perk up )
+	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
+	{	"walk2",				soldier_walk2		},	// regualr walk
+	{	"run_start",			soldier_start_run	},	// regular run startup
+	{	"run",					soldier_runp		},	// regular run
+	{	"attack1",				soldier_attack1		},  // stand attack ( arms in )
+	{	"attack2",				soldier_attack2		},	// stand attack ( arm outstretched )
+	{	"duck_attack",			soldier_attack3		},	// duck attack
+	{	"attack4",				soldier_attack4		},	// stand attack ( small step back )
+	{	"run_attack",			soldier_attack6		},	// run attack
+	{	"duck",					soldier_duck		},	// regular duck
+	{	NULL,					NULL				}
+};
+
+//*************
+//   TANK
+//*************
+
+hmove_t tank[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   MEDIC
+//*************
+
+hmove_t medic[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   FLIPPER
+//*************
+
+hmove_t flipper[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   CHICK
+//*************
+
+hmove_t chick[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   PARASITE
+//*************
+
+hmove_t parasite[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   FLYER
+//*************
+
+hmove_t flyer[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   BRAIN
+//*************
+
+hmove_t brain[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   FLOATER
+//*************
+
+hmove_t floater[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   HOVER
+//*************
+
+hmove_t hover[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   MUTANT
+//*************
+
+hmove_t mutant[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   SUPERTANK
+//*************
+
+hmove_t supertank[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   BOSS2 ( hornet )
+//*************
+
+hmove_t boss2[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   BOSS3_STAND ( makron )
+//*************
+
+hmove_t boss3_stand[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};
+
+//*************
+//   JORG
+//*************
+
+hmove_t jorg[] =
+{
+//	{	"stand1",				soldier_stand1		},
+//	{	"stand2",				soldier_stand3		},
+//	{	"walk1",				soldier_walk1		},
+//	{	"walk2",				soldier_walk2		},
+//	{	"run_start",			soldier_start_run	},
+//	{	"run",					soldier_run			},
+//	{	"attack1",				soldier_attack1		},
+//	{	"attack2",				soldier_attack2		},
+//	{	"attack3",				soldier_attack3		},	//duck attack
+//	{	"attack5",				soldier_attack6		},
+//	{	"duck",					soldier_duck		},
+	{	NULL,					NULL				}
+};

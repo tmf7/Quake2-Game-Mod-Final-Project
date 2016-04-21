@@ -714,4 +714,7 @@ void SP_monster_supertank (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
+
+	self->monster_soul_index = SUPERTANK;							//TMF7 GHOST MODE
+	self->monster_soul_name = GetMonsterByIndex( SUPERTANK );		//TMF7 GHOSTMODE
 }

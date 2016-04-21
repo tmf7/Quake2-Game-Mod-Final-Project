@@ -25,80 +25,37 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "g_possessed.h"
 
-//*************
-//   SOLDIER
-//*************
-
-// give all three soldiers the same physical moves
-hmove_t soldier[] =
-{
-	{	"stand1",				soldier_stand1		},	// regular stand
-	{	"stand2",				soldier_stand3		},	// regular stand ( perk up )
-	{	"walk1",				soldier_walk1		},	// regualr walk ( pause and look )
-	{	"walk2",				soldier_walk2		},	// regualr walk
-	{	"run_start",			soldier_start_run	},	// regular run startup
-	{	"run",					soldier_runp		},	// regular run
-	{	"attack1",				soldier_attack1		},  // stand attack ( arms in )
-	{	"attack2",				soldier_attack2		},	// stand attack ( arm outstretched )
-	{	"duck_attack",			soldier_attack3		},	// duck attack
-	{	"attack4",				soldier_attack4		},	// stand attack ( small step back )
-	{	"run_attack",			soldier_attack6		},	// run attack
-	{	"duck",					soldier_duck		},	// regular duck
-	{	NULL,					NULL				}
-};
-
-//*************
-//   INFANTRY
-//*************
-
-hmove_t infantry[] =
-{
-//	{	"stand1",				soldier_stand1		},
-//	{	"stand2",				soldier_stand3		},
-//	{	"walk1",				soldier_walk1		},
-//	{	"walk2",				soldier_walk2		},
-//	{	"run_start",			soldier_start_run	},
-//	{	"run",					soldier_run			},
-//	{	"attack1",				soldier_attack1		},
-//	{	"attack2",				soldier_attack2		},
-//	{	"attack3",				soldier_attack3		},	//duck attack
-//	{	"attack5",				soldier_attack6		},
-//	{	"duck",					soldier_duck		},
-	{	NULL,					NULL				}
-};
-
-
 // all potential hosts according to <g_spawn.c>
 host_t hosts[] = 
 {
-//	{ "monster_berserk",		berserk		},
-//	{ "monster_gladiator",		gladiator	},
+	{ "monster_berserk",		berserk,	NULL,					NULL					},
+	{ "monster_gladiator",		gladiator,	NULL,					NULL					},
 
-//	{ "monster_gunner",			gunner		},
+	{ "monster_gunner",			gunner,		NULL,					NULL					},
 	{ "monster_infantry",		infantry,	NULL,					NULL					},
 
 	{ "monster_soldier_light",	soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 	{ "monster_soldier",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 	{ "monster_soldier_ss",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav"	},
 
-//	{ "monster_tank",			tank		},
-//	{ "monster_tank_commander",	tank		},
+	{ "monster_tank",			tank,		NULL,					NULL					},
+	{ "monster_tank_commander",	tank,		NULL,					NULL					},
 
-//	{ "monster_medic",			medic		},
-//	{ "monster_flipper",		flipper		},
-//	{ "monster_chick",			chick		},
-//	{ "monster_parasite",		parasite	},
-//	{ "monster_flyer",			flyer		},
+	{ "monster_medic",			medic,		NULL,					NULL					},
+	{ "monster_flipper",		flipper,	NULL,					NULL					},
+	{ "monster_chick",			chick,		NULL,					NULL					},
+	{ "monster_parasite",		parasite,	NULL,					NULL					},
+	{ "monster_flyer",			flyer,		NULL,					NULL					},
 
-//	{ "monster_brain",			brain		},
-//	{ "monster_floater",		floater		},
-//	{ "monster_hover",			hover		},
-//	{ "monster_mutant",			mutant		},	
-//	{ "monster_supertank",		supertank	},
+	{ "monster_brain",			brain,		NULL,					NULL					},
+	{ "monster_floater",		floater,	NULL,					NULL					},
+	{ "monster_hover",			hover,		NULL,					NULL					},
+	{ "monster_mutant",			mutant,		NULL,					NULL					},	
+	{ "monster_supertank",		supertank,	NULL,					NULL					},
 
-//	{ "monster_boss2",			boss2		},	
-//	{ "monster_boss3_stand",	boss3_stand	},
-//	{ "monster_jorg",			jorg		},
+	{ "monster_boss2",			boss2,		NULL,					NULL					},	
+	{ "monster_boss3_stand",	boss3_stand,NULL,					NULL					},
+	{ "monster_jorg",			jorg,		NULL,					NULL					},
 
 //	{"monster_commander_body", SP_monster_commander_body}, <-----NOT ACTUALLY A MONSTER ( do a case check for this? )...unless it has GOOD animations
 
@@ -108,7 +65,7 @@ host_t hosts[] =
 void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type );
 void SP_Host_Target( edict_t *host, vec3_t origin, qboolean show);
 
-hmove_t * find_host_move ( edict_t *host, char *possible_move ) {		// possible issue with wrong address ( function or data )
+hmove_t * find_host_move ( edict_t *host, char *possible_move ) {
 
 	hmove_t		*m;
 
@@ -161,7 +118,7 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	allowInterrupt = false;
 	perform_move = NULL;
 
-	// relink here to fix rare no-sync issue?
+	gi.linkentity( host );		// the angles were changed
 
 	if ( pm->cmd.upmove < 0 ) //if ( pm->s.pm_flags & PMF_DUCKED ) // PMF_DUCKED only set when user has a groundentity
 		{ duck = true; }
@@ -279,8 +236,6 @@ void set_host_move( edict_t *host, const pmove_t *pm ) {
 	}
 
 	if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
-
-	gi.linkentity( host );		// the angles were changed
 }
 
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
@@ -302,7 +257,7 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 
 	// FIXME: add host latched_buttons and buttons variables
 	// to ensure the button is held between two frames before issuing any command
-	if ( self->client->soul_abilities & UBERHOST ) { 
+	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
 		set_host_move( host, pm );
 	}
@@ -358,7 +313,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	}
 
 	// only takes hosts with hmoves ( even if empty )
-	if ( host->hmove_list == NULL ) { 
+	if ( !host->hmove_list ) { 
 		gi.dprintf ( "%s doesn't have any host moves defined\n", host->classname );
 		return;
 	}
@@ -368,7 +323,6 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 
 	self->client->host		= host;
 	host->possessed			= true;
-	host->old_owner			= host->owner;				// potentially null, but should be okay
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
 	self->client->hostmode	= true;
@@ -382,7 +336,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 		case HOST_TOUCH:	{ gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_RADIAL:	{ gi.centerprintf( self, "RADIAL POSSESSION OF: %s\n", host->classname ); break; }
 		case HOST_TARGETED:	{ gi.centerprintf (self, "TARGETED POSSESSION OF: %s\n", host->classname ); break;}
-		case HOST_NEW_BODY:	{ gi.centerprintf (self, "HOST UPGRADE TO: %s\n", host->classname ); break;}
+		case HOST_TRANSFORM:	{ gi.centerprintf (self, "HOST UPGRADE TO: %s\n", host->classname ); break;}
 	}
 }
 
@@ -406,8 +360,6 @@ void DropHost ( edict_t *self, int drop_style )
 		}
 
 		case HOST_DEATH: { gi.centerprintf( self, "HOST DIED ON ITS OWN, GHOST MODE ENABLED\n" ); break; }
-
-		case HOST_TRANSFORM: { break; }
 	}
 
 	if ( self->client->host->host_target ) { G_FreeEdict( self->client->host->host_target ); }

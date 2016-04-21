@@ -384,4 +384,7 @@ void SP_monster_gladiator (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
+
+	self->monster_soul_index = GLADIATOR;									//TMF7 GHOSTMODE
+	self->monster_soul_name = GetMonsterByIndex( GLADIATOR );				//TMF7 GHOSTMODE
 }

@@ -462,6 +462,12 @@ typedef struct
 	char		*takeNoise;
 	char		*dropNoise;
 } host_t;
+
+typedef struct
+{
+	char		*host_classname;
+	int			host_rank;
+} transform_t;
 //TMF7 END GHOST MODE
 
 
@@ -609,14 +615,13 @@ enum take_host_style {
 	HOST_TOUCH,
 	HOST_RADIAL,
 	HOST_TARGETED,
-	HOST_NEW_BODY
+	HOST_TRANSFORM
 };
 
 enum drop_host_style {
 	HOST_NO_HARM,
 	HOST_KILL,
 	HOST_DEATH,
-	HOST_TRANSFORM
 };
 
 enum host_control_type {
@@ -924,6 +929,12 @@ void TakeHost( edict_t *self, edict_t *host, int take_style );
 void DropHost( edict_t *self, int drop_style );
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );	
 hmove_t * find_host_move ( edict_t *host, char *possible_move );
+
+//
+// g_spawn.c
+//
+//void Cmd_Transform_Host_f( edict_t *ent );		//trial run******
+void ED_CallTransformSpawn( edict_t *ent, char *newClassname);
 //TMF7 END GHOST MODE
 
 //============================================================================
@@ -1081,6 +1092,7 @@ struct gclient_s
 	qboolean		newSoulLevel;
 	qboolean		soulChange;
 	int				soul_abilities;
+
 	float			nextPossessTime;
 	float			drainLifeTime;
 	float			pickup_soul_msg_time;

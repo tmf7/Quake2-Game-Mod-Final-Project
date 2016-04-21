@@ -783,22 +783,23 @@ void SoulAbilities( edict_t *ent )
 		if ( ent->client->soul_abilities & UBERHOST ) { 
 														strcat( string, "xv 56 yv 64 string2 \"  fire attack\" "			    );
 														// appears at bottom
-														strcat( string, "xv 56 yv 144 string2 \"    ---host speak---\" "	    );
-														strcat( string, "xv 56 yv 152 string2 \"shift+fire follower control\" " );
-														strcat( string, "xv 56 yv 160 string2 \"shift+mouse3 free follower\" "  );
-														strcat( string, "xv 56 yv 168 string2 \"  alt+mouse3 shout an alert\" " );
-														strcat( string, "xv 56 yv 176 string2 \"      mouse3 call for help\" "  );
-		} else {										strcat( string, "xv 56 yv 64 string2 \"  fire set chase target\" "    ); }
+														strcat( string, "xv 56 yv 152 string2 \"    ---host speak---\" "	    );
+														strcat( string, "xv 56 yv 160 string2 \"shift+fire follower control\" " );
+														strcat( string, "xv 56 yv 168 string2 \"shift+mouse3 free follower\" "  );
+														strcat( string, "xv 56 yv 176 string2 \"  alt+mouse3 shout an alert\" " );
+														strcat( string, "xv 56 yv 184 string2 \"      mouse3 call for help\" "  );
+		} else {										strcat( string, "xv 56 yv 64 string2 \"  fire set chase target\" "      ); }
 
 														strcat( string, "xv 56 yv 72 string2 \"     r release host\" "		); 
 		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 80 string2 \"     f obliterate host\" "	); }
 		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 88 string2 \"     v uberhost toggle\" "	); }
-		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 96 string2 \"     n detect life toggle\" "	); }
-		if ( ent->client->soul_collector_level >= 5 ) { strcat( string, "xv 56 yv 104 string2 \"     o transform host\" "	); }
-		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 112 string2 \"     y shield of souls\" "	); }
-														strcat( string, "xv 56 yv 120 string2 \"    ---passive---\" "		);
-		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 128 string2 \"damage transfer to host\" "	); }
-		//												strcat( string, "xv 56 yv 136 string2 \"possession time: ###/###\" "); // CHANGE 
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 96 string2 \"     n detect life toggle\" "); }
+		if ( ent->client->soul_collector_level >= 5 ) { strcat( string, "xv 56 yv 104 string2 \"     o transform host\" "	); 
+														strcat( string, "xv 56 yv 112 string2 \" alt+o upgrade host\" "	    ); }
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 120 string2 \"     y shield of souls\" "	); }
+														strcat( string, "xv 56 yv 128 string2 \"    ---passive---\" "		);
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 136 string2 \"damage transfer to host\" "	); }
+		//												strcat( string, "xv 56 yv 144 string2 \"possession time: ###/###\" "); // CHANGE 
 
 	} else { // normal mode
 		// 4 lines

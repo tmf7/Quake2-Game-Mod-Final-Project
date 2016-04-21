@@ -164,6 +164,20 @@ void Cmd_Give_f (edict_t *ent)
 	}
 
 	name = gi.args();
+	
+	
+// TMF7 BEGIN GHOST MODE
+	if ( Q_stricmp(gi.argv(1), "souls" ) == 0 )
+	{
+		if ( gi.argc() == 3 ) {
+			gi.sound( ent, CHAN_ITEM, gi.soundindex( "soul/givesouls.wav" ), 1, ATTN_STATIC, 0 );
+			ent->client->pool_of_souls = atoi(gi.argv(2));
+		}
+		else
+			gi.cprintf( ent, PRINT_HIGH, "specify number of souls. example: give souls 120\n" );
+		return;
+	}
+//TMF7 END GHOST MDE
 
 	if (Q_stricmp(name, "all") == 0)
 		give_all = true;
@@ -1123,17 +1137,129 @@ void Cmd_Soul_Shield_f( edict_t *ent ) {
 	// no active shield transfers damage as normal
 }
 
+
+transform_t transforms[] =
+{
+	// 1 soul required / 1 cost
+	{ "monster_soldier_light",	1 },
+	{ "monster_soldier",		1 },
+	{ "monster_soldier_ss",		1 },
+	{ "monster_infantry",		1 },
+
+	// 10 souls required / 10 cost
+	{ "monster_gunner",			2 },
+	{ "monster_berserk",		2 },
+	{ "monster_parasite",		2 },
+	{ "monster_flyer",			2 },
+	{ "monster_flipper",		2 },
+
+	// 20 souls required / 10 cost
+	{ "monster_chick",			3 },
+	{ "monster_floater",		3 },
+	{ "monster_hover",			3 },
+	{ "monster_mutant",			3 },
+
+	// 30 souls required / 10 cost
+	{ "monster_tank_commander",	4 },
+	{ "monster_tank",			4 },
+	{ "monster_gladiator",		4 },
+	{ "monster_medic",			4 },
+	{ "monster_brain",			4 },
+
+	// 40 souls required / 10 cost
+	{ "monster_supertank",		5 },
+	{ "monster_boss2",			5 },
+	{ "monster_boss3_stand",	5 },
+	{ "monster_jorg",			5 },
+	{ NULL,					 NULL }
+};
+
 // 'o' is bound to host transformation/upgrade
 void Cmd_Transform_Host_f( edict_t *ent ) {
 
-	// passive
-	if ( !(ent->client->soul_abilities & TRANSFORM_HOST ) )
-		return;
+	int i, num;
+	int oldRank, desiredRank;
+	qboolean transformOk;
+	char *newClassname;
+	transform_t *trans;
+	edict_t *host;
 	
-	// gib the current host ( auto-drops )
-	// spawn a new monster fully ( TakeHost of it )
-	// maximum upgrade according to level ( one at a time )
-	// long soulpower regen/reuse time
+	// passive
+	if ( !(ent->client->soul_abilities & TRANSFORM_HOST) )
+		return;
+
+	host = ent->client->host;
+
+	if ( !host )
+		return;
+
+	for ( trans = transforms; trans->host_classname; trans++ ) {
+
+		if ( !strcmp( trans->host_classname, host->classname ) ) {
+			// found it
+			oldRank = trans->host_rank;
+		}
+	}
+
+	transformOk = false;
+	desiredRank = oldRank;
+
+	// enough to upgrade and desire to upgrade?
+	if ( ent->client->pool_of_souls 
+		&& ent->client->pool_of_souls%10 
+		&& ((ent->client->latched_buttons|ent->client->buttons) & BUTTON_ALT) ) 
+		{ desiredRank++; }
+
+	if ( desiredRank == 1 && ent->client->pool_of_souls ) { transformOk = true; }
+	else if ( desiredRank == 2 && ent->client->pool_of_souls >= 10  ) { transformOk = true; }
+	else if ( desiredRank == 3 && ent->client->pool_of_souls >= 20 ) { transformOk = true; }
+	else if ( desiredRank == 4 && ent->client->pool_of_souls >= 30 ) { transformOk = true; }
+	else if ( desiredRank == 5 && ent->client->pool_of_souls >= 40 ) { transformOk = true; }
+
+	if ( transformOk ) {
+
+		newClassname = NULL;
+		while ( !newClassname ) {
+
+			num = rand()%5; // not all ranks have five, hence the while loop
+			for ( trans = transforms; trans->host_classname; trans++ ) {
+
+				if ( trans->host_rank == desiredRank && ((trans-transforms)+1)%(num+1) == 0 ) {
+					newClassname = trans->host_classname;
+					break;
+				} 
+			}
+		}
+
+	} else { 
+		gi.centerprintf( ent, "NOT ENOUGH SOULS\n" ); 
+		return;
+	}
+
+	// it costs souls to do
+	ent->client->soulChange = true;
+
+	if( desiredRank > 1 )
+		ent->client->pool_of_souls -= 10;
+	else
+		ent->client->pool_of_souls--;
+
+	host->spawnflags = 0;
+	host->monsterinfo.aiflags = 0;
+	host->target = NULL;
+	host->targetname = NULL;
+	host->combattarget = NULL;
+	host->deathtarget = NULL;
+	ED_CallTransformSpawn ( host, newClassname );
+	if ( host->think ) {
+		host->nextthink = level.time;
+		host->think( host );
+	}
+	gi.sound (ent, CHAN_AUTO, gi.soundindex( "slighost/hosttransform.wav" ), 1, ATTN_NORM, 0);
+	for ( i = 0; i < 5; i++)
+			ThrowGib (host, "models/objects/gibs/sm_meat/tris.md2", 100, GIB_ORGANIC);
+
+	TakeHost( ent, host, HOST_TRANSFORM );
 }
 
 //TMF7 END GHOST MODE

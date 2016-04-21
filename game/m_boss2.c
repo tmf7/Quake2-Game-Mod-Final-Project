@@ -676,4 +676,7 @@ void SP_monster_boss2 (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	flymonster_start (self);
+
+	self->monster_soul_index = BOSS2;									//TMF7 GHOSTMODE
+	self->monster_soul_name = GetMonsterByIndex( BOSS2 );				//TMF7 GHOSTMODE
 }

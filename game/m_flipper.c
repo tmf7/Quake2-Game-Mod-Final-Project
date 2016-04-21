@@ -400,4 +400,7 @@ void SP_monster_flipper (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	swimmonster_start (self);
+
+	self->monster_soul_index = FLIPPER;									//TMF7 GHOSTMODE
+	self->monster_soul_name = GetMonsterByIndex( FLIPPER );				//TMF7 GHOSTMODE
 }

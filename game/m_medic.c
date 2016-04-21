@@ -766,4 +766,7 @@ void SP_monster_medic (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
+
+	self->monster_soul_index = MEDIC;							//TMF7 GHOST MODE
+	self->monster_soul_name = GetMonsterByIndex( MEDIC );		//TMF7 GHOSTMODE
 }

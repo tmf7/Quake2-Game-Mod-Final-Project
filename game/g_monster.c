@@ -613,8 +613,6 @@ qboolean monster_start (edict_t *self)
 		self->s.frame = self->monsterinfo.currentmove->firstframe + (rand() % (self->monsterinfo.currentmove->lastframe - self->monsterinfo.currentmove->firstframe + 1));
 
 	self->possessed = false;	//TMF7 GHOST MODE
-	//initialize the monster soul here
-	//self->soul = FindItem( "soul" ); // put soul item in the gitem_s items[] list
 
 	return true;
 }
@@ -819,7 +817,7 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 
 	//pickup verification
 	other->client->bonus_alpha = 0.35;
-	gi.sound ( other, CHAN_BODY, gi.soundindex( soul->take_host_noise ), 1, ATTN_NORM, 0);
+	gi.sound ( other, CHAN_ITEM, gi.soundindex("soul/pickupsoul.wav") , 1, ATTN_NORM, 0);
 
 // BEGIN ( ghud )
 	// flash the pool_of_souls hud number ( also flash it when losing souls ) ***********************************
@@ -1002,7 +1000,7 @@ char * monster_souls[] =
 	"Mutant Soul",
 	"Supertank Soul",
 	"Hornet Soul",		// BOSS2
-	"Makron Soul",		// BOSS3_STAND
+	"Makron Soul",		// BOSS3/BOSS3_STAND
 	"Jorg Soul"			// JORG
 };
 

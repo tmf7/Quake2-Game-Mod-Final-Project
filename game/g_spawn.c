@@ -999,3 +999,27 @@ void SP_worldspawn (edict_t *ent)
 	gi.configstring(CS_LIGHTS+63, "a");
 }
 
+// TMF7 BEGIN GHOST MODE
+void ED_CallTransformSpawn( edict_t *ent, char *newClassname ) {
+
+	spawn_t	*s;
+
+	if ( !newClassname ) {
+		gi.dprintf ("ED_CallSpawn: NULL classname\n");
+		return;
+	}
+
+	ent->classname = newClassname;
+
+	// find the new spawn function
+	for ( s = spawns; s->name; s++ )
+	{
+		if ( !strcmp(s->name, newClassname) )
+		{	// found it
+			s->spawn (ent);
+			return;
+		}
+	}
+	gi.dprintf ( "%s doesn't have a spawn function\n", newClassname );
+}
+// TMF7 END GHOST MODE

@@ -1,6 +1,5 @@
 TESTING:
 
-
 ___________________________
 TODO:
 
@@ -21,6 +20,8 @@ TODO:
 
 ___________________________________________________________
 
+
+BUG: crashes if TakeHost in Uberhost ( with host already ) with no hostmoves available ( normally taking a host is disallowed w/o hmoves )
 
 *BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
 
@@ -64,6 +65,8 @@ F8 = "soul_collection"
 cheatcode: soullevel [1-5] ( default displays usage )
 
 cheatcode: showsoul ( makes player soul visible within host )***********
+
+cheatcode: give souls ### ( sets the current pool_of_souls )
 
 ______________________________________________
 

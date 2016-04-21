@@ -1860,7 +1860,6 @@ void ghostmode_protocols ( edict_t *self ) {
 		} 
 	}
 
-
 	// check for touch possession
 	if ( !client->host && !(client->soul_abilities & DRAIN_LIFE) && client->soul_abilities & TOUCH_POSSESSION ) {
 		

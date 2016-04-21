@@ -617,4 +617,7 @@ void SP_monster_hover (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	flymonster_start (self);
+
+	self->monster_soul_index = HOVER;									//TMF7 GHOSTMODE
+	self->monster_soul_name = GetMonsterByIndex( HOVER );				//TMF7 GHOSTMODE
 }
