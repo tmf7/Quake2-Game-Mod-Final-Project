@@ -621,6 +621,7 @@ typedef enum {
 #define ORBIT_RADIUS		80		// soul shield
 #define ORBIT_SPEED			30		// soul shield
 #define MAX_ORBITS			5		// soul shield
+#define DOUBLE_CLICK		0.5		// follower target toggle
 #define MAX_SOUL_TYPES		20		// 22 types of monsters, not counting humans, soldier types combined
 
 enum take_host_style {
@@ -638,7 +639,8 @@ enum drop_host_style {
 
 enum host_control_type {
 	RODEO_BENIGN,			// move to a point
-	RODEO_ENEMY				// attack a monster
+	RODEO_ENEMY,			// attack a monster
+	RODEO_FOLLOW			// follow the host ( hostspeak )
 };
 
 // unlockable abilities
@@ -1098,6 +1100,7 @@ struct gclient_s
 //TMF7 BEGIN GHOST MODE
 	qboolean		ghostmode;
 	qboolean		hostmode;
+	qboolean		tempListener;
 
 	qboolean		showabilities;
 	qboolean		showcollection;
@@ -1111,12 +1114,14 @@ struct gclient_s
 	float			nextPossessTime;
 	float			drainLifeTime;
 	float			giveOrdersTime;
+	float			chaseHostTime;
 	float			pickup_soul_msg_time;
 	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
 	int				soul_collector_level;				// thresholds unlock abilities
 
 	edict_t			*host;
+	edict_t			*host_follower;
 	edict_t			*player_husk;
 //TMF7 END GHOST MODE
 
@@ -1287,6 +1292,7 @@ struct edict_s
 	qboolean		host_anim_run;
 	qboolean		host_anim_walk;
 	qboolean		host_anim_attack;
+	mmove_t			*followerOldMove;
 
 	char			*take_host_noise;
 	char			*drop_host_noise;

@@ -1208,6 +1208,7 @@ void PutClientInServer (edict_t *ent)
 	client->nextPossessTime = 0;
 	client->drainLifeTime = 0;
 	client->giveOrdersTime = 0;
+	client->chaseHostTime = 0;
 	ent->possessed = false;
 
 	client->numOrbitingSouls = 0;
@@ -1673,7 +1674,6 @@ void UpdateSoulShield ( edict_t *self ) {
 		raise = (float)self->viewheight/3.0f;
 	}
 
-
 	// update all possible orbiting souls
 	for ( orbitSoul = client->soul_shield; orbitSoul < &client->soul_shield[MAX_ORBITS]; orbitSoul++ ) {
 			
@@ -1831,7 +1831,7 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		self->takedamage = DAMAGE_AIM;
 
 		// jump back to the husk spawn ( or warp to ghost location )
-		if ( (self->client->soul_abilities & WARP_HUSK) && ((self->client->latched_buttons|self->client->buttons) & BUTTON_SHIFT) ) {
+		if ( (self->client->soul_abilities & WARP_HUSK) && (self->client->buttons & BUTTON_SHIFT) ) {
 			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/warphusk.wav"), 1, ATTN_STATIC, 0);
 		} else {
 			gi.sound (self, CHAN_VOICE, gi.soundindex ("husk/enterhusk.wav"), 1, ATTN_STATIC, 0);

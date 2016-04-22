@@ -1,7 +1,30 @@
 TESTING:
 
+-> mouse1 slighost controls
+
+-> verify rodeo still works ( no hostspeak )
+
+-> why does an order get issued immediatly upon hi? despite latched_buttons ButtonAttack && buttons SHIFT...derp?
+
+-> why wont a follower attack as told?
+
+-> why wont a follower attack a barrell? ( normal rodeo host does just fine )
+
 ___________________________
 TODO:
+
+-> change soulshiled to a no-model entity with an effect**********
+
+-> limit the follow radius of a follower chasing its owner
+
+-> host_follower may need to be initialized / cleared better
+
+-> tempListener may need to be initialized
+
+-> make it a COMPETITIVE co-op game: you kill eachothers bodies/husks with monsters for FRAGS, first to 20 wins
+
+-> drop the follower when DropHost
+
 
 -> give drain life a shell in 3rd person ( so its obvious )
 
@@ -22,6 +45,8 @@ ___________________________________________________________
 
 
 *BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
+
+*BUG: soul abilities etc not SAVED ( in save.c )
 
 *BUG(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
 

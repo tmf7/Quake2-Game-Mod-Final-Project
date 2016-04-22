@@ -134,7 +134,7 @@ void set_host_move( edict_t *self, edict_t *host, const pmove_t *pm ) {
 	else 
 		{ run = false; }
 
-	if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_ATTACK)
+	if ( self->client->latched_buttons & BUTTON_ATTACK )
 		{ attack = true; }
 	else 
 		{ attack = false; }
@@ -241,14 +241,12 @@ void set_host_move( edict_t *self, edict_t *host, const pmove_t *pm ) {
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 { 
 	int			num;
-	trace_t		tr;
-	edict_t		*target;
+	qboolean	orderIssued;
 	char		*selected_move;
-
+	float		yaw;
+	trace_t		tr;
+		
 	if ( !self || !host ) { return; }
-
-	if ( host->host_target ) { target = host->host_target; }
-	else { target = NULL; }	
 
 	if ( host->deadflag != DEAD_NO ) { 
 		
@@ -258,58 +256,127 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
-		set_host_move( self, host, pm );
+		// hostspeak 1of2
+		// tr.ent/host_follower needs to know who its listening to ( owner )
+		// self needs to know who its ordering around ( host_follower )
+		orderIssued = false;
 
-		if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_SHIFT ) {
+		if ( (self->client->latched_buttons & BUTTON_ATTACK) && ( self->client->buttons & BUTTON_SHIFT ) ) {
 			
 			tr = GhostMuzzleTrace( self );
 
 			if ( tr.fraction < 1.0f && tr.ent ) {
 
-				if ( tr.ent->classname 
-					&& !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) 
-					&& tr.ent->deadflag == DEAD_NO ) {
+				if ( !Q_strncasecmp( tr.ent->classname, "monster_", 8 )	&& tr.ent->deadflag == DEAD_NO ) {
 
-						if ( tr.ent->owner == host ) { /*freeze follower*/ }
-						else if ( 1 /*a follower exists*/ ) { /*attack an anemy, getem*/ }
-						else { 
-							// say hi to a potential follower
-							// have the monster reciprocate a noise...hi? from their position a second later
-							// have the monster face us and stand w/o flags or some such
-							gi.sound ( host, CHAN_VOICE, gi.soundindex( "slighost/hi.wav" ), 1, ATTN_NORM, 0);
-							self->client->giveOrdersTime = level.time + 3.0f;
+					// its listening to another good guy right now
+					if ( tr.ent->owner && tr.ent->owner->client && tr.ent->owner != self && !self->client->host_follower ) { 
+						host->hostLaugh = true; 
+					} 
+
+					// tell follower to stop moving
+					else if ( tr.ent->owner == self ) {
+						set_host_target( self->client->host_follower, &tr, false, RODEO_BENIGN );
+						orderIssued = true;	
+					}
+						
+					// have follower attack this monster
+					else if ( self->client->host_follower ) { 
+						set_host_target( self->client->host_follower, &tr, false, RODEO_ENEMY );
+						orderIssued = true;
+					}
+
+					// get this monster's attention
+					else { 
+						gi.sound ( host, CHAN_VOICE, gi.soundindex( "slighost/hi.wav" ), 1, ATTN_NORM, 0);
+						tr.ent->owner = self;
+						self->client->host_follower = tr.ent;
+						self->client->tempListener = true;
+						self->client->giveOrdersTime = level.time + 3.0f;
+						tr.ent->hostLaugh = true;
+						tr.ent->followerOldMove = tr.ent->monsterinfo.currentmove;
+
+						// check for flags & (FL_FLY|FL_SWIM) too**********************************************
+						if ( tr.ent->monsterinfo.stand ) {
+
+							tr.ent->monsterinfo.aiflags = 0;
+							tr.ent->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+
+							tr.ent->goalentity = 
+							tr.ent->movetarget = 
+							tr.ent->target_ent = 
+							tr.ent->oldenemy =
+							tr.ent->enemy = NULL;
+
+							tr.ent->monsterinfo.stand( tr.ent ); 
 						}
+					}
+				} 
+				
+				// tell follower to shoot a barrel or a client
+				else if ( (!Q_strcasecmp( tr.ent->classname, "misc_explobox" ) || tr.ent->client) && self->client->host_follower  ) {
+					set_host_target( self->client->host_follower, &tr, false, RODEO_ENEMY );
+					orderIssued = true;
+				} 
+				
+				// tell follower to move somewhere or chase owner
+				else if ( tr.ent == world && self->client->host_follower ) {
+					
+					if ( level.time < self->client->chaseHostTime )
+						set_host_target( self->client->host_follower, &tr, false, RODEO_FOLLOW );
+					else
+						set_host_target( self->client->host_follower, &tr, true, RODEO_BENIGN );
 
-				} else if ( tr.ent == world && 1 /*a attentive monster OR follower exists, also check for misc_explodebox attack here*/) { 
-					// hereboy
-					// set permanent follower pointer here ( if not already set )
-				} else {
+					orderIssued = true;
+				} 
+
+				// lonely moment ( no follower )
+				else { 
 					num = (rand()%2)+1;
 					gi.sound ( host, CHAN_VOICE, gi.soundindex( va("slighost/buzz%i.wav", num) ), 1, ATTN_NORM, 0); 
 				}
 			}
-		}
-	} else {
 
-		//RODEO HOST CONTROLS
-		if ( (self->client->latched_buttons|self->client->buttons) & BUTTON_ATTACK ) {
+			self->client->chaseHostTime = level.time + DOUBLE_CLICK;
+		} 
+		
+		// normal uberhost controls
+		else { set_host_move( self, host, pm ); }
+
+		if ( orderIssued ) { self->client->tempListener = false; }
+
+		if ( level.time > self->client->giveOrdersTime 
+			&& self->client->tempListener
+			&& !orderIssued ) {
+
+			self->client->host_follower->monsterinfo.currentmove = self->client->host_follower->followerOldMove;
+			gi.sound ( host, CHAN_VOICE, gi.soundindex( "slighost/bleh.wav" ), 1, ATTN_NORM, 0 );
+			self->client->tempListener = false;
+			self->client->host_follower->owner = NULL;
+			self->client->host_follower = NULL;
+		}
+	} 
+	
+	// rodeo host controls
+	else {
+
+		if ( self->client->latched_buttons & BUTTON_ATTACK ) {
 
 			tr = GhostMuzzleTrace( self );
 
 			//set the movement goal, and enemy, based on the muzzle trace
 			if ( tr.fraction < 1.0f ) { 
 
-				if ( tr.ent && tr.ent->classname && ( !Q_strncasecmp( tr.ent->classname, "monster_", 8 ) || !Q_strcasecmp( tr.ent->classname, "misc_explobox" ) ) ) {
+				if ( tr.ent->svflags & SVF_MONSTER || tr.ent->client || !Q_strcasecmp( tr.ent->classname, "misc_explobox" ) ) {
 				
-					gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
+					//gi.centerprintf( self, "ATTACK %s!", tr.ent->classname );
 					set_host_target( host, &tr, false, RODEO_ENEMY );
 
 				} else { 
-					gi.centerprintf( self, "INTO THE LIGHT!" ); 
+					//gi.centerprintf( self, "INTO THE LIGHT!" ); 
 					set_host_target( host, &tr, true, RODEO_BENIGN );
 				}
 
-				//only call this once per player click
 				//do a check for FLY|SWIM and call a better ai_func********************************
 				if ( host && host->monsterinfo.run ) { host->monsterinfo.run( host ); } 
 			}
@@ -320,8 +387,6 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 		gi.sound( host, CHAN_VOICE, gi.soundindex( "slighost/chuckle.wav" ), 1, ATTN_NORM, 0.1 );
 		host->hostLaugh = false;
 	}
-
-	// check here if giveOrdersTime is exceeded following clicks ( make a noise if so and have the monster wander off )
 }
 
 void TakeHost ( edict_t *self, edict_t *host, int take_style ) { 
@@ -353,8 +418,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 		return;
 	}
 
-	//make this monster-specific ( CRASH IF NULL )*************
-	gi.sound ( host, CHAN_VOICE, gi.soundindex (host->take_host_noise), 1, ATTN_NORM, 0);		//potential crash issue if NULL?
+	gi.sound ( host, CHAN_VOICE, gi.soundindex (host->take_host_noise), 1, ATTN_NORM, 0);
 
 	self->client->host		= host;
 	host->possessed			= true;
@@ -379,7 +443,6 @@ void DropHost ( edict_t *self, int drop_style )
 {
 	hmove_t *perform_move;
 
-	//make monster-specific ( CRASH IF NULL )*************
 	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( self->client->host->drop_host_noise ), 1, ATTN_NORM, 0);
 
 	switch ( drop_style ) {
@@ -416,11 +479,14 @@ void DropHost ( edict_t *self, int drop_style )
 
 void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf ) {
 
-	if ( self && other && other->possessed ) {
+	// any possessed or follower monsters can touch this point
+	// no matter who they belong to
+	// provides potential to derail opponent's monsters
+	if ( other->owner && other->owner->client ) {
 
-		Com_Printf( "STOP MOVING HOST!\n" );
+		//Com_Printf( "STOP MOVING!\n" );
 
-		// check for fly | swim too**********************************************
+		// check for flags & (FL_FLY|FL_SWIM) too**********************************************
 		if ( other->monsterinfo.stand ) {
 
 			other->monsterinfo.aiflags = 0;
@@ -433,7 +499,7 @@ void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface
 			other->enemy = NULL;
 
 			other->monsterinfo.stand( other ); 
-		} 
+		}
 
 		gi.sound (other, CHAN_VOICE, gi.soundindex ("slighost/freeze.wav"), 1, ATTN_NORM, 0);
 		G_FreeEdict ( self );
@@ -443,8 +509,9 @@ void host_target_touch( edict_t *self, edict_t *other, cplane_t *plane, csurface
 }
 
 // USE CASES:
-// 1) Rodeo controls spawn/move a ball of light to chase						( covered )
-// 2) Rodeo controls set a monster to a direct-enemy							( covered )
+// 1) spawn/move a ball of light to chase
+// 2) set a monster to a direct-enemy
+// 3) set a monster to harmlessly chase its owner
 void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_type ) {
 
 	host->monsterinfo.aiflags = 0;
@@ -464,6 +531,7 @@ void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_typ
 			host->goalentity = host->movetarget = host->host_target;
 			host->target_ent = host->enemy = host->oldenemy = NULL;	
 			host->monsterinfo.aiflags = AI_COMBAT_POINT;
+			gi.sound( host, CHAN_VOICE, gi.soundindex( "slighost/hereboy.wav" ), 1, ATTN_NORM, 0 );
 			break;
 		}
 
@@ -471,6 +539,17 @@ void set_host_target( edict_t *host, trace_t *tr, qboolean show, int control_typ
 			host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = tr->ent;
 			host->target_ent = NULL;
 			gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/getem.wav"), 1, ATTN_NORM, 0);
+
+			// get rid of any leftover benign target edict
+			if ( host->host_target ) { G_FreeEdict( host->host_target ); }
+			break;
+		}
+
+		case RODEO_FOLLOW: {
+			host->goalentity = host->movetarget = host->owner;
+			host->target_ent = host->enemy = host->oldenemy = NULL;	
+			host->monsterinfo.aiflags = AI_COMBAT_POINT;
+			gi.sound( host, CHAN_VOICE, gi.soundindex( "slighost/hereboy.wav" ), 1, ATTN_NORM, 0 );
 
 			// get rid of any leftover benign target edict
 			if ( host->host_target ) { G_FreeEdict( host->host_target ); }
@@ -515,8 +594,6 @@ void SP_Host_Target ( edict_t *host, vec3_t origin, qboolean show ) {
 	targ->touch			= host_target_touch;
 	//targ->owner		= host->owner;					// not necessary
 	targ->classname		= "host_target";
-
-	gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/bleh.wav"), 1, ATTN_NORM, 0);
 	
 	gi.linkentity( targ );
 }

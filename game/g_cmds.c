@@ -1040,17 +1040,25 @@ void Cmd_Push_Beasts_f( edict_t *ent ) {
 
 	} else if ( ent->client->hostmode && ent->client->soul_abilities & UBERHOST ) {
 
-		if ( (ent->client->latched_buttons|ent->client->buttons) & BUTTON_SHIFT ) {
+		// hostspeak 2of2
+		if ( ent->client->buttons & BUTTON_SHIFT ) {
+			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/stay.wav" ), 1, ATTN_NORM, 0);
 			// stay ( break current follow, wander off )
+			// have follower make a reciprocating noise
 
-		} else if ( (ent->client->latched_buttons|ent->client->buttons) & BUTTON_ALT ) {
+		} else if ( ent->client->buttons & BUTTON_ALT ) {
+			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/lookout.wav" ), 1, ATTN_NORM, 0);
 			// lookout ( all monsters in range start running, no enemy )
 
 		} else {
+
+			// defend both the host and the husk
+			if ( ent->enemy || ent->client->host->enemy )
+				gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/help.wav" ), 1, ATTN_NORM, 0);
 			// help ( enemy )
 			// make all monsters in range run and have the same enemy
-
-			// what ( no enemy )
+			else
+				gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/what.wav" ), 1, ATTN_NORM, 0);
 		}
 	}
 }
