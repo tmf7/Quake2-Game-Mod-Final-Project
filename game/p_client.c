@@ -1211,6 +1211,7 @@ void PutClientInServer (edict_t *ent)
 	client->chaseHostTime = 0;
 	ent->possessed = false;
 
+	client->damageAbsorbed = 0;
 	client->numOrbitingSouls = 0;
 	client->pool_of_souls = 0;
 	client->soul_collector_level = 1;
@@ -1647,10 +1648,13 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 
 void UpdateSoulShield ( edict_t *self ) {
 
+	int i, lasttofree;
 	float raise;
-	temp_soul_t	*orbitSoul;
-	vec3_t	origin, normal;
-	gclient_t *client = self->client;
+	vec3_t	origin;
+	edict_t	*orbitSoul;
+	gclient_t *client;
+
+	client = self->client;
 
 	if ( self->client->player_husk && !Q_strcasecmp( self->client->player_husk->classname, "player_husk" ) ) {
 		VectorCopy ( self->client->player_husk->s.origin, origin );
@@ -1661,29 +1665,35 @@ void UpdateSoulShield ( edict_t *self ) {
 		raise = (float)self->viewheight/3.0f;
 	}
 
-	// update all possible orbiting souls
-	for ( orbitSoul = client->soul_shield; orbitSoul < &client->soul_shield[MAX_ORBITS]; orbitSoul++ ) {
+	// update all orbiting souls
+	lasttofree = -1;
+	for ( i = 0; i < client->numOrbitingSouls; i++ ) {
 			
+		if ( client->soul_shield[i] >= globals.num_edicts )
+			continue;
+
+		orbitSoul = &g_edicts[ client->soul_shield[i] ];
+
+		if ( !orbitSoul || !orbitSoul->inuse || Q_strcasecmp( orbitSoul->classname, "orbit_soul" ) )
+			continue;
+
+		lasttofree = client->soul_shield[i];
+
 		orbitSoul->angle = anglemod( orbitSoul->angle + (float)ORBIT_SPEED/(float)ORBIT_RADIUS );
-		orbitSoul->origin[0] = origin[0] + ORBIT_RADIUS*cos(orbitSoul->angle); 
-		orbitSoul->origin[1] = origin[1] + ORBIT_RADIUS*sin(orbitSoul->angle); 
-		orbitSoul->origin[2] = origin[2] + raise;
+		orbitSoul->s.origin[0] = origin[0] + ORBIT_RADIUS*cos(orbitSoul->angle); 
+		orbitSoul->s.origin[1] = origin[1] + ORBIT_RADIUS*sin(orbitSoul->angle); 
+		orbitSoul->s.origin[2] = origin[2] + raise;
+
+		gi.linkentity( orbitSoul );
 	}
 
-	if ( level.time >= client->orbitTime ) {
+	if ( lasttofree > 0 && client->damageAbsorbed && level.time >= client->orbitTime ) {
 
-		AngleVectors( client->v_angle, NULL, normal, NULL );
-		VectorNormalize( normal );
-
-		// actually multicast the ones left
-		for ( orbitSoul = client->soul_shield; orbitSoul < &client->soul_shield[client->numOrbitingSouls]; orbitSoul++ ) {
-			gi.WriteByte (svc_temp_entity);
-			gi.WriteByte (TE_BLOOD);
-			gi.WritePosition (orbitSoul->origin);
-			gi.WriteDir( normal ); 
-			gi.multicast (orbitSoul->origin, MULTICAST_PVS);
-		}
-		client->orbitTime = level.time + 2*FRAMETIME;
+		G_FreeEdict( &g_edicts[ lasttofree ] );
+		client->numOrbitingSouls--; 
+		client->damageAbsorbed = 0;
+		client->orbitTime = level.time + ORBIT_INTERVAL;
+		gi.sound( self, CHAN_VOICE, gi.soundindex("husk/soulshieldhurt.wav"), 1, ATTN_STATIC, 0 );
 	}
 }
 

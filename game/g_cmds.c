@@ -1098,11 +1098,68 @@ void Cmd_Uber_f (edict_t *ent) {
 	}
 }
 
+void SP_OrbitSoul( edict_t *ent, int index ) {
+
+	vec3_t		os_mins		= {-16, -16, -24};
+	vec3_t		os_maxs		= {16, 16, 32};
+	edict_t	*orbitSoul;
+	int savedEntNumber;
+
+	orbitSoul = G_Spawn();
+	savedEntNumber = orbitSoul->s.number;
+	memset( orbitSoul, 0, sizeof(orbitSoul) );
+
+	orbitSoul->inuse = true;
+	orbitSoul->classname = "orbit_soul";
+	orbitSoul->s.number = savedEntNumber;
+
+	orbitSoul->groundentity = NULL;
+	orbitSoul->gravity = ent->gravity;
+
+	VectorCopy ( os_mins, orbitSoul->mins );
+	VectorCopy ( os_maxs, orbitSoul->maxs );
+	VectorCopy ( ent->s.origin, orbitSoul->s.origin );
+	orbitSoul->s.modelindex = gi.modelindex ( "models/items/ammo/grenades/medium/tris.md2" );
+	orbitSoul->s.effects	= (EF_COLOR_SHELL|EF_ROTATE|EF_GRENADE);
+	orbitSoul->s.renderfx	= (RF_TRANSLUCENT|RF_SHELL_RED|RF_SHELL_GREEN|RF_SHELL_BLUE);
+
+	orbitSoul->solid		= SOLID_NOT;
+	orbitSoul->clipmask		= ent->clipmask;
+	orbitSoul->flags	   |= FL_NO_KNOCKBACK;
+	orbitSoul->svflags		= SVF_SOUL;				// allow server-side per-client visiblity check
+	orbitSoul->movetype		= MOVETYPE_TOSS;
+
+	gi.linkentity( orbitSoul );
+	ent->client->soul_shield[index] = savedEntNumber;
+}
+
+qboolean UniqueOrbitSoul( edict_t *ent, int ignore, int edictNumber ) {
+
+	int i;
+	qboolean unique;
+
+	unique = true;
+
+	for( i = 0; i < MAX_ORBITS; i++ ) {
+		
+		if ( i == ignore )
+			continue;
+
+		if ( ent->client->soul_shield[i] == edictNumber ) {
+			unique = false;
+			break;
+		}
+	}
+
+	return unique;
+}
+
 // 'y' is bound to shield of souls refresh
 void Cmd_Soul_Shield_f( edict_t *ent ) {
-
+	
+	int i,orbitSoulNumber;
 	float yaw;
-	temp_soul_t *orbitSoul;
+	edict_t *orbitSoul;
 
 	// passive
 	if ( !(ent->client->soul_abilities & SOUL_SHIELD ) )
@@ -1115,9 +1172,25 @@ void Cmd_Soul_Shield_f( edict_t *ent ) {
 
 	if ( ent->client->pool_of_souls >= 10 ) {
 
-		// re-initialize the angles
-		for ( yaw = 0, orbitSoul = &ent->client->soul_shield[0]; orbitSoul < &ent->client->soul_shield[MAX_ORBITS]; orbitSoul++, yaw += (360/MAX_ORBITS) ) {
+		// re-initialize the angles and respawn missing orbitSouls
+		for ( yaw = 0, i = 0; i < MAX_ORBITS; i++, yaw += (360/MAX_ORBITS) ) {
+		
+			// get an entity number
+			if ( !ent->client->soul_shield[i]  
+				|| ent->client->soul_shield[i] >= globals.max_edicts 
+				|| !UniqueOrbitSoul(ent, i, ent->client->soul_shield[i]) )
+				SP_OrbitSoul( ent, i );
+
+			orbitSoul = &g_edicts[ ent->client->soul_shield[i] ];
+
+			// make sure its still an orbit_soul
+			if ( !orbitSoul || !orbitSoul->inuse || Q_strcasecmp( orbitSoul->classname, "orbit_soul" ) )
+				SP_OrbitSoul( ent, i );
+
+			orbitSoul = &g_edicts[ ent->client->soul_shield[i] ];
+			
 			orbitSoul->angle = anglemod( yaw*M_PI*2 / 360);
+			gi.linkentity ( orbitSoul );
 		}
 
 		ent->client->soulChange = true;

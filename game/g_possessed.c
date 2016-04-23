@@ -327,17 +327,41 @@ void HostSpeak( edict_t *self, int input_type) {
 
 		case MOUSE_THREE: { 
 
+			// go away
 			if ( self->client->buttons & BUTTON_SHIFT ) {
 				gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( "slighost/stay.wav" ), 1, ATTN_NORM, 0);
 				DropFollower( self );
 
-			} else if ( self->client->buttons & BUTTON_ALT ) {
+			} 
+			
+			// everybody run
+			else if ( self->client->buttons & BUTTON_ALT ) {
 				gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( "slighost/lookout.wav" ), 1, ATTN_NORM, 0);
-				// lookout ( all monsters in range start running, no enemy )
 
-			} else {
+				other = NULL;
+				while ( ( other = findradius( other, self->s.origin, LIFE_RANGE ) ) != NULL ) {
 
-				// defend the husk, the host, or the follower
+					if ( other->client || other == self->client->host )
+						continue; 
+
+					if ( !(other->svflags & SVF_MONSTER) )
+						continue;
+
+					if ( other->deadflag != DEAD_NO )
+						continue;
+
+					if ( other->monsterinfo.run ) {
+						other->monsterinfo.aiflags = AI_COMBAT_POINT;
+						other->monsterinfo.run( other );
+					}
+				}
+			} 
+			
+			// get some temporary aid
+			// opponents can steal the aid
+			else {
+
+				// defend the husk, the host, or the follower ( in that order )
 				enemy = CheckEnemy( self->client->player_husk );
 
 				if ( !enemy )
@@ -364,7 +388,7 @@ void HostSpeak( edict_t *self, int input_type) {
 							continue;
 
 						if ( !Q_strncasecmp( other->classname, "monster_", 8 ) ) {
-							set_host_target( other, enemy, NULL, false, RODEO_ENEMY );
+							set_host_target( other, enemy, NULL, true, RODEO_ENEMY );
 							helpCount++;
 						}
 					}
@@ -671,7 +695,8 @@ void set_host_target( edict_t *host, edict_t *other, vec3_t origin, qboolean sho
 
 			host->goalentity = 	host->movetarget =	host->oldenemy = host->enemy = other;
 			host->target_ent = NULL;
-			gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/getem.wav"), 1, ATTN_NORM, 0);
+			if ( !show )
+				gi.sound (host, CHAN_VOICE, gi.soundindex ("slighost/getem.wav"), 1, ATTN_NORM, 0);
 
 			// get rid of any leftover benign target edict
 			if ( host->host_target && !Q_strcasecmp( host->host_target->classname, "host_target" ) )

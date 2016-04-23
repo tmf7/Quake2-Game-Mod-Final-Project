@@ -386,7 +386,7 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	// TMF7 GHOST MODE ( new second condition: check for client-direct drowning/buring --> waterlevel/type transferred by husk )
 	// CHEAT: only allowing drowning world-damage as ghost => player can spawn a husk mid-fall and prevent fall-damage
-	if (!targ->takedamage && !( targ->client && attacker == world && targ->waterlevel > 0 ) )
+	if (!targ->takedamage && !( targ->client && attacker == world && targ->waterlevel > 0 ) ) // || delta stuff from p_view.c
 		return;
 
 //TMF7 BEGIN GHOST MODE
@@ -396,18 +396,15 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 		if ( targ->owner->client->host && targ->owner->client->soul_abilities & DAMAGE_HOST ) { targ = targ->owner->client->host; }
 		else { targ = targ->owner; }
-
 	}
 
 	// soul shield damage cancellation
-	// weak against multi-shot/rapid-fire things like shotguns/bfg
-	if ( targ->client && targ->client->numOrbitingSouls && level.time < targ->client->orbitTime ) 
+	if ( targ->client && targ->client->numOrbitingSouls ) { 
+		gi.dprintf( "ABSORBED: %i\n", damage );
+		targ->client->damageAbsorbed += damage;
 		return; 
-	else if ( targ->client && targ->client->numOrbitingSouls ) {
-		gi.sound( targ, CHAN_VOICE, gi.soundindex("husk/soulshieldhurt.wav"), 1, ATTN_STATIC, 0 );
-		targ->client->numOrbitingSouls--; 
-		return;
 	}
+
 //TMF7 END GHOST MODE
 
 	// friendly fire avoidance

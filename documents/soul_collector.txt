@@ -1,9 +1,19 @@
-TESTING:
+ON DECK:
+
+-> fly/swim check for rodeo controls ( and default DropHost, and follower stuff )
+
+->(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
+
+->(2of2): if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
+	-> flags get saved into savedFlags in PERSISTANT DATA
+	-> solution: actively clear the husk between scenes
+
+-> soul abilities and collection NOT PERSISTANT between areas/levels (fix that)
+
+-> soul abilities etc not SAVED ( in save.c )
 
 ___________________________
 TODO:
-
--> change soulshiled to a no-model entity with an effect**********
 
 -> make it a COMPETITIVE co-op game: you kill eachothers bodies/husks with monsters for FRAGS, first to 20 wins
 	--> single player => start at level 1 / multi-player => start at level 5 ???
@@ -15,13 +25,11 @@ TODO:
 	--> definitly no normal weapons ever
 	--> make non-ghost clients that approach each other get pushed back and svc_temp_entity an explostion in-between ( no touching )
 	--> check win-condition and end game
+	--> instead of ghost-walk duration and possession cost: CTF with husks and respawning monster points
 	
-
 -> give drain life a shell in 3rd person ( so its obvious )
 
 -> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
-
--> fly/swim check for rodeo controls ( and default DropHost, and follower stuff )
 
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
@@ -34,31 +42,14 @@ ___________________________________________________________
 
 BUG(?): changing areas/levels with an active follower crash ???
 
-*BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
-
-*BUG: soul abilities etc not SAVED ( in save.c )
-
-*BUG(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
-
-*BUG(2of2): if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
-	-> flags get saved into savedFlags in PERSISTANT DATA
-	-> solution: actively clear the husk between scenes
-
-*BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
+*BUG: the player does not appear translucent ( nor does the husk, which is correct ) 
+	--> tested in coop SOLUTION: change effect?
 
 *BUG: fix the clip into walls/ceilings when the host dies
 
-BUG: crash between hello and giving an order and the new follower dies
-	--> replicate by having current follower attack a monster, 
-		be in its death throws,
-		and shoot at a monster player just said hi to ( killing it )
-	--> possibly fixed in monster_think ( double checked monster has an owner before ref. owner->client )
-
-BUG: weird angles on detect_life in hover hostmode ( disable, or wait until better chasecam )
-
-BUG: spawnsoul noise randomly repeats until interrupted post-soul-spawn ( even plays over the console dropdown when other sounds dont )
-
-BUG: host PITCH changes too much --> solution: clamp the v_angle OR proper chasecam may resolve the issue
+BUG: host PITCH changes too much 
+	--> solution: clamp the v_angle OR proper chasecam may resolve the issue
+	--> ALSO: set pitch and roll to zero when dropping host ( to prevent permalean )
 
 BUG: ducks TOO MUCH/REPEATEDLY ... right into floors if duck, then duck-shoot ( bbox lowerd, then again )
 	// specifically write a new duck move (if the monster has the animations )

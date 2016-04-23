@@ -1,17 +1,28 @@
-﻿Build started 4/22/2016 8:34:25 PM.
+﻿Build started 4/23/2016 3:56:25 AM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\game\game.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\game.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt g_possessed.c
-         g_possessed.c
-     1>g_possessed.c(72): warning C4033: 'find_host_move' must return a value
-     1>g_possessed.c(387): warning C4101: 'yaw' : unreferenced local variable
-     1>g_possessed.c(386): warning C4101: 'selected_move' : unreferenced local variable
-     1>g_possessed.c(609): warning C4100: 'surf' : unreferenced formal parameter
-     1>g_possessed.c(609): warning C4100: 'plane' : unreferenced formal parameter
-     1>c:\users\tom\desktop\code\quake2-project\game\g_possessed.c(83): warning C4715: 'find_host_move' : not all control paths return a value
-     1>c:\users\tom\desktop\code\quake2-project\game\g_possessed.c(151): warning C4701: potentially uninitialized local variable 'slow' used
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt g_cmds.c
+         g_cmds.c
+     1>g_cmds.c(33): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(56): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(57): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(737): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(740): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(823): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(824): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(825): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(836): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(843): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(908): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+     1>g_cmds.c(912): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>g_cmds.c(995): warning C4101: 'num' : unreferenced local variable
+     1>g_cmds.c(997): warning C4101: 'tr' : unreferenced local variable
+     1>g_cmds.c(1160): warning C4101: 'orbitSoulNumber' : unreferenced local variable
+     1>g_cmds.c(1238): warning C4047: 'initializing' : 'int' differs in levels of indirection from 'void *'
+     1>c:\users\tom\desktop\code\quake2-project\game\g_cmds.c(1269): warning C4701: potentially uninitialized local variable 'oldRank' used
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\Users\Tom\Desktop\code\Quake2-Project\game\.\..\release\game.dll) does not match the Linker's OutputFile property value (C:\Users\Tom\Desktop\code\Quake2-Project\release\gamex86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(game) does not match the Linker's OutputFile property value (gamex86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
        Link:
@@ -75,4 +86,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.36
+Time Elapsed 00:00:00.49

@@ -469,12 +469,6 @@ typedef struct
 	int			host_rank;
 } transform_t;
 
-typedef struct
-{
-	vec3_t		origin;
-	vec3_t		velocity;
-	float		angle;
-} temp_soul_t;
 //TMF7 END GHOST MODE
 
 
@@ -618,9 +612,13 @@ typedef enum {
 #define SOUL_RANGE			300		// radial possession, pull/rip souls
 #define GHOST_RANGE			60		// touch possession, husktouch
 #define LIFE_RANGE			400		// detect life
-#define ORBIT_RADIUS		80		// soul shield
-#define ORBIT_SPEED			30		// soul shield
-#define MAX_ORBITS			5		// soul shield
+
+// soul shield
+#define ORBIT_RADIUS		80
+#define ORBIT_SPEED			5
+#define MAX_ORBITS			5
+#define ORBIT_INTERVAL		1
+
 #define DOUBLE_CLICK		0.5		// follower target toggle
 #define MOUSE_ONE			1		// hostspeak
 #define MOUSE_THREE			2		// hostspeak
@@ -1114,7 +1112,8 @@ struct gclient_s
 	qboolean		soulChange;
 	int				soul_abilities;
 	int				numOrbitingSouls;
-	temp_soul_t		soul_shield[MAX_ORBITS];
+	int				damageAbsorbed;
+	int				soul_shield[MAX_ORBITS];			// the entity numbers (g_edicts indexes) of the orbitSouls
 
 	float			orbitTime;
 	float			nextPossessTime;
