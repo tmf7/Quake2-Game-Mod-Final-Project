@@ -622,6 +622,8 @@ typedef enum {
 #define ORBIT_SPEED			30		// soul shield
 #define MAX_ORBITS			5		// soul shield
 #define DOUBLE_CLICK		0.5		// follower target toggle
+#define MOUSE_ONE			1		// hostspeak
+#define MOUSE_THREE			2		// hostspeak
 #define MAX_SOUL_TYPES		20		// 22 types of monsters, not counting humans, soldier types combined
 
 enum take_host_style {
@@ -941,6 +943,9 @@ void SetChaseTarget(edict_t *self, edict_t *host);	//TMF7 THIRD PERSON / GHOST M
 //
 void TakeHost( edict_t *self, edict_t *host, int take_style );
 void DropHost( edict_t *self, int drop_style );
+void TakeFollower( edict_t *self, edict_t *follower );
+void DropFollower( edict_t *self );
+void HostSpeak( edict_t *self, int input_type);
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );	
 hmove_t * find_host_move ( edict_t *host, char *possible_move );
 
@@ -1101,6 +1106,7 @@ struct gclient_s
 	qboolean		ghostmode;
 	qboolean		hostmode;
 	qboolean		tempListener;
+	qboolean		orderIssued;
 
 	qboolean		showabilities;
 	qboolean		showcollection;
@@ -1293,6 +1299,7 @@ struct edict_s
 	qboolean		host_anim_walk;
 	qboolean		host_anim_attack;
 	mmove_t			*followerOldMove;
+	edict_t			*followerOldMoveTarget;
 
 	char			*take_host_noise;
 	char			*drop_host_noise;

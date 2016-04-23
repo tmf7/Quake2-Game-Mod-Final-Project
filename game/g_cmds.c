@@ -926,13 +926,13 @@ void Cmd_Ghost_f( edict_t *ent ) {
 		
 	// clear out the husk
 	if ( !(ent->client->ghostmode || ent->client->hostmode) && ent->client->player_husk 
-		&& ent->client->player_husk->classname && !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) 
+		&& ent->client->player_husk->classname && !Q_strcasecmp( ent->client->player_husk->classname, "player_husk" ) 
 		&& ent->husktouch ) {
 		ent->husktouch( ent, ent->client->player_husk );
 	}
 
 	if ( ent->client->ghostmode && ( !ent->client->player_husk 
-		|| ( ent->client->player_husk->classname && Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) ) ) 
+		|| ( ent->client->player_husk->classname && Q_strcasecmp( ent->client->player_husk->classname, "player_husk" ) ) ) ) 
 	{ SP_ClientHusk ( ent ); }
 
 	gi.cprintf (ent, PRINT_HIGH, "GHOST = %s\n", ent->client->ghostmode ? "TRUE" : "FALSE" );
@@ -989,13 +989,6 @@ void Cmd_Detect_Life_f( edict_t *ent ) {
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
 
-// 'm' is bound to "ghost_fly" toggle
-void Cmd_Ghost_Fly_f( edict_t *ent ) {
-		
-	if ( !(ent->client->soul_abilities & GHOST_FLY) )
-		return;
-}
-
 // 'mouse3' is bound to radial monster push, and host-speak
 void Cmd_Push_Beasts_f( edict_t *ent ) {
 
@@ -1041,25 +1034,7 @@ void Cmd_Push_Beasts_f( edict_t *ent ) {
 	} else if ( ent->client->hostmode && ent->client->soul_abilities & UBERHOST ) {
 
 		// hostspeak 2of2
-		if ( ent->client->buttons & BUTTON_SHIFT ) {
-			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/stay.wav" ), 1, ATTN_NORM, 0);
-			// stay ( break current follow, wander off )
-			// have follower make a reciprocating noise
-
-		} else if ( ent->client->buttons & BUTTON_ALT ) {
-			gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/lookout.wav" ), 1, ATTN_NORM, 0);
-			// lookout ( all monsters in range start running, no enemy )
-
-		} else {
-
-			// defend both the host and the husk
-			if ( ent->enemy || ent->client->host->enemy )
-				gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/help.wav" ), 1, ATTN_NORM, 0);
-			// help ( enemy )
-			// make all monsters in range run and have the same enemy
-			else
-				gi.sound ( ent->client->host, CHAN_VOICE, gi.soundindex( "slighost/what.wav" ), 1, ATTN_NORM, 0);
-		}
+		HostSpeak( ent, MOUSE_THREE );
 	}
 }
 
@@ -1388,8 +1363,6 @@ void ClientCommand (edict_t *ent)
 		Cmd_Inhabit_f( ent );
 	else if ( Q_stricmp(cmd, "detect_life") == 0 )	
 		Cmd_Detect_Life_f( ent );
-	else if ( Q_stricmp(cmd, "ghost_fly") == 0 )	
-		Cmd_Ghost_Fly_f( ent );
 	else if ( Q_stricmp(cmd, "push_beasts") == 0 )	
 		Cmd_Push_Beasts_f( ent );
 	else if ( Q_stricmp(cmd, "soul_shield") == 0 )

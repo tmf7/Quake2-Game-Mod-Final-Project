@@ -77,7 +77,7 @@ void AI_SetSightClient (void)
 			&& ent->health > 0 
 			&& ent->client->player_husk 
 			&& ent->client->player_husk->classname 
-			&& !Q_strncasecmp( ent->client->player_husk->classname, "husk", 4 ) ) { 
+			&& !Q_strcasecmp( ent->client->player_husk->classname, "player_husk" ) ) { 
 
 			//check if the client has an active husk
 			level.sight_client = ent->client->player_husk;
@@ -516,7 +516,7 @@ qboolean FindTarget (edict_t *self)
 		if (client->owner->flags & FL_NOTARGET)
 			return false;								
 	}
-	else if ( client && client->classname && !Q_strncasecmp( client->classname, "husk", 4 ) )
+	else if ( client && client->classname && !Q_strcasecmp( client->classname, "player_husk" ) )
 	{ /* TMF7 GHOST MODE placeholder to avoid default return statement */ }
 	else
 		return false;
@@ -560,7 +560,7 @@ qboolean FindTarget (edict_t *self)
 		{
 			self->monsterinfo.aiflags &= ~AI_SOUND_TARGET;
 
-			if (!self->enemy->client && Q_strncasecmp( self->enemy->classname, "husk", 4 ) )	//TMF7 GHOST MODE (the husk part)
+			if (!self->enemy->client && Q_strcasecmp( self->enemy->classname, "player_husk" ) )	//TMF7 GHOST MODE (the husk part)
 			{
 				self->enemy = self->enemy->enemy;
 				if (!self->enemy->client)
@@ -867,6 +867,9 @@ qboolean ai_checkattack (edict_t *self, float dist)
 
 	if (hesDeadJim)
 	{
+		// face the host again
+		self->host_target = self->owner;		// TMF7 GHOST MODE ( hostspeak )
+
 		self->enemy = NULL;
 	// FIXME: look all around for other targets
 		if (self->oldenemy && self->oldenemy->health > 0)

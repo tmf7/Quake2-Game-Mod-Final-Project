@@ -517,7 +517,7 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	self->client->ghostmode = false;
 
 	//pull back to the husk
-	if ( husk && husk->classname && !Q_strncasecmp( husk->classname, "husk", 4 ) && self->husktouch ) {
+	if ( husk && husk->classname && !Q_strcasecmp( husk->classname, "player_husk" ) && self->husktouch ) {
 		self->husktouch( self, husk ); 
 	}
 //TMF7 END GHOST MODE
@@ -1617,7 +1617,6 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 	vec3_t forward;	
 	vec3_t fromPos, toPos, targ;
 	edict_t *ignore;
-//	float d = 0;
 
 	//copy the player's muzzle yaw, pitch, roll angles into the forward looking direction
 	AngleVectors( ent->client->v_angle, forward, NULL, NULL );
@@ -1631,29 +1630,17 @@ trace_t GhostMuzzleTrace ( edict_t *ent ) {
 
 	tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ent, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
 			
-	// continue the trace if this hits the host, host_target, or player_husk
+	// continue the trace if this hits ent's host, a host_target, or ent's player_husk
 	while ( tr.fraction < 1.0f && tr.ent  
-		&& ( ( ent->client->host && ent->client->host->host_target && tr.ent == ent->client->host->host_target )
-		||   ( ent->client->host					&& tr.ent == ent->client->host )
-		||   ( ent->client->player_husk				&& tr.ent == ent->client->player_husk ) ) ) {
-
-//		if ( dist ) { 
-//			VectorSubtract( tr.endpos, fromPos, targ );
-//			d += VectorLength( targ ); 
-//		}
+		&& ( !Q_strcasecmp( tr.ent->classname, "host_target" )
+		||   ( ent->client->host			&& tr.ent == ent->client->host )
+		||   ( ent->client->player_husk		&& tr.ent == ent->client->player_husk ) ) ) {
 
 		VectorCopy( tr.endpos, fromPos );
 		ignore = tr.ent;
 
 		tr = gi.trace( fromPos, vec3_origin, vec3_origin, toPos, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WINDOW);
 	}
-
-
-//	if ( tr.fraction < 1.0f && dist ) { 
-//		VectorSubtract( tr.endpos, fromPos, targ );
-//		*dist = d + VectorLength( targ );
-//
-//	} else if ( dist ) { *dist = 99999; }
 
 	return tr;
 }
@@ -1665,7 +1652,7 @@ void UpdateSoulShield ( edict_t *self ) {
 	vec3_t	origin, normal;
 	gclient_t *client = self->client;
 
-	if ( self->client->player_husk && !Q_strncasecmp( self->client->player_husk->classname, "husk", 4 ) ) {
+	if ( self->client->player_husk && !Q_strcasecmp( self->client->player_husk->classname, "player_husk" ) ) {
 		VectorCopy ( self->client->player_husk->s.origin, origin );
 		raise = (float)self->client->player_husk->viewheight/3.0f;
 	}
@@ -1816,7 +1803,7 @@ void player_husk_touch ( edict_t *self, edict_t *other, cplane_t *plane, csurfac
 
 	if ( !self || !self->client || !other ) { return; }
 
-	if ( self->client->player_husk && self->client->player_husk == other && other->classname && !Q_strncasecmp( other->classname, "husk", 4 ) )  {
+	if ( self->client->player_husk && self->client->player_husk == other && other->classname && !Q_strcasecmp( other->classname, "player_husk" ) )  {
 			 
 		//flash the screen for a less sudden transition
 		self->client->bonus_alpha = 0.5;
@@ -1888,6 +1875,8 @@ void ghostmode_protocols ( edict_t *self ) {
 	if ( client->soul_abilities & TARGETED_POSSESSION ) {
 
 		if ( client->latched_buttons & BUTTON_ATTACK ) {
+
+			client->latched_buttons &= ~BUTTON_ATTACK;
 
 			if ( level.time >= client->nextPossessTime ) {
 			
@@ -1980,7 +1969,7 @@ void husk_think ( edict_t *husk ) {
 	gclient_t *client;
 	edict_t *other;
 
-	if ( !husk || ( husk->classname && Q_strncasecmp( husk->classname, "husk", 4 ) ) ) { return; } 
+	if ( !husk || ( husk->classname && Q_strcasecmp( husk->classname, "player_husk" ) ) ) { return; } 
 
 	if ( husk->owner && husk->owner->client && !husk->owner->deadflag ) { client = husk->owner->client; }
 	else { return; }
@@ -2081,7 +2070,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->deadflag		= self->deadflag;
 
 	husk->viewheight	= self->viewheight;
-	husk->classname		= "husk";
+	husk->classname		= "player_husk";
 	husk->mass			= self->mass;
 
 	VectorCopy ( self->mins, husk->mins );

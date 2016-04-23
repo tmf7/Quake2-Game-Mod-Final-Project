@@ -298,7 +298,7 @@ void M_ReactToDamage (edict_t *targ, edict_t *attacker)
 	if (!(attacker->client) && !(attacker->svflags & SVF_MONSTER))
 		return;
 
-	if (attacker == targ || attacker == targ->enemy)
+	if (attacker == targ || attacker == targ->enemy || attacker->flags & FL_NOTARGET )	// TMF7 GHOST MODE ( notarget condition )
 		return;
 
 	// if we are a good guy monster and our attacker is a player
@@ -392,7 +392,7 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 //TMF7 BEGIN GHOST MODE
 
 	// pass husk damage along to the player/host itself
-	if ( targ->classname && !Q_strncasecmp( targ->classname, "husk", 4 ) ) { 
+	if ( targ->classname && !Q_strcasecmp( targ->classname, "player_husk" ) ) { 
 
 		if ( targ->owner->client->host && targ->owner->client->soul_abilities & DAMAGE_HOST ) { targ = targ->owner->client->host; }
 		else { targ = targ->owner; }

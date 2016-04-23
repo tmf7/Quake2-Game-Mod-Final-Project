@@ -444,17 +444,22 @@ void monster_think (edict_t *self)
 //TMF7 BEGIN GHOST MODE
 	vec3_t owner_vec;
 
-	// a possessed monster just said hi, say hi back
-	if ( !self->possessed && self->hostLaugh && level.time > (self->owner->client->giveOrdersTime - 2.0f) ) {
-		gi.sound ( self, CHAN_VOICE, gi.soundindex( "slighost/hi.wav" ), 1, ATTN_NORM, 0);
-		self->hostLaugh = false;
-	}
-
 	// as a follower, always face the owner
-	if ( !self->possessed && self->owner && self->owner->client ) {
-		VectorSubtract (self->owner->s.origin, self->s.origin, owner_vec);
-		self->ideal_yaw = vectoyaw(owner_vec);
-		M_ChangeYaw( self );
+	if ( !self->possessed 
+		&& self->owner 
+		&& self->owner->client ) {
+
+		// a possessed monster just said hi, say hi back
+		if ( self->hostLaugh && level.time > (self->owner->client->giveOrdersTime - 2.0f) ) {
+			gi.sound ( self, CHAN_VOICE, gi.soundindex( "slighost/hi.wav" ), 1, ATTN_NORM, 0);
+			self->hostLaugh = false;
+		}
+
+		if ( self->host_target == self->owner ) {
+			VectorSubtract (self->owner->s.origin, self->s.origin, owner_vec);
+			self->ideal_yaw = vectoyaw(owner_vec);
+			M_ChangeYaw( self );
+		}
 	}
 //TMF7 END GHOST MODE
 

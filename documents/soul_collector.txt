@@ -1,38 +1,27 @@
 TESTING:
 
--> mouse1 slighost controls
-
--> verify rodeo still works ( no hostspeak )
-
--> why does an order get issued immediatly upon hi? despite latched_buttons ButtonAttack && buttons SHIFT...derp?
-
--> why wont a follower attack as told?
-
--> why wont a follower attack a barrell? ( normal rodeo host does just fine )
-
 ___________________________
 TODO:
 
 -> change soulshiled to a no-model entity with an effect**********
 
--> limit the follow radius of a follower chasing its owner
-
--> host_follower may need to be initialized / cleared better
-
--> tempListener may need to be initialized
-
 -> make it a COMPETITIVE co-op game: you kill eachothers bodies/husks with monsters for FRAGS, first to 20 wins
-
--> drop the follower when DropHost
-
+	--> single player => start at level 1 / multi-player => start at level 5 ???
+	--> frags hud element
+	--> spawn in ANY area of a level ( allow teleport to area w/clients if in an empty one )
+	--> how does Q2 handle coop area/level change???
+	--> co-op DM start as far away from other clients as possible ( within an area ) ( use monster spawnpoints )
+	--> flesh out other uberhosts
+	--> definitly no normal weapons ever
+	--> make non-ghost clients that approach each other get pushed back and svc_temp_entity an explostion in-between ( no touching )
+	--> check win-condition and end game
+	
 
 -> give drain life a shell in 3rd person ( so its obvious )
 
 -> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
 
--> show player-soul cheat code ( instead of vanishing into the host )
-
--> fly/swim check for rodeo controls ( and default DropHost )
+-> fly/swim check for rodeo controls ( and default DropHost, and follower stuff )
 
 -> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
 
@@ -43,6 +32,7 @@ TODO:
 
 ___________________________________________________________
 
+BUG(?): changing areas/levels with an active follower crash ???
 
 *BUG: soul abilities and collection NOT PERSISTANT between levels (fix that)
 
@@ -57,6 +47,12 @@ ___________________________________________________________
 *BUG: the player does not appear translucent ( nor does the husk, which is correct ) --> tested in coop SOLUTION: change effect?
 
 *BUG: fix the clip into walls/ceilings when the host dies
+
+BUG: crash between hello and giving an order and the new follower dies
+	--> replicate by having current follower attack a monster, 
+		be in its death throws,
+		and shoot at a monster player just said hi to ( killing it )
+	--> possibly fixed in monster_think ( double checked monster has an owner before ref. owner->client )
 
 BUG: weird angles on detect_life in hover hostmode ( disable, or wait until better chasecam )
 
@@ -74,7 +70,8 @@ f = "ghost"
 r = "inhabit"
 v = "uberhost" & "drain_life"
 y = "soul_shield"
-mouse3 = "push_beasts"*************and host-speak**********
+mouse3 = "push_beasts" (and hostspeak)
+mouse1 = attack (and hostspeak)
 
 o = "transform"
 n = "detect_life"
@@ -85,13 +82,13 @@ F8 = "soul_collection"
 
 cheatcode: soullevel [1-5] ( default displays usage )
 
-cheatcode: showsoul ( makes player soul visible within host )***********
-
 cheatcode: give souls ### ( sets the current pool_of_souls )
 
 ______________________________________________
 
 EXTRA:
 
-->allow host persistance between levels ( free and reset the husk near the new player spawn point, OR obliterate the host and "teleport" the "husk" to that origin )
+->allow host persistance between levels/areas 
+	--> spawn a husk near the new player spawn point
+	--> spawn same class as old host and TakeHost
 	--> only when able to warp_husk at higher levels
