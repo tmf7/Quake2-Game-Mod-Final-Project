@@ -457,17 +457,15 @@ typedef struct
 
 typedef struct
 {
-	char		*host_name;
+	char		*host_class;
 	hmove_t		*host_moves;
 	char		*takeNoise;
 	char		*dropNoise;
-} host_t;
-
-typedef struct
-{
-	char		*host_classname;
 	int			host_rank;
-} transform_t;
+	vec3_t		host_mins;
+	vec3_t		host_maxs;
+	char		*soul_name;
+} host_t;
 
 //TMF7 END GHOST MODE
 
@@ -622,7 +620,7 @@ typedef enum {
 #define DOUBLE_CLICK		0.5		// follower target toggle
 #define MOUSE_ONE			1		// hostspeak
 #define MOUSE_THREE			2		// hostspeak
-#define MAX_SOUL_TYPES		20		// 22 types of monsters, not counting humans, soldier types combined
+#define UNIQUE_SOUL_TYPES	20		// types of souls in the collection
 
 enum take_host_style {
 	HOST_TOUCH,
@@ -668,12 +666,15 @@ enum soul_collector {
 	WARP_HUSK			= 0x00004000	// 5
 };
 
+// match order of hosts[] in possessed.c
 enum monster_souls {
 	BERSERK,
 	GLADIATOR,
 	GUNNER,
 	INFANTRY,
+	SOLDIER_LIGHT,
 	SOLDIER,
+	SOLDIER_SS,	
 	TANK,
 	TANK_COMMANDER,
 	MEDIC,
@@ -687,7 +688,7 @@ enum monster_souls {
 	MUTANT,
 	SUPERTANK,
 	BOSS2,
-	BOSS3_STAND,
+	BOSS3,
 	JORG
 };
 //TMF7 END GHOST MODE
@@ -711,10 +712,6 @@ extern	gitem_t	itemlist[];
 void Cmd_Help_f (edict_t *ent);
 void Cmd_Score_f (edict_t *ent);
 void Cmd_PutAway_f (edict_t *ent);
-void Cmd_Soul_Abilities_f ( edict_t *ent );		//TMF7 GHOST MODE
-void Cmd_Soul_Collection_f ( edict_t *ent );	//TMF7 GHOST MODE
-void SoulAbilities( edict_t *ent );				//TMF7 GHOST MODE
-void SoulCollection( edict_t *ent );			//TMF7 GHOST MODE
 
 //
 // g_items.c
@@ -807,8 +804,6 @@ void M_CatagorizePosition (edict_t *ent);
 qboolean M_CheckAttack (edict_t *self);
 void M_FlyCheck (edict_t *self);
 void M_CheckGround (edict_t *ent);
-void SetMonsterNames (void);						// TMF7 GHOST MODE ( ghud )
-char * GetMonsterByIndex (int index);				// TMF7 GHOST MODE ( ghud )
 
 //
 // g_misc.c
@@ -876,10 +871,6 @@ void ClientBeginServerFrame (edict_t *ent);
 //
 void player_pain (edict_t *self, edict_t *other, float kick, int damage);
 void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
-void SP_ClientHusk ( edict_t *self );														//TMF7 GHOST MODE
-void player_husk_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);	//TMF7 GHOST MODE
-trace_t GhostMuzzleTrace ( edict_t *ent );													//TMF7 GHOST MODE
-void LevelUpSoulCollector ( edict_t *ent );													//TMF7 GHOST MODE
 
 //
 // g_svcmds.c
@@ -946,6 +937,30 @@ void DropFollower( edict_t *self );
 void HostSpeak( edict_t *self, int input_type);
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm );	
 hmove_t * find_host_move ( edict_t *host, char *possible_move );
+void SetMonsterNames (void);						// ( ghud )
+char * GetMonsterByIndex (int index);				// ( ghud )
+void SP_LostMonsterSoul ( edict_t *self );
+void ghostmode_protocols ( edict_t *self );
+void SP_ClientHusk ( edict_t *self );
+void player_husk_touch (edict_t *self, edict_t *other );
+trace_t GhostMuzzleTrace ( edict_t *ent );	
+void LevelUpSoulCollector ( edict_t *ent );	
+void detect_life ( edict_t *self );
+void UpdateSoulShield ( edict_t *self );
+void Cmd_Detect_Life_f( edict_t *ent );
+void Cmd_Ghost_f( edict_t *ent );
+void Cmd_Inhabit_f( edict_t *ent );
+void Cmd_Push_Beasts_f( edict_t *ent );
+void Cmd_Set_Soul_Level_f( edict_t *ent );
+void Cmd_Soul_Shield_f( edict_t *ent );
+void Cmd_Transform_Host_f( edict_t *ent );
+void Cmd_Uber_f (edict_t *ent);
+void Cmd_Soul_Abilities_f ( edict_t *ent );
+void Cmd_Soul_Collection_f ( edict_t *ent );
+void SoulAbilities( edict_t *ent );	
+void SoulCollection( edict_t *ent );
+const char * GetSoulByMonster( char *classname );
+int GetIndexByMonster( char *classname );
 
 //
 // g_spawn.c
@@ -964,7 +979,6 @@ void ED_CallTransformSpawn( edict_t *ent, char *newClassname);
 #define	ANIM_ATTACK		4
 #define	ANIM_DEATH		5
 #define	ANIM_REVERSE	6
-
 
 // client data that stays across multiple level loads
 typedef struct
@@ -1121,7 +1135,7 @@ struct gclient_s
 	float			giveOrdersTime;
 	float			chaseHostTime;
 	float			pickup_soul_msg_time;
-	int				soulCollection[ MAX_SOUL_TYPES ];	// amount of each pokemon type collected ( hud popup )
+	int				soulCollection[ UNIQUE_SOUL_TYPES ];// amount of each pokemon type collected ( hud popup )
 	int				pool_of_souls;						// cumulative power of all souls ( "experience points" )
 	int				soul_collector_level;				// thresholds unlock abilities
 
@@ -1286,8 +1300,6 @@ struct edict_s
 	qboolean		possessed;
 	float			huskBeginSearchTime;
 
-	int				monster_soul_index;
-	char*			monster_soul_name;
 	int				mSoulFirstFrame;
 	int				mSoulLastFrame;
 	int				soulSpawnTime;

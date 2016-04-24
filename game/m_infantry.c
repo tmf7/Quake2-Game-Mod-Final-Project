@@ -604,7 +604,4 @@ void SP_monster_infantry (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = INFANTRY;							//TMF7 GHOST MODE
-	self->monster_soul_name = GetMonsterByIndex( INFANTRY );		//TMF7 GHOSTMODE
 }

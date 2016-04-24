@@ -137,6 +137,7 @@ void SP_monster_supertank (edict_t *self);
 void SP_monster_boss2 (edict_t *self);
 void SP_monster_jorg (edict_t *self);
 void SP_monster_boss3_stand (edict_t *self);
+void SP_monster_makron (edict_t *self);
 
 void SP_monster_commander_body (edict_t *self);
 
@@ -257,6 +258,7 @@ spawn_t	spawns[] = {
 	{"monster_supertank", SP_monster_supertank},
 	{"monster_boss2", SP_monster_boss2},
 	{"monster_boss3_stand", SP_monster_boss3_stand},
+	{"monster_boss3", SP_monster_makron},
 	{"monster_jorg", SP_monster_jorg},
 
 	{"monster_commander_body", SP_monster_commander_body},
@@ -524,6 +526,8 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	char		*com_token;
 	int			i;
 	float		skill_level;
+	char		monster_type[20];		// TMF7 GHOST MODE ( soundindex maintenance )
+	const char  *soul_name;
 
 	skill_level = floor (skill->value);
 	if (skill_level < 0)
@@ -597,6 +601,18 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			}
 
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
+		}
+		// TMF7 GHOST MODE ( soundindex maintenance )
+		// "soldier/..." "tank/..." "chick/..." from monster_soldier_... monster_tank_... monster_chick
+		// change SV_FindIndex to memset a string that isn't a natural or current (transform) monster on the map
+		// fill in the blanks here
+		soul_name = GetSoulByMonster( ent->classname );
+		i = GetIndexByMonster( ent->classname );
+		if ( soul_name && i >= 0 && !naturalSpawns[i][0]) {
+			memset(monster_type,0, sizeof(monster_type) );
+			strncpy( monster_type, soul_name, strlen(soul_name)-5 );
+			strlwr(monster_type);
+			strcpy( naturalSpawns[i], monster_type);
 		}
 
 		ED_CallSpawn (ent);
@@ -1009,14 +1025,52 @@ void ED_CallTransformSpawn( edict_t *ent, char *newClassname ) {
 		return;
 	}
 
+
 	ent->classname = newClassname;
 
+	// carryover fixes:
+	// flyer noise
+	// jorg model2
+	// FL_FLY/FL_SWIM
+	ent->s.sound = 0;
+	ent->flags = 0;
+	ent->s.modelindex = 0;
+	ent->s.modelindex2 = 0;
+	ent->s.modelindex3 = 0;
+	ent->s.modelindex4 = 0;
+
+	// what a medic does when ressurecting
+	ent->spawnflags = 0;
+	ent->monsterinfo.aiflags = 0;
+	ent->target = NULL;
+	ent->targetname = NULL;
+	ent->combattarget = NULL;
+	ent->deathtarget = NULL;
+
+	// fixes pointing to other monster's functions/moves
+	ent->monsterinfo.stand = NULL;
+	ent->monsterinfo.idle = NULL;
+	ent->monsterinfo.search = NULL;
+	ent->monsterinfo.walk = NULL;
+	ent->monsterinfo.run = NULL;
+	ent->monsterinfo.dodge = NULL;
+	ent->monsterinfo.attack = NULL;
+	ent->monsterinfo.melee = NULL;
+	ent->monsterinfo.sight = NULL;
+	ent->monsterinfo.checkattack = NULL;
+	
 	// find the new spawn function
-	for ( s = spawns; s->name; s++ )
-	{
-		if ( !strcmp(s->name, newClassname) )
-		{	// found it
+	// BUG: only overwrites whats pointed to, residual info remains
+	// BUG: enough unique monster transforms on a map will cause an soundindex overflow ERROR
+	// because each monster adds new sound configstrings to the current level ( max is 256 )
+	for ( s = spawns; s->name; s++ ) {
+
+		if ( !strcmp(s->name, newClassname) ) {	
+			// found it
 			s->spawn (ent);
+
+			//clear the old index in naturalSpawns? or add this one?
+
 			return;
 		}
 	}

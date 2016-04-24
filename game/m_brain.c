@@ -673,7 +673,4 @@ void SP_monster_brain (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = BRAIN;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( BRAIN );				//TMF7 GHOSTMODE
 }

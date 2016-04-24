@@ -623,7 +623,4 @@ void SP_monster_flyer (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	flymonster_start (self);
-
-	self->monster_soul_index = FLYER;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( FLYER );				//TMF7 GHOSTMODE
 }

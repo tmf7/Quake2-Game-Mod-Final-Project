@@ -130,7 +130,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		for (i=0 ; i<2 ; i++)
 		{
 			VectorAdd (ent->s.origin, move, neworg);
-			if (i == 0 && ent->enemy)
+			if (i == 0 && ent->enemy /*|| ( ent->owner && ent->owner->client && ent->host_target) )*/ ) // TMF7 GHOST MODE ( override ) ( rodeo-only )
 			{
 				if (!ent->goalentity)
 					ent->goalentity = ent->enemy;
@@ -196,7 +196,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 				return true;
 			}
 			
-			if (!ent->enemy)
+			if ( !ent->enemy /*|| !( ent->owner && ent->owner->client && ent->host_target)*/ ) // TMF7 GHOST MODE ( override ) ( rodeo-only )
 				break;
 		}
 		

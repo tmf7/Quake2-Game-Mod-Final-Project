@@ -746,7 +746,4 @@ void SP_monster_jorg (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
-
-	self->monster_soul_index = JORG;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( JORG );				//TMF7 GHOSTMODE
 }

@@ -454,7 +454,4 @@ void SP_monster_berserk (edict_t *self)
 	gi.linkentity (self);
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = BERSERK;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( BERSERK );				//TMF7 GHOSTMODE
 }

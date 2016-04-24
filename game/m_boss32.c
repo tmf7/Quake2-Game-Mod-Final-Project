@@ -865,9 +865,6 @@ void SP_monster_makron (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
-
-	self->monster_soul_index = BOSS3_STAND;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( BOSS3_STAND );				//TMF7 GHOSTMODE
 }
 
 
@@ -909,6 +906,7 @@ void MakronToss (edict_t *self)
 	edict_t	*ent;
 
 	ent = G_Spawn ();
+	ent->classname = "monster_boss3";		// TMF7 GHOST MODE ( final boss class is normally "noclass" )
 	ent->nextthink = level.time + 0.8;
 	ent->think = MakronSpawn;
 	ent->target = self->target;

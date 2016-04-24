@@ -1,6 +1,14 @@
 ON DECK:
 
--> fly/swim check for rodeo controls ( and default DropHost, and follower stuff )
+-> naturalSpawns needs to be actively updated game-side, then pulled in server/client-side, THEN checked
+	--> player currently shows exactly the names needed
+
+-> fly/swim needs an ENEMY to do a vertical move up/down, CHANGE THAT ( especially for uberhost/followers )
+	--> currently set enemy = benign host_target and viola... doesn't seem to attack the light, but also never actually touches it like it should
+	--> write a new M_WalkMove that takes a vec3_t instead of just yaw and pass that to SV_MoveStep to create the new potential origin
+	--> only problem is that everyone would fly....no, just check for FL_FLY|FL_SWIM ( and groundEntity ) and clamp accordingly
+	--> MAY EXPLAIN WHY A POSSESSED FLYER causes a crash if its enemy explodes/is freed like a barrel is
+
 
 ->(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
 
@@ -15,19 +23,18 @@ ON DECK:
 ___________________________
 TODO:
 
--> make it a COMPETITIVE co-op game: you kill eachothers bodies/husks with monsters for FRAGS, first to 20 wins
-	--> single player => start at level 1 / multi-player => start at level 5 ???
+-> make it a COMPETITIVE co-op game: you kill eachothers bodies/husks with monsters for FRAGS, first to 10 wins
+	--> have to progress to find more monsters to use AND level up to more effectively kill opponent
+	--> supress in SP_ or delete all weapon/ammo stuff so it never even spawns? ( that'd break normal DM )
 	--> frags hud element
 	--> spawn in ANY area of a level ( allow teleport to area w/clients if in an empty one )
 	--> how does Q2 handle coop area/level change???
 	--> co-op DM start as far away from other clients as possible ( within an area ) ( use monster spawnpoints )
 	--> flesh out other uberhosts
-	--> definitly no normal weapons ever
-	--> make non-ghost clients that approach each other get pushed back and svc_temp_entity an explostion in-between ( no touching )
+	--> make non-ghost clients that approach each other get pushed back and svc_temp_entity an explosion in-between ( no touching )
 	--> check win-condition and end game
-	--> instead of ghost-walk duration and possession cost: CTF with husks and respawning monster points
 	
--> give drain life a shell in 3rd person ( so its obvious )
+-> give drain life an effect in 3rd person ( so its obvious )
 
 -> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
 
@@ -40,12 +47,29 @@ TODO:
 
 ___________________________________________________________
 
+BUG: jorg doesn't spawn a soul because it doesn't call killed it calls spawnmakron
+	--> i think...
+	--> things do randomly not spawn a soul
+	--> try moving the spawn call
+
+BUG: carry over of old edict_t data from prior spawn ( function pointers, etc ) that may cause crashes
+
+BUG: index overflow "crash" related to SV_FindIndex in sv_init.c call: out of bounds for model/sound/image index....wtf why?
+	--> spawning a monster only creates new configstrings if they don't exist ( is there a permap limit? instead of the global 256? )
+	--> may be due to edict_t carryover info not matching field numbers
+	--> edited SV_FindIndex overflow error to specify type: playtested => at some point after rank 5 spawn there is a SOUND index overflow
+	--> the MAX_SOUNDS is PER MAP, so each time i spawn a new monster type new sound, image, and model index configstrings are added to the server's set
+	--> which means it overflows as soon as enough different monster types are spawned
+
+
 BUG(?): changing areas/levels with an active follower crash ???
 
 *BUG: the player does not appear translucent ( nor does the husk, which is correct ) 
 	--> tested in coop SOLUTION: change effect?
 
 *BUG: fix the clip into walls/ceilings when the host dies
+
+BUG: death next to a barrel crash ( flyer )
 
 BUG: host PITCH changes too much 
 	--> solution: clamp the v_angle OR proper chasecam may resolve the issue

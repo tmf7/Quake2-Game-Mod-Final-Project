@@ -122,6 +122,7 @@ typedef struct
 	int		(*modelindex) (char *name);
 	int		(*soundindex) (char *name);
 	int		(*imageindex) (char *name);
+	int		(*configindex) (char *name);
 
 	void	(*setmodel) (edict_t *ent, char *name);
 

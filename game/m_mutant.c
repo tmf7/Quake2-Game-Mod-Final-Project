@@ -660,7 +660,4 @@ void SP_monster_mutant (edict_t *self)
 
 	self->monsterinfo.scale = MODEL_SCALE;
 	walkmonster_start (self);
-
-	self->monster_soul_index = MUTANT;							//TMF7 GHOST MODE
-	self->monster_soul_name = GetMonsterByIndex( MUTANT );		//TMF7 GHOSTMODE
 }

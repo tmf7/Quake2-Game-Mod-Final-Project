@@ -625,7 +625,4 @@ void SP_monster_gunner (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = GUNNER;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( GUNNER );				//TMF7 GHOSTMODE
 }

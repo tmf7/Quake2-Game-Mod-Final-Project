@@ -29,6 +29,8 @@ void UpdateChaseCam(edict_t *ent)
 	vec3_t oldgoal;
 	vec3_t angles;
 
+	float hostDistance, hostHeight;
+
 	// is our chase target gone?
 //TMF7 BEGIN GHOST MODE
 	if ( ent->client->hostmode || ent->client->ghostmode ) {
@@ -72,7 +74,7 @@ void UpdateChaseCam(edict_t *ent)
 
 	//cannot posses non-monsters
 	if ( targ->possessed ) { VectorCopy( targ->s.angles, angles ); }	//TMF7 GHOST MODE where the target HOST is looking
-	else { VectorCopy(targ->client->v_angle, angles); }				//TMF7 where the target CLIENT is looking
+	else { VectorCopy(targ->client->v_angle, angles); }					//TMF7 where the target CLIENT is looking
 
 	if (angles[PITCH] > 56)
 		angles[PITCH] = 56;
@@ -80,9 +82,13 @@ void UpdateChaseCam(edict_t *ent)
 	VectorNormalize(forward);
 
 //TMF7 BEGIN GHOST MODE
-	if ( targ->possessed ) { 
-		VectorMA(ownerv, -60, forward, o); 
-		o[2] += 16;
+	
+	// "camera" position behind and above HOST
+	if ( targ->possessed ) {	
+		hostDistance = (targ->mins[0] - targ->maxs[0]) * 2;
+		hostHeight = (targ->maxs[2] - targ->mins[2]) / 2;
+		VectorMA(ownerv, hostDistance, forward, o); 
+		o[2] += hostHeight;
 	}
 //TMF7 END GHOST MODE
 	else { VectorMA(ownerv, -30, forward, o); }

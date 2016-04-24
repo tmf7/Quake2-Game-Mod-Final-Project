@@ -395,11 +395,11 @@ hmove_t boss2[] =
 	{	NULL,					NULL				}
 };
 
-//*************
-//   BOSS3_STAND ( makron )
-//*************
+//************************
+//   BOSS3 ( makron/rider )
+//*************************
 
-hmove_t boss3_stand[] =
+hmove_t boss3[] =
 {
 //	{	"stand1",				soldier_stand1		},
 //	{	"stand2",				soldier_stand3		},

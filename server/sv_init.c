@@ -29,22 +29,48 @@ SV_FindIndex
 
 ================
 */
-int SV_FindIndex (char *name, int start, int max, qboolean create)
+int SV_FindIndex (char *name, int start, int max, qboolean create, char *type)		// TMF7 GHOST MODE ( final condition for debug )
 {
-	int		i;
 	
+	int		i, j;
+	char	*check;		// TMF7 GHOST MODE ( soundindex upkeep during host transform )
+	qboolean clearedsound;
+
 	if (!name || !name[0])
 		return 0;
 
-	for (i=1 ; i<max && sv.configstrings[start+i][0] ; i++)
+	
+	clearedsound = false;
+	for (i=1 ; i<max && sv.configstrings[start+i][0] ; i++) {
+		//Com_Printf( "CHECKING: %s\n", sv.configstrings[start+i] );
+		// clear unused monster sounds
+		// their configstring format is "monstername/..." 
+		for( j = 0; j < MAX_SPAWN_TYPES; j++ ) {
+			Com_Printf( "naturalSpawns[%i]: %s\n",j, naturalSpawns[j] );
+			if( !naturalSpawns[j][0] )
+				continue;
+
+			Com_Printf( "naturalSpawns[%i]: %s\n",j, naturalSpawns[j] );
+			if(!strncmp(sv.configstrings[start+i], naturalSpawns[j], strlen(naturalSpawns[j]))) {
+				Com_Printf( "REMOVING: %s\n", sv.configstrings[start+i] );
+				memset(sv.configstrings[start+i], 0, sizeof(sv.configstrings[start+i]));
+				clearedsound = true;
+				
+				break;
+			}
+		}
+		if (clearedsound)
+			continue;
+
 		if (!strcmp(sv.configstrings[start+i], name))
 			return i;
+	}
 
 	if (!create)
 		return 0;
 
 	if (i == max)
-		Com_Error (ERR_DROP, "*Index: overflow");
+		Com_Error (ERR_DROP, "*Index: overflow %s", type);
 
 	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
 
@@ -63,19 +89,23 @@ int SV_FindIndex (char *name, int start, int max, qboolean create)
 
 int SV_ModelIndex (char *name)
 {
-	return SV_FindIndex (name, CS_MODELS, MAX_MODELS, true);
+	return SV_FindIndex (name, CS_MODELS, MAX_MODELS, true, "model");
 }
 
 int SV_SoundIndex (char *name)
 {
-	return SV_FindIndex (name, CS_SOUNDS, MAX_SOUNDS, true);
+	return SV_FindIndex (name, CS_SOUNDS, MAX_SOUNDS, true, "sound");
 }
 
 int SV_ImageIndex (char *name)
 {
-	return SV_FindIndex (name, CS_IMAGES, MAX_IMAGES, true);
+	return SV_FindIndex (name, CS_IMAGES, MAX_IMAGES, true, "image");
 }
 
+int SV_ConfigIndex (char *name)
+{
+	return SV_FindIndex (name, CS_ITEMS, MAX_ITEMS, false, "item name");
+}
 
 /*
 ================

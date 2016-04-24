@@ -549,7 +549,4 @@ void SP_monster_parasite (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = PARASITE;							//TMF7 GHOST MODE
-	self->monster_soul_name = GetMonsterByIndex( PARASITE );		//TMF7 GHOSTMODE
 }

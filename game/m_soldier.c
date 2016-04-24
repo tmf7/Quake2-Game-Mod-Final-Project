@@ -1292,9 +1292,6 @@ void SP_monster_soldier_x (edict_t *self)
 	self->monsterinfo.stand (self);
 
 	walkmonster_start (self);
-
-	self->monster_soul_index = SOLDIER;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( SOLDIER );				//TMF7 GHOSTMODE
 }
 
 

@@ -73,7 +73,4 @@ void SP_monster_boss3_stand (edict_t *self)
 	self->think = Think_Boss3Stand;
 	self->nextthink = level.time + FRAMETIME;
 	gi.linkentity (self);
-
-	self->monster_soul_index = BOSS3_STAND;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( BOSS3_STAND );				//TMF7 GHOSTMODE
 }

@@ -1202,3 +1202,8 @@ typedef struct
 extern int vidref_val;
 // PGM
 // ==================
+
+// list of the map-spawned monster names, and which monster-type each client is possessing
+// the server will remove all other unused monster-type sounds in SV_FindIndex
+#define MAX_SPAWN_TYPES		22
+char	naturalSpawns[MAX_SPAWN_TYPES][28];		// TMF7 GHOST MODE ( soundindex configstring upkeep )

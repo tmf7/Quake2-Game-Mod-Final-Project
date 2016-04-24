@@ -660,7 +660,4 @@ void SP_monster_floater (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	flymonster_start (self);
-
-	self->monster_soul_index = FLOATER;									//TMF7 GHOSTMODE
-	self->monster_soul_name = GetMonsterByIndex( FLOATER );				//TMF7 GHOSTMODE
 }
