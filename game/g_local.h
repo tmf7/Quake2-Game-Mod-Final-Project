@@ -449,6 +449,7 @@ typedef struct
 
 
 //TMF7 BEGIN GHOST MODE
+
 typedef struct
 {
 	char		*move_name;
@@ -666,31 +667,6 @@ enum soul_collector {
 	WARP_HUSK			= 0x00004000	// 5
 };
 
-// match order of hosts[] in possessed.c
-enum monster_souls {
-	BERSERK,
-	GLADIATOR,
-	GUNNER,
-	INFANTRY,
-	SOLDIER_LIGHT,
-	SOLDIER,
-	SOLDIER_SS,	
-	TANK,
-	TANK_COMMANDER,
-	MEDIC,
-	FLIPPER,
-	CHICK,
-	PARASITE,
-	FLYER,
-	BRAIN,
-	FLOATER,
-	HOVER,
-	MUTANT,
-	SUPERTANK,
-	BOSS2,
-	BOSS3,
-	JORG
-};
 //TMF7 END GHOST MODE
 
 typedef struct
@@ -965,8 +941,7 @@ int GetIndexByMonster( char *classname );
 //
 // g_spawn.c
 //
-//void Cmd_Transform_Host_f( edict_t *ent );		//trial run******
-void ED_CallTransformSpawn( edict_t *ent, char *newClassname);
+void ED_CallTransformSpawn( edict_t *ent, char *newClassname );
 //TMF7 END GHOST MODE
 
 //============================================================================

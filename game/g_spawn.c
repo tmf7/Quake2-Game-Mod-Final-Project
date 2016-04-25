@@ -602,19 +602,11 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
 		}
-		// TMF7 GHOST MODE ( soundindex maintenance )
-		// "soldier/..." "tank/..." "chick/..." from monster_soldier_... monster_tank_... monster_chick
-		// change SV_FindIndex to memset a string that isn't a natural or current (transform) monster on the map
-		// fill in the blanks here
-		soul_name = GetSoulByMonster( ent->classname );
+// TMF7 BEGIN GHOST MODE ( soundindex maintenance )
 		i = GetIndexByMonster( ent->classname );
-		if ( soul_name && i >= 0 && !naturalSpawns[i][0]) {
-			memset(monster_type,0, sizeof(monster_type) );
-			strncpy( monster_type, soul_name, strlen(soul_name)-5 );
-			strlwr(monster_type);
-			strcpy( naturalSpawns[i], monster_type);
-		}
-
+			if (  i >= 0 )
+				globals.active_monstertypes |= (1<<i);
+// TMF7 END GHOST MODE ( soundindex maintenance )
 		ED_CallSpawn (ent);
 	}	
 
@@ -1018,13 +1010,13 @@ void SP_worldspawn (edict_t *ent)
 // TMF7 BEGIN GHOST MODE
 void ED_CallTransformSpawn( edict_t *ent, char *newClassname ) {
 
+	int index;
 	spawn_t	*s;
 
 	if ( !newClassname ) {
 		gi.dprintf ("ED_CallSpawn: NULL classname\n");
 		return;
 	}
-
 
 	ent->classname = newClassname;
 
@@ -1060,16 +1052,21 @@ void ED_CallTransformSpawn( edict_t *ent, char *newClassname ) {
 	ent->monsterinfo.checkattack = NULL;
 	
 	// find the new spawn function
-	// BUG: only overwrites whats pointed to, residual info remains
+	// BUG/Feature: only overwrites whats pointed to, residual info remains
 	// BUG: enough unique monster transforms on a map will cause an soundindex overflow ERROR
 	// because each monster adds new sound configstrings to the current level ( max is 256 )
+	// FIX: modified SV_FindIndex in <sv_init.c> to replace unused monster sound configstrings
 	for ( s = spawns; s->name; s++ ) {
 
 		if ( !strcmp(s->name, newClassname) ) {	
+
+			// soundindex maintenance
+			index = GetIndexByMonster( newClassname );
+			if (  index >= 0 )
+				globals.active_monstertypes |= (1<<index);
+
 			// found it
 			s->spawn (ent);
-
-			//clear the old index in naturalSpawns? or add this one?
 
 			return;
 		}

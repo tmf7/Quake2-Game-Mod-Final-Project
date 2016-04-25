@@ -23,48 +23,130 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 server_static_t	svs;				// persistant server info
 server_t		sv;					// local server
 
+// TMF7 BEGIN GHOST MODE ( soundindex maintenance )
+
+// monster sound configstring format is "monstername/*.wav" 
+qboolean CheckInactiveMonsterSound ( char *current ) {
+
+	char	currentfilebase[MAX_QPATH];
+//	char	addfilebase[MAX_QPATH];
+
+	//memset( currentfilebase, 0, sizeof(currentfilebase));
+	//memset( addfilebase, 0, sizeof(addfilebase));
+	COM_RootPath( current, currentfilebase );
+/*
+	COM_RootPath( add, addfilebase );
+
+	// let all other sounds check/add as normal
+	if ( strcmp( addfilebase, "soldier"		) 
+		&& strcmp( addfilebase, "infantry"	) 
+		&& strcmp( addfilebase, "berserk"	)
+		&& strcmp( addfilebase, "gladiator" )
+		&& strcmp( addfilebase, "gunner"	)
+		&& strcmp( addfilebase, "tank"		)
+		&& strcmp( addfilebase, "medic"		)
+		&& strcmp( addfilebase, "flipper"	)
+		&& strcmp( addfilebase, "chick"		)
+		&& strcmp( addfilebase, "parasite"	)
+		&& strcmp( addfilebase, "flyer"		)
+		&& strcmp( addfilebase, "brain"		)
+		&& strcmp( addfilebase, "floater"	)
+		&& strcmp( addfilebase, "hover"		)
+		&& strcmp( addfilebase, "mutant"	)
+		&& strcmp( addfilebase, "supertank" )
+		&& strcmp( addfilebase, "bosshovr"	)
+		&& strcmp( addfilebase, "boss3"		)
+		&& strcmp( addfilebase, "makron" )	)
+		return false;
+*/
+	// check for inactive sounds
+	if ( !strcmp( currentfilebase, "soldier" ) 
+		&& !(ge->active_monstertypes & (1<<SOLDIER))  
+		&& !(ge->active_monstertypes & (1<<SOLDIER_LIGHT)) 
+		&& !(ge->active_monstertypes & (1<<SOLDIER_SS)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "infantry" ) && !(ge->active_monstertypes & (1<<INFANTRY)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "berserk" ) && !(ge->active_monstertypes & (1<<BERSERK)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "gladiator" ) && !(ge->active_monstertypes & (1<<GLADIATOR)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "gunner" ) && !(ge->active_monstertypes & (1<<GUNNER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "tank" ) 
+		&& !(ge->active_monstertypes & (1<<TANK)) 
+		&& !(ge->active_monstertypes & (1<<TANK_COMMANDER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "medic" ) && !(ge->active_monstertypes & (1<<MEDIC)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "flipper" ) && !(ge->active_monstertypes & (1<<FLIPPER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "chick" ) && !(ge->active_monstertypes & (1<<CHICK)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "parasite" ) && !(ge->active_monstertypes & (1<<PARASITE)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "flyer" ) && !(ge->active_monstertypes & (1<<FLYER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "brain" ) && !(ge->active_monstertypes & (1<<BRAIN)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "floater" ) && !(ge->active_monstertypes & (1<<FLOATER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "hover" ) && !(ge->active_monstertypes & (1<<HOVER)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "mutant" ) && !(ge->active_monstertypes & (1<<MUTANT)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "supertank" ) && !(ge->active_monstertypes & (1<<SUPERTANK)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "bosshovr" ) && !(ge->active_monstertypes & (1<<BOSS2)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "boss3" ) && !(ge->active_monstertypes & (1<<JORG)) )
+		return true;
+	else if ( !strcmp( currentfilebase, "makron" ) && !(ge->active_monstertypes & (1<<BOSS3)) )
+		return true;
+
+	return false;
+}
+
+/*
+================
+SV_IndexCleanup
+called every G_RunFrame
+================
+*/
+void SV_SoundIndexCleanup ( void )
+{
+	int		i;
+
+	for ( i = 1; i < MAX_SOUNDS; i++ ) {
+
+		if( CheckInactiveMonsterSound(sv.configstrings[CS_SOUNDS+i] ) ) {
+
+			Com_Printf( "REMOVING SOUNDINDEX %i = %s\n", CS_SOUNDS+i, sv.configstrings[CS_SOUNDS+i] );
+			memset(sv.configstrings[CS_SOUNDS+i], 0, sizeof(sv.configstrings[CS_SOUNDS+i]));
+		}
+	}
+}
+
+// TMF7 END GHOST MODE ( soundindex maintenance )
+
+
 /*
 ================
 SV_FindIndex
 
 ================
 */
-int SV_FindIndex (char *name, int start, int max, qboolean create, char *type)		// TMF7 GHOST MODE ( final condition for debug )
+int SV_FindIndex (char *name, int start, int max, qboolean create, char *type)		// TMF7 GHOST MODE ( final parameter for debug )
 {
 	
-	int		i, j;
-	char	*check;		// TMF7 GHOST MODE ( soundindex upkeep during host transform )
-	qboolean clearedsound;
+	int		i;
 
 	if (!name || !name[0])
 		return 0;
 
-	
-	clearedsound = false;
-	for (i=1 ; i<max && sv.configstrings[start+i][0] ; i++) {
-		//Com_Printf( "CHECKING: %s\n", sv.configstrings[start+i] );
-		// clear unused monster sounds
-		// their configstring format is "monstername/..." 
-		for( j = 0; j < MAX_SPAWN_TYPES; j++ ) {
-			Com_Printf( "naturalSpawns[%i]: %s\n",j, naturalSpawns[j] );
-			if( !naturalSpawns[j][0] )
-				continue;
-
-			Com_Printf( "naturalSpawns[%i]: %s\n",j, naturalSpawns[j] );
-			if(!strncmp(sv.configstrings[start+i], naturalSpawns[j], strlen(naturalSpawns[j]))) {
-				Com_Printf( "REMOVING: %s\n", sv.configstrings[start+i] );
-				memset(sv.configstrings[start+i], 0, sizeof(sv.configstrings[start+i]));
-				clearedsound = true;
-				
-				break;
-			}
-		}
-		if (clearedsound)
-			continue;
-
+	for (i=1 ; i<max && sv.configstrings[start+i][0] ; i++)
 		if (!strcmp(sv.configstrings[start+i], name))
 			return i;
-	}
 
 	if (!create)
 		return 0;

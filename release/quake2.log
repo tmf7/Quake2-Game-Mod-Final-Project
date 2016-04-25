@@ -1,14 +1,79 @@
-﻿Build started 4/24/2016 10:32:31 AM.
+﻿Build started 4/24/2016 10:35:05 PM.
      1>Project "C:\Users\Tom\Desktop\code\Quake2-Project\quake2.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating ".\release\quake2.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Z7 /nologo /W4 /WX- /O2 /Ob1 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _VC80_UPGRADE=0x0600 /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\release\\" /Fd".\release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt server\sv_init.c
+         sv_init.c
+     1>server\sv_init.c(157): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(188) : see declaration of 'strncpy'
+     1>server\sv_init.c(242): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+     1>server\sv_init.c(307): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(310): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+     1>server\sv_init.c(315): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(321): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(334): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(335): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(518): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(539): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>server\sv_init.c(546): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
        ResourceCompile:
          All outputs are up-to-date.
        Link:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\release\quake2.exe" /INCREMENTAL:NO /NOLOGO winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:".\release\quake2.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"C:\Users\Tom\Desktop\code\Quake2-Project\release\quake2.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\release\quake2.lib" /MACHINE:X86 .\release\q2.res
+         .\release\cd_win.obj
+         .\release\cl_cin.obj
+         .\release\cl_ents.obj
+         .\release\cl_fx.obj
+         .\release\cl_input.obj
+         .\release\cl_inv.obj
+         .\release\cl_main.obj
+         .\release\cl_newfx.obj
+         .\release\cl_parse.obj
+         .\release\cl_pred.obj
+         .\release\cl_scrn.obj
+         .\release\cl_tent.obj
+         .\release\cl_view.obj
+         .\release\cmd.obj
+         .\release\cmodel.obj
+         .\release\common.obj
+         .\release\conproc.obj
+         .\release\console.obj
+         .\release\crc.obj
+         .\release\cvar.obj
+         .\release\files.obj
+         .\release\in_win.obj
+         .\release\keys.obj
+         .\release\m_flash.obj
+         .\release\md4.obj
+         .\release\menu.obj
+         .\release\net_chan.obj
+         .\release\net_wins.obj
+         .\release\pmove.obj
+         .\release\q_shared.obj
+         .\release\q_shwin.obj
+         .\release\qmenu.obj
+         .\release\snd_dma.obj
+         .\release\snd_mem.obj
+         .\release\snd_mix.obj
+         .\release\snd_win.obj
+         .\release\sv_ccmds.obj
+         .\release\sv_ents.obj
+         .\release\sv_game.obj
+         .\release\sv_init.obj
+         .\release\sv_main.obj
+         .\release\sv_send.obj
+         .\release\sv_user.obj
+         .\release\sv_world.obj
+         .\release\sys_win.obj
+         .\release\vid_dll.obj
+         .\release\vid_menu.obj
+         .\release\x86.obj
          quake2.vcxproj -> C:\Users\Tom\Desktop\code\Quake2-Project\.\release\quake2.exe
+       Manifest:
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:".\release\quake2.exe;#1" /manifest .\release\quake2.exe.intermediate.manifest
        FinalizeBuildStatus:
          Deleting file ".\release\quake2.unsuccessfulbuild".
          Touching ".\release\quake2.lastbuildstate".
@@ -16,4 +81,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.06
+Time Elapsed 00:00:00.37

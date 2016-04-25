@@ -188,7 +188,6 @@ void ClientEndServerFrames (void)
 			continue;
 		ClientEndServerFrame (ent);
 	}
-
 }
 
 /*
@@ -380,11 +379,12 @@ Advances the world by 0.1 seconds
 */
 void G_RunFrame (void)
 {
-	int		i;
+	int		i, j;
 	edict_t	*ent;
 
 	level.framenum++;
 	level.time = level.framenum*FRAMETIME;
+	globals.active_monstertypes = 0;			// TMF7 GHOST MODE ( soundindex maintenance )
 
 	// choose a client for monsters to target this frame
 	AI_SetSightClient ();
@@ -408,6 +408,12 @@ void G_RunFrame (void)
 			continue;
 
 		level.current_entity = ent;
+
+// TMF7 BEGIN GHOST MODE ( soundindex maintenance )
+		j = GetIndexByMonster( ent->classname );
+			if (  j >= 0 )
+				globals.active_monstertypes |= (1<<j);
+// TMF7 END GHOST MODE ( soundindex maintenance )
 
 		VectorCopy (ent->s.origin, ent->s.old_origin);
 
@@ -438,5 +444,7 @@ void G_RunFrame (void)
 
 	// build the playerstate_t structures for all players
 	ClientEndServerFrames ();
+
+	gi.soundindexcleanup();		// TMF7 GHOST MODE ( soundindex maintenance )
 }
 

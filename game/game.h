@@ -29,6 +29,33 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	SVF_MONSTER				0x00000004	// treat as CONTENTS_MONSTER for collision
 #define SVF_SOUL				0x00000008	// TMF7 GHOST MODE allow for server-side client visibility check
 
+// match order of hosts[] in possessed.c ( useful indexes)
+// these are flags set into active_monstertypes for soundindex maintenance
+enum monster_types {
+	BERSERK,
+	GLADIATOR,
+	GUNNER,
+	INFANTRY,
+	SOLDIER_LIGHT,
+	SOLDIER,
+	SOLDIER_SS,	
+	TANK,
+	TANK_COMMANDER,
+	MEDIC,
+	FLIPPER,
+	CHICK,
+	PARASITE,
+	FLYER,
+	BRAIN,
+	FLOATER,
+	HOVER,
+	MUTANT,
+	SUPERTANK,
+	BOSS2,
+	BOSS3,
+	JORG
+};
+
 // edict->solid values
 
 typedef enum
@@ -123,6 +150,7 @@ typedef struct
 	int		(*soundindex) (char *name);
 	int		(*imageindex) (char *name);
 	int		(*configindex) (char *name);
+	void	(*soundindexcleanup) ( void );
 
 	void	(*setmodel) (edict_t *ent, char *name);
 
@@ -232,6 +260,8 @@ typedef struct
 	int			edict_size;
 	int			num_edicts;		// current number, <= max_edicts
 	int			max_edicts;
+
+	unsigned long int			active_monstertypes; //TMF7 GHOST MODE ( soundindex maintenance )
 } game_export_t;
 
 game_export_t *GetGameApi (game_import_t *import);

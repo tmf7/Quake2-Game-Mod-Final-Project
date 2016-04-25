@@ -799,6 +799,29 @@ int Q_log2(int val)
 
 //====================================================================================
 
+// TMF7 GHOST MODE ( soundindex maintenance )
+/*
+============
+COM_RootPath
+
+Returns the path up to, but not including the last /
+============
+*/
+char *COM_RootPath (char *in, char *out)
+{
+	char *s;
+	
+	s = in;
+	
+	while ( *s  && *s != '/')
+		s++;
+
+	strncpy (out,in, s-in);
+	out[s-in] = 0;
+}
+
+// TMF7 END GHOST MODE ( soundindex maintenance )
+
 /*
 ============
 COM_SkipPath

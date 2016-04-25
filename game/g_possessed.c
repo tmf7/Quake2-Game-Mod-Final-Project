@@ -39,8 +39,8 @@ host_t hosts[] =
 	{ "monster_infantry",		infantry,	NULL,					NULL,						1, {-16, -16, -24}, {16, 16, 32}, "Infantry Soul"	},
 
 	{ "monster_soldier_light",	soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav",		1, {-16, -16, -24}, {16, 16, 32}, "Solider Soul"	},
-	{ "monster_soldier",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav",		1, {-16, -16, -24}, {16, 16, 32}, "Solider Soul"	},
-	{ "monster_soldier_ss",		soldier,	"soldier/solpain2.wav", "soldier/solpain2.wav",		1, {-16, -16, -24}, {16, 16, 32}, "Solider Soul"	},
+	{ "monster_soldier",		soldier,	"soldier/solpain1.wav", "soldier/solpain1.wav",		1, {-16, -16, -24}, {16, 16, 32}, "Solider Soul"	},
+	{ "monster_soldier_ss",		soldier,	"soldier/solpain3.wav", "soldier/solpain3.wav",		1, {-16, -16, -24}, {16, 16, 32}, "Solider Soul"	},
 
 	{ "monster_tank",			tank,		NULL,					NULL,						4, {-32, -32, -16}, {32, 32, 72}, "Tank Soul"		},
 	{ "monster_tank_commander",	tank,		NULL,					NULL,						4, {-32, -32, -16}, {32, 32, 72}, "Commander Soul"	},
@@ -115,6 +115,14 @@ int GetCollectionIndex( char *classname ) {
 				return (monster-hosts);
 		}
 	}
+}
+
+char * GetCollectionHudName( int index ) {
+
+	if ( index > SOLDIER_LIGHT )
+		return hosts[index+2].soul_name;
+	else
+		return hosts[index].soul_name;
 }
 
 hmove_t * find_host_move ( edict_t *host, char *possible_move ) {
@@ -2049,8 +2057,8 @@ void SoulCollection( edict_t *ent )
 		
 		// name
 		memset( display_name, 0, sizeof(display_name) );
-		soul_name = GetMonsterByIndex( index );
-		strncpy( display_name, soul_name, strlen(soul_name)-5 );		// dont use " Soul"
+		soul_name = GetCollectionHudName( index );	
+		strncpy( display_name, soul_name, strlen(soul_name)-5 );			// dont use " Soul"
 
 		strcat( string, "xv " );
 		strcat( string, xv );

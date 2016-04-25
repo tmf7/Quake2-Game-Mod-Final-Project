@@ -176,6 +176,17 @@ void Cmd_Give_f (edict_t *ent)
 			gi.cprintf( ent, PRINT_HIGH, "specify number of souls. example: give souls 120\n" );
 		return;
 	}
+
+	if ( Q_stricmp(gi.argv(1), "collection" ) == 0 )
+	{
+		for ( i = 0; i < UNIQUE_SOUL_TYPES; i++ ) {
+			
+			ent->client->soulCollection[i] += 3;
+			ent->client->pool_of_souls += 3;
+		}
+		gi.sound( ent, CHAN_ITEM, gi.soundindex( "soul/givesouls.wav" ), 1, ATTN_STATIC, 0 );
+		return;
+	}
 //TMF7 END GHOST MDE
 
 	if (Q_stricmp(name, "all") == 0)

@@ -1627,10 +1627,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	level.current_entity = ent;
 	client = ent->client;
 
-	for( i = 0; i < MAX_SPAWN_TYPES; i++ ) {
-		gi.dprintf( "naturalSpawns[%i]: %s\n,", i, naturalSpawns[i] );
-	}
-
 	if (level.intermissiontime)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;

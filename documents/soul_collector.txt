@@ -1,8 +1,5 @@
 ON DECK:
 
--> naturalSpawns needs to be actively updated game-side, then pulled in server/client-side, THEN checked
-	--> player currently shows exactly the names needed
-
 -> fly/swim needs an ENEMY to do a vertical move up/down, CHANGE THAT ( especially for uberhost/followers )
 	--> currently set enemy = benign host_target and viola... doesn't seem to attack the light, but also never actually touches it like it should
 	--> write a new M_WalkMove that takes a vec3_t instead of just yaw and pass that to SV_MoveStep to create the new potential origin
@@ -47,20 +44,10 @@ TODO:
 
 ___________________________________________________________
 
-BUG: jorg doesn't spawn a soul because it doesn't call killed it calls spawnmakron
-	--> i think...
-	--> things do randomly not spawn a soul
+BUG: big transforms in small hallways lift above the map
+
+BUG: monsters sometimes fail to spawn a soul 
 	--> try moving the spawn call
-
-BUG: carry over of old edict_t data from prior spawn ( function pointers, etc ) that may cause crashes
-
-BUG: index overflow "crash" related to SV_FindIndex in sv_init.c call: out of bounds for model/sound/image index....wtf why?
-	--> spawning a monster only creates new configstrings if they don't exist ( is there a permap limit? instead of the global 256? )
-	--> may be due to edict_t carryover info not matching field numbers
-	--> edited SV_FindIndex overflow error to specify type: playtested => at some point after rank 5 spawn there is a SOUND index overflow
-	--> the MAX_SOUNDS is PER MAP, so each time i spawn a new monster type new sound, image, and model index configstrings are added to the server's set
-	--> which means it overflows as soon as enough different monster types are spawned
-
 
 BUG(?): changing areas/levels with an active follower crash ???
 
@@ -68,6 +55,7 @@ BUG(?): changing areas/levels with an active follower crash ???
 	--> tested in coop SOLUTION: change effect?
 
 *BUG: fix the clip into walls/ceilings when the host dies
+	--> pulling into host origin kind of works, but only works for immediate obliteration ( otherwise still stuck )
 
 BUG: death next to a barrel crash ( flyer )
 

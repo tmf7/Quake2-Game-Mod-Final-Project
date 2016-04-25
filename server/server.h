@@ -212,6 +212,7 @@ int SV_ModelIndex (char *name);
 int SV_SoundIndex (char *name);
 int SV_ImageIndex (char *name);
 int SV_ConfigIndex (char *name);
+void SV_SoundIndexCleanup ( void );
 
 void SV_WriteClientdataToMessage (client_t *client, sizebuf_t *msg);
 

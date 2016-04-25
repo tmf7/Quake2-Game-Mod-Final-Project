@@ -208,6 +208,7 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 
 //=============================================
 
+char *COM_RootPath (char *in, char *out);
 char *COM_SkipPath (char *pathname);
 void COM_StripExtension (char *in, char *out);
 void COM_FileBase (char *in, char *out);
@@ -1202,8 +1203,3 @@ typedef struct
 extern int vidref_val;
 // PGM
 // ==================
-
-// list of the map-spawned monster names, and which monster-type each client is possessing
-// the server will remove all other unused monster-type sounds in SV_FindIndex
-#define MAX_SPAWN_TYPES		22
-char	naturalSpawns[MAX_SPAWN_TYPES][28];		// TMF7 GHOST MODE ( soundindex configstring upkeep )

@@ -353,7 +353,8 @@ void SV_InitGameProgs (void)
 	import.soundindex = SV_SoundIndex;
 	import.imageindex = SV_ImageIndex;
 
-	import.configindex = SV_ConfigIndex;		// TMF7 GHOST MODE ( finding soul names )
+	import.soundindexcleanup = SV_SoundIndexCleanup;	// TMF7 GHOST MODE ( soundindex maintenance )
+	import.configindex = SV_ConfigIndex;				// TMF7 GHOST MODE ( finding soul names )
 	import.configstring = PF_Configstring;
 	import.sound = PF_StartSound;
 	import.positioned_sound = SV_StartSound;
