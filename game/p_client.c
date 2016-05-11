@@ -1661,7 +1661,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
 		{
 			pm.snapinitial = true;
-	//		gi.dprintf ("pmove changed!\n");
+		//	gi.dprintf ("pmove changed!\n");
 		}
 
 		pm.cmd = *ucmd;

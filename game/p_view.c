@@ -995,7 +995,7 @@ void ThirdPerson( edict_t *ent ) {
 	cameraDistance = (target->mins[0] - target->maxs[0]) * 2;
 	cameraHeight = (target->maxs[2] + target->mins[2]);
 	VectorMA(ownerv, cameraDistance, forward, o); 
-	o[2] = cameraHeight;
+	o[2] += cameraHeight;
 
 	if (o[2] < ent->s.origin[2] + 20)
 		o[2] = ent->s.origin[2] + 20;
@@ -1004,7 +1004,7 @@ void ThirdPerson( edict_t *ent ) {
 	if (!ent->groundentity)
 		o[2] += 16;
 
-	trace = gi.trace(ownerv, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	trace = gi.trace(ownerv, target->mins, target->maxs, o, ent, MASK_ALL);
 	VectorCopy(trace.endpos, goal);
 
 	VectorMA(goal, 2, forward, goal);
@@ -1012,7 +1012,7 @@ void ThirdPerson( edict_t *ent ) {
 	// pad for floors and ceilings
 	VectorCopy(goal, o);
 	o[2] += 6;
-	trace = gi.trace(goal, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_SOLID);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal[2] -= 6;
@@ -1020,7 +1020,7 @@ void ThirdPerson( edict_t *ent ) {
 
 	VectorCopy(goal, o);
 	o[2] -= 6;
-	trace = gi.trace(goal, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_SOLID);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal[2] += 6;
@@ -1030,14 +1030,13 @@ void ThirdPerson( edict_t *ent ) {
 	ent->client->ps.pmove.origin[1] =  goal[1]*8.0;
 	ent->client->ps.pmove.origin[2] =  goal[2]*8.0;
 
-	gi.dprintf("ENTO  = %s\nPMOVE = %i %i %i\n\n", vtos(ent->s.origin), ent->client->ps.pmove.origin[0], ent->client->ps.pmove.origin[1], ent->client->ps.pmove.origin[2] );
+	//gi.dprintf("ENTO  = %s\nPMOVE = %i %i %i\n\n", vtos(ent->s.origin), ent->client->ps.pmove.origin[0], ent->client->ps.pmove.origin[1], ent->client->ps.pmove.origin[2] );
 
 	//necessary?
 	for (i=0 ; i<3 ; i++)						//TMF7 player movement direction, reative to the target CLIENT
 		 ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->v_angle[i] - ent->client->resp.cmd_angles[i]);
 
 	VectorCopy(ent->client->v_angle, ent->client->ps.viewangles);	//TMF7 where the player looks
-	VectorCopy(ent->client->v_angle, ent->client->v_angle);
 
 	gi.linkentity(ent);
 

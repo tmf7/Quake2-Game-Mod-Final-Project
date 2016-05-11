@@ -1,21 +1,22 @@
 ON DECK:
 
+-> third person cam fidgets up and down rapidly
+	--> commenting out ThirdPerson fixes self-vibration, but still vibrates upon host possession
+	--> flipper and sometimes flyer/etc causes continuous doward motion (then snap up to above)
+
+-> when changing areas drop the husk, host, and follower
+
 -> fly/swim needs an ENEMY to do a vertical move up/down, CHANGE THAT ( especially for uberhost/followers )
-	--> currently set enemy = benign host_target and viola... doesn't seem to attack the light, but also never actually touches it like it should
 	--> write a new M_WalkMove that takes a vec3_t instead of just yaw and pass that to SV_MoveStep to create the new potential origin
-	--> only problem is that everyone would fly....no, just check for FL_FLY|FL_SWIM ( and groundEntity ) and clamp accordingly
-	--> MAY EXPLAIN WHY A POSSESSED FLYER causes a crash if its enemy explodes/is freed like a barrel is
+	--> check for FL_FLY|FL_SWIM ( and groundEntity ) and clamp accordingly
 
-
-->(1of2): getRidOfWeapon ==> gunindex = 0 still allows firing ( yet newweapon = NULL crashes ) => replace weaponthink qualifiers (ghostmode, hostmode)
-
-->(2of2): if a husk is active between scenes/levels then notarget remains active despite ghostmode deactiveating and husk disappearing
-	-> flags get saved into savedFlags in PERSISTANT DATA
-	-> solution: actively clear the husk between scenes
+-> slightly adjust each vertical pixel count for the soul abilities in host mode (last one overlaps just a bit)
 
 -> soul abilities and collection NOT PERSISTANT between areas/levels (fix that)
 
 -> soul abilities etc not SAVED ( in save.c )
+
+--> make installation README ( not a batch )
 
 ___________________________
 TODO:
@@ -35,38 +36,30 @@ TODO:
 
 -> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
 
--> develop proper third person chasecam (note: the client is the human view, the player is the entity being moved around)
-
---> make installation README ( not a batch )
-
--> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on super shotgun...but works in coop...WHAT? )
+-> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on generic weapon...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
+	--> or maybe the skinnum isnt resoved in the way I think it is
+	--> IT WORKS UPON PLAYER RESPAWN! (except the effect)
 
 ___________________________________________________________
 
-BUG: big transforms in small hallways lift above the map
 
-BUG: monsters sometimes fail to spawn a soul 
-	--> try moving the spawn call
-
-BUG(?): changing areas/levels with an active follower crash ???
-
-*BUG: the player does not appear translucent ( nor does the husk, which is correct ) 
-	--> tested in coop SOLUTION: change effect?
-
-*BUG: fix the clip into walls/ceilings when the host dies
-	--> pulling into host origin kind of works, but only works for immediate obliteration ( otherwise still stuck )
-
-BUG: death next to a barrel crash ( flyer )
-
-BUG: host PITCH changes too much 
-	--> solution: clamp the v_angle OR proper chasecam may resolve the issue
-	--> ALSO: set pitch and roll to zero when dropping host ( to prevent permalean )
+BUG: currently RANDOMLY crashes after getting stuck when using the host_target mod for the SV_MoveStep function in m_move.c ( for flyers )
+	--> maybe because a host_target is assigned via rodeo, then it finds its own enemy (or something) such that the uberhost/rodeo information is jumbled
+	--> and/or null inappropriately
 
 BUG: ducks TOO MUCH/REPEATEDLY ... right into floors if duck, then duck-shoot ( bbox lowerd, then again )
 	// specifically write a new duck move (if the monster has the animations )
 	// set an array, make a callback to it, declare in possessed.h
 	// check if the host is already ducked/standing before performing the move/transition
+	-->Idea: use duck and jump for the same type of swimming move the player does for the flying monsters in uberhost
+
+BUG(?): crash when monster has enemy ( player ) and host says hi, then drops the follower with "stay" command
+	--> or not, that one's hard to replicate
+
+BUG(?): changing areas/levels crash if:
+	--> active follower
+	--> another player has a host
 ____________________________________________________________
 
 f = "ghost"
@@ -87,11 +80,7 @@ cheatcode: soullevel [1-5] ( default displays usage )
 
 cheatcode: give souls ### ( sets the current pool_of_souls )
 
-______________________________________________
+_____________________________________________________________
+		// add a teleportation effect
+		self->s.event = EV_PLAYER_TELEPORT;
 
-EXTRA:
-
-->allow host persistance between levels/areas 
-	--> spawn a husk near the new player spawn point
-	--> spawn same class as old host and TakeHost
-	--> only when able to warp_husk at higher levels

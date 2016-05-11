@@ -471,7 +471,9 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 	// just align the BBOX bottoms
 	self->s.origin[0] = self->client->host->s.origin[0];
 	self->s.origin[1] = self->client->host->s.origin[1];
-	self->s.origin[2] = self->client->host->absmin[2] - self->mins[2];
+
+	//essenstially absmin[2] - mins[2], except using absmin[2] causes vertical shake
+	self->s.origin[2] = (self->client->host->mins[2] + self->client->host->s.origin[2]) - self->mins[2]; 
 	gi.linkentity(self);
 	
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
