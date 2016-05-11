@@ -96,6 +96,13 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 
 	targ->enemy = attacker;
 
+// TMF7 BEGIN GHOST MODE
+	if ( targ->owner && targ->owner->client && !targ->possessed )
+		DropFollower( targ->owner );
+	if ( targ->owner && targ->owner->client && targ->possessed && inflictor != targ->owner )
+		DropHost( targ->owner, HOST_DEATH ); 
+// TMF7 END GHOST MODE
+
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD))
 	{
 //		targ->svflags |= SVF_DEADMONSTER;	// now treat as a different content type

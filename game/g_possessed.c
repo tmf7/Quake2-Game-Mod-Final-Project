@@ -458,27 +458,13 @@ void HostSpeak( edict_t *self, int input_type) {
 	self->client->chaseHostTime = level.time + DOUBLE_CLICK;
 }
 
+// precondition: a valid host exists
 void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 { 
 	char		*selected_move;
 	float		yaw;
 	trace_t		tr;
 	
-	if ( !self || !host ) { return; }
-
-	// may need to verify the classname if the follwer dies and the address is filled with some other entity
-	if ( self->client->host_follower 
-		&& ( self->client->host_follower->deadflag != DEAD_NO || Q_strncasecmp( self->client->host_follower->classname, "monster_", 8 ) ) ) {
-
-		DropFollower( self );
-	}
-
-	if ( host->deadflag != DEAD_NO ) { 
-		
-		DropHost( self, HOST_DEATH ); 
-		return; 
-	}
-
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
 		self->client->orderIssued = false;
@@ -588,6 +574,16 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 void DropHost ( edict_t *self, int drop_style ) 
 {
 	hmove_t *perform_move;
+	edict_t *host;
+
+	host = self->client->host;
+
+	if ( !host )
+		return;
+	else if ( !host->inuse || strncmp( host->classname, "monster_", 8 ) ) {
+		self->client->host = NULL;
+		return;
+	}
 
 	gi.sound ( self->client->host, CHAN_VOICE, gi.soundindex( self->client->host->drop_host_noise ), 1, ATTN_NORM, 0);
 
@@ -662,6 +658,10 @@ void DropFollower( edict_t *self ) {
 
 	if ( !follower )
 		return;
+	else if ( !follower->inuse || strncmp( follower->classname, "monster_", 8 ) ) {
+		self->client->host_follower = NULL;
+		return;
+	}
 
 	if ( follower->deadflag == DEAD_NO ) {
 
@@ -847,8 +847,6 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 	if ( !other->client || other->deadflag != DEAD_NO || !other->client->ghostmode ) 
 		{ return; }
 
-	new_soul_collector_level = 1;
-
 	//pickup verification
 	other->client->bonus_alpha = 0.35;
 	gi.sound ( other, CHAN_ITEM, gi.soundindex("soul/pickupsoul.wav") , 1, ATTN_NORM, 0);
@@ -868,8 +866,9 @@ void monster_soul_touch ( edict_t *soul, edict_t *other, cplane_t *plane, csurfa
 
 	index = GetCollectionIndex(soul->classname);
 	other->client->soulCollection[ index ]++;
-
+	
 	// balance these level thresholds better
+													  new_soul_collector_level = 1;
 	if (	other->client->pool_of_souls >= 5	)	{ new_soul_collector_level = 2; }
 	if (	other->client->pool_of_souls >= 30	)	{ new_soul_collector_level = 3; }
 	if (	other->client->pool_of_souls >= 100	)	{ new_soul_collector_level = 4; }
@@ -888,6 +887,8 @@ void monster_soul_think ( edict_t *soul ) {
 
 	int num;
 	char *sound;
+	vec3_t point;
+	edict_t *ent;
 
 	if ( level.time >= soul->soulSpawnTime ) {	
 		soul->touch = monster_soul_touch;
@@ -902,6 +903,20 @@ void monster_soul_think ( edict_t *soul ) {
 
 	if ( soul->owner && soul->groundentity ) {
 		monster_soul_pull( soul->owner, soul );
+	}
+
+	//check if any one client is within touching distance
+	if ( soul->touch ) {
+		for ( ent = &g_edicts[1]; ent <= &g_edicts[game.maxclients]; ent++ )
+			if ( ent && ent->inuse && ent->client->ghostmode ) {
+
+			VectorSubtract( ent->s.origin, soul->s.origin, point );
+
+			if ( VectorLength(point) < GHOST_RANGE ) { 	
+				soul->touch( soul, ent, NULL, NULL ); 
+				return;
+			}
+		}
 	}
 
 	//jump back to idle animation if outside it
@@ -963,7 +978,7 @@ void SP_LostMonsterSoul ( edict_t *self ) {
 	soul->mSoulFirstFrame	= move->firstframe;
 	soul->mSoulLastFrame	= move->lastframe;
 
-	soul->solid			= SOLID_TRIGGER;
+	soul->solid			= SOLID_NOT;
 	soul->clipmask		= self->clipmask;
 	soul->flags		   |= FL_NO_KNOCKBACK;					// set additional flags in monster_soul_think
 	soul->svflags		= SVF_SOUL;							// allow server-side per-client visiblity check
@@ -1283,6 +1298,30 @@ void player_husk_touch ( edict_t *self, edict_t *other ) {
 	} 
 }
 
+//returns soul entities that have origins within a spherical area
+edict_t *findSouls (edict_t *from, vec3_t org, float rad)
+{
+	vec3_t	eorg;
+	int		j;
+
+	if (!from)
+		from = g_edicts;
+	else
+		from++;
+	for ( ; from < &g_edicts[globals.num_edicts]; from++)
+	{
+		if (!from->inuse)
+			continue;
+		for (j=0 ; j<3 ; j++)
+			eorg[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j])*0.5);
+		if (VectorLength(eorg) > rad)
+			continue;
+		return from;
+	}
+
+	return NULL;
+}
+
 void ghostmode_protocols ( edict_t *self ) {
 
 	int			i, num;
@@ -1353,7 +1392,7 @@ void ghostmode_protocols ( edict_t *self ) {
 	if ( self->client->soul_abilities & PULL_SOULS ) {
 
 		other = NULL;
-		while ( ( other = findradius( other, self->s.origin, SOUL_RANGE ) ) != NULL )	{
+		while ( ( other = findSouls( other, self->s.origin, SOUL_RANGE ) ) != NULL )	{
 
 			if ( !(other->svflags & SVF_SOUL) )
 				continue;
@@ -1368,23 +1407,6 @@ void ghostmode_protocols ( edict_t *self ) {
 			}
 		}
 	}
-
-	// touch souls
-	num = gi.BoxEdicts (self->absmin, self->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
-
-	for ( i = 0; i < num; i++ )
-	{
-		other = touch[i];
-		if (!other->inuse)
-			continue;
-		if (!other->touch)
-			continue;
-		if ( !(other->svflags & SVF_SOUL) )
-			continue;
-		if ( other->client )
-			continue;
-		other->touch (other, self, NULL, NULL);
-	}
 }
 
 void husk_think ( edict_t *husk ) {
@@ -1392,7 +1414,6 @@ void husk_think ( edict_t *husk ) {
 	vec3_t point;
 	int cont;
 	gclient_t *client;
-	edict_t *other;
 
 	if ( !husk || ( husk->classname && Q_strcasecmp( husk->classname, "player_husk" ) ) ) { return; } 
 
@@ -1401,14 +1422,12 @@ void husk_think ( edict_t *husk ) {
 
 	//check if the owner is within touching distance
 	if ( !client->hostmode && level.time > husk->huskBeginSearchTime ) {
-		other = NULL;
 
-		while ( ( other = findradius( other , husk->s.origin, GHOST_RANGE ) ) != NULL )	{
+		VectorSubtract( husk->owner->s.origin, husk->s.origin, point );
 
-			if ( other == husk->owner && husk->owner->husktouch ) { 	
-				husk->owner->husktouch ( husk->owner, husk ); 
-				return;
-			}
+		if ( VectorLength(point) < GHOST_RANGE ) { 	
+			husk->owner->husktouch ( husk->owner, husk ); 
+			return;
 		}
 	}
 
@@ -1508,7 +1527,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->s.modelindex2 = self->s.modelindex2;				// custom gun model (change this to something else?)
 	husk->s.modelindex3 = self->s.modelindex3;				// ctf
 	husk->s.modelindex4 = self->s.modelindex4;				// derp
-	husk->s.skinnum		= self->s.skinnum;
+	//husk->s.skinnum		= self->s.skinnum;
 
 	husk->s.renderfx	= self->s.renderfx;	
 	husk->s.effects		= self->s.effects;	
@@ -1874,6 +1893,9 @@ void Cmd_Transform_Host_f( edict_t *ent ) {
 	int lift, max_lift;
 	vec3_t neworg;
 
+	vec3_t	mins, maxs, start;
+	int		x, y;
+
 	host_t *trans;
 	trace_t	trace;
 	edict_t *host;
@@ -1921,12 +1943,13 @@ void Cmd_Transform_Host_f( edict_t *ent ) {
 		newClassname = NULL;
 		while ( !newClassname ) {
 
-			if ( uniqueAttempts == 22 ) {
+newTransformAttempt:
+			if ( uniqueAttempts == 21 ) { // one index is already used by host's current form
 				gi.centerprintf( ent, "NO ROOM TO TRANSFORM\n" );
 				return;
 			}
 
-			num = rand()%22;
+			num = rand()%22;	// check indexes 0 through 21 ( 22 possible monster types )
 
 			if ( attemptFlags & (1<<num) )
 				continue;
@@ -1942,24 +1965,39 @@ void Cmd_Transform_Host_f( edict_t *ent ) {
 
 				max_lift = 2*( trans->host_maxs[2] - trans->host_mins[2] );
 				VectorCopy( host->s.origin, neworg );
-				//neworg[2] += trans->host_mins[2];
 			//	gi.dprintf( "ATTEMPT MINS = %s\nATTEMPT MAXS = %s\nMAX_LIFT = %i\n\n", vtos(trans->host_mins), vtos(trans->host_maxs), max_lift);
 
 				for( lift = 0; lift <= max_lift; lift++ ) {
 
 					neworg[2] += lift;
-
 					// make sure there's room to transform
+
+					VectorAdd (neworg, trans->host_mins, mins);
+					VectorAdd (neworg, trans->host_maxs, maxs);
+
+					// if any of the points on top corners are solid world, try a different monster
+					start[2] = maxs[2] + 1;
+					for	(x=0 ; x<=1 ; x++) 
+					{
+						for	(y=0 ; y<=1 ; y++) 
+						{
+							start[0] = x ? maxs[0] : mins[0];
+							start[1] = y ? maxs[1] : mins[1];
+							if (gi.pointcontents (start) == CONTENTS_SOLID)
+								goto newTransformAttempt;
+						}
+					}
+
 					trace = gi.trace (neworg, trans->host_mins, trans->host_maxs, neworg, host, MASK_MONSTERSOLID);
-
-					// big monsters in small hallways get lifted above the map currently... ugh
-
+			
 					if ( !trace.startsolid && trace.fraction == 1 ) {
 
 						newClassname = trans->host_class;
 						VectorCopy( neworg, host->s.origin );
+
 						if (lift)
 							host->groundentity = NULL;
+
 						gi.linkentity( host );
 						break;
 					}

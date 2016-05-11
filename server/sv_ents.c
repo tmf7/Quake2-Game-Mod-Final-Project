@@ -574,8 +574,10 @@ void SV_BuildClientFrame (client_t *client)
 	for (e=1 ; e<ge->num_edicts ; e++)			// TMF7 GHOST MODE : this loop will decide if a particular client can see a particular entity
 	{											// IMPORTANT: changing this requires compiling the .exe and running that instead of the steam copy
 		ent = EDICT_NUM(e);
-
-//TMF7 BEGIN GHOST MODE
+//TMF7 BEGIN GHOST MODE		
+		
+		if (ent == clent) 
+			goto forceSelfDraw;
 		
 		// check if ent is a soul and if client is !ghostmode
 		// only souls can see other souls ( including coop player souls )
@@ -595,7 +597,7 @@ void SV_BuildClientFrame (client_t *client)
 			continue;
 
 		// ignore if not touching a PV leaf
-		if (ent != clent)
+		if (ent != clent)					// TMF7 GHOST MODE oes this condition ignore drawing the player's model to its own screen? ORIGINAL: if (ent != clent)
 		{
 			// check area
 			if (!CM_AreasConnected (clientarea, ent->areanum))
@@ -659,7 +661,7 @@ void SV_BuildClientFrame (client_t *client)
 		if (SV_AddProjectileUpdate(ent))
 			continue; // added as a special projectile
 #endif
-
+forceSelfDraw:													// TMF7 GHOST MODE
 		// add it to the circular client_entities array
 		state = &svs.client_entities[svs.next_client_entities%svs.num_client_entities];
 		if (ent->s.number != e)
@@ -667,6 +669,11 @@ void SV_BuildClientFrame (client_t *client)
 			Com_DPrintf ("FIXING ENT->S.NUMBER!!!\n");
 			ent->s.number = e;
 		}
+
+		if (ent == clent) {		//TMF7 GHOST MODE
+			Com_Printf ("FOUND MY ENT\nHEALTH = %i\nFRAME = %i\nSOLID = %i\n\n\n", clent->client->ps.stats[STAT_HEALTH], clent->s.frame, clent->s.solid );
+		}
+
 		*state = ent->s;
 
 		// don't mark players missiles as solid

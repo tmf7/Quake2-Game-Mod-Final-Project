@@ -559,11 +559,11 @@ void monster_death_use (edict_t *self)
 
 // TMF7 BEGIN GHOST MODE
 	SP_LostMonsterSoul( self );
-	
+
 	if ( self->enemy && self->enemy->possessed ) 
 		self->enemy->hostLaugh = true;
 // TMF7 END GHOST MODE
-	
+
 	if (self->item)
 	{
 		Drop_Item (self, self->item);

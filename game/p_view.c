@@ -991,6 +991,10 @@ void ClientEndServerFrame (edict_t *ent)
 		current_client->ps.pmove.velocity[i] = ent->velocity[i]*8.0;
 	}
 
+	current_client->ps.pmove.origin[0] =  (ent->s.origin[0]-100.0)*8.0;			// TMF7 GHOST MODE ( third person test )
+	ent->s.origin[0] = (current_client->ps.pmove.origin[0]*0.125)+100.0;
+	gi.linkentity (ent);
+
 	//
 	// If the end of unit layout is displayed, don't give
 	// the player any normal movement attributes
