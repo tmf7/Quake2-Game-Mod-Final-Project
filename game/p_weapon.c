@@ -210,7 +210,7 @@ void ChangeWeapon (edict_t *ent)
 
 	ent->client->weaponstate = WEAPON_ACTIVATING;
 	ent->client->ps.gunframe = 0;
-	ent->client->ps.gunindex = gi.modelindex(ent->client->pers.weapon->view_model);
+	//ent->client->ps.gunindex = gi.modelindex(ent->client->pers.weapon->view_model);		// TMF7 GHOST MODE ( vanilla )
 
 	ent->client->anim_priority = ANIM_PAIN;
 	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED)
@@ -289,7 +289,7 @@ void Think_Weapon (edict_t *ent)
 	}
 
 	// call active weapon think routine
-	if (ent->client->pers.weapon && ent->client->pers.weapon->weaponthink)
+	if (ent->client->pers.weapon && ent->client->pers.weapon->weaponthink && !(ent->client->ghostmode || ent->client->hostmode) )	// TMF7 GHOST MODE ( last twp condition )
 	{
 		is_quad = (ent->client->quad_framenum > level.framenum);
 		if (ent->client->silencer_shots)

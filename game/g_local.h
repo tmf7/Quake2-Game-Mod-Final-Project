@@ -634,6 +634,7 @@ enum drop_host_style {
 	HOST_NO_HARM,
 	HOST_KILL,
 	HOST_DEATH,
+	HOST_HUSK_DEATH
 };
 
 enum host_control_type {
@@ -1117,6 +1118,7 @@ struct gclient_s
 	edict_t			*host;
 	edict_t			*host_follower;
 	edict_t			*player_husk;
+	edict_t			*escape_host;
 //TMF7 END GHOST MODE
 
 };

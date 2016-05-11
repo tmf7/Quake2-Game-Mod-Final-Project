@@ -464,6 +464,15 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 	char		*selected_move;
 	float		yaw;
 	trace_t		tr;
+
+	// keep the player centered on the host
+	// if host->owner != self, then self will get stuck
+	// x and y match fine, but z must be checked because not all hosts origins are created at BBOX center
+	// just align the BBOX bottoms
+	self->s.origin[0] = self->client->host->s.origin[0];
+	self->s.origin[1] = self->client->host->s.origin[1];
+	self->s.origin[2] = self->client->host->absmin[2] - self->mins[2];
+	gi.linkentity(self);
 	
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
@@ -492,6 +501,9 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 	
 	// rodeo host controls
 	else {
+
+		self->client->host->s.angles[ROLL] = 0;
+		self->client->host->s.angles[PITCH] = 0;
 
 		if ( self->client->latched_buttons & BUTTON_ATTACK ) {
 
@@ -528,7 +540,7 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	host->hmove_list = NULL;
 
 	// coop soul collectors
-	if ( host->owner && host->owner->client && host->owner != self ) {
+	if ( host->owner && host->owner->client && host->owner->client->hostmode && host->owner != self ) {
 		gi.centerprintf ( self, "%s occupied by %s\n", host->classname, host->owner->client->pers.netname );
 		return;
 	}
@@ -557,11 +569,15 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
 	self->client->hostmode	= true;
+//	self->client->ps.pmove.pm_type = PM_SPECTATOR;
+
+	// hide the player model
+	self->svflags			= SVF_NOCLIENT;
 
 	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped? shouldn't matter
 				
 	//develop a proper chasecam
-	SetChaseTarget( self, host );
+	//SetChaseTarget( self, host );
 
 	switch ( take_style ) {
 		case HOST_TOUCH:	{ gi.centerprintf (self, "TOUCH POSSESSION OF: %s\n", host->classname ); break; }
@@ -593,8 +609,6 @@ void DropHost ( edict_t *self, int drop_style )
 
 		case HOST_KILL: { 
 
-			VectorCopy( self->client->host->s.origin, self->s.origin );
-			//gi.linkentity( self ); // to be safe???
 			// nail it ( courtesy of KillBox )
 			T_Damage ( self->client->host, self, self, vec3_origin, self->s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 			gi.centerprintf( self, "HOST OBLITERATED, GHOST MODE ENABLED\n" );
@@ -602,6 +616,8 @@ void DropHost ( edict_t *self, int drop_style )
 		}
 
 		case HOST_DEATH: { gi.centerprintf( self, "HOST DIED ON ITS OWN, GHOST MODE ENABLED\n" ); break; }
+		
+		case HOST_HUSK_DEATH: { gi.centerprintf( self, "YOU DIED\n" ); break; }
 	}
 
 	if ( self->client->host->host_target )	{ G_FreeEdict( self->client->host->host_target ); }
@@ -614,12 +630,21 @@ void DropHost ( edict_t *self, int drop_style )
 		if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
 	}
 
-	self->client->host->owner			= NULL;
+	// retain ownership for the duration of the cooldown (to avoid getting stuck)
+	//self->client->host->owner			= NULL;
+	self->client->escape_host			= host;
+
+	self->client->host->s.angles[ROLL]	= 0;
+	self->client->host->s.angles[PITCH] = 0;
 	self->client->host->possessed		= false;
 	self->client->host					= NULL;
 	self->client->hostmode				= false;
 	self->client->ghostmode				= true;
 	self->client->nextPossessTime		= level.time + 3.0f;
+//	self->client->ps.pmove.pm_type		= PM_NORMAL;
+
+	// show the player model again
+	self->svflags						= 0;
 }
 
 void TakeFollower( edict_t *self, edict_t *follower ) {
@@ -1253,6 +1278,15 @@ void player_husk_touch ( edict_t *self, edict_t *other ) {
 		self->client->hostmode = false;
 		self->client->ghostmode = false;
 
+		// allow repossession of old host
+		if ( self->client->escape_host ) {
+		
+			if ( self->client->escape_host->owner && self->client->escape_host->owner == self )
+				self->client->escape_host->owner = NULL;
+
+			self->client->escape_host = NULL;
+		}
+
 		self->s.renderfx &= ~RF_TRANSLUCENT;
 		self->flags &= ~FL_NOTARGET;
 		self->takedamage = DAMAGE_AIM;
@@ -1292,9 +1326,7 @@ void player_husk_touch ( edict_t *self, edict_t *other ) {
 
 		gi.linkentity( self );
 
-	//	self->client->ps.gunindex = gi.modelindex(self->client->pers.weapon->view_model);
-		self->client->newweapon = self->client->pers.lastweapon;							// crashes between scenes
-		ChangeWeapon( self );
+		//self->client->ps.gunindex = gi.modelindex(self->client->pers.weapon->view_model);
 	} 
 }
 
@@ -1330,10 +1362,17 @@ void ghostmode_protocols ( edict_t *self ) {
 	edict_t		*other;
 	edict_t		*touch[MAX_EDICTS];
 
-	if ( self && self->client ) { client = self->client; }
-	else { return; }
-
+	client = self->client;
 	self->svflags |= SVF_SOUL;				// allow server-side per-client monster-soul visiblity check
+
+	// allow repossession of old host
+	if ( level.time >= client->nextPossessTime && client->escape_host ) {
+		
+		if ( client->escape_host->owner && client->escape_host->owner == self )
+			client->escape_host->owner = NULL;
+
+		client->escape_host = NULL;
+	}
 
 	//radial possession in ClientCommand
 	if ( client->soul_abilities & TARGETED_POSSESSION ) {
@@ -1585,9 +1624,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	self->flags			|= FL_NOTARGET;						// This can be a AI_SightClient crash issue ( fixed )
 	self->takedamage	= DAMAGE_NO;								
 
-//	self->client->ps.gunindex = 0;							// doesn't prevent firing
-	self->client->newweapon = NULL;							// crashes between scenes
-	ChangeWeapon( self );
+	//self->client->ps.gunindex = 0;							// doesn't prevent firing on its own
 
 	//not a PlayerNoise, to avoid alerting monsters
 	gi.sound ( husk, CHAN_VOICE, gi.soundindex ("husk/leavehusk.wav"), 1, ATTN_NORM, 0);

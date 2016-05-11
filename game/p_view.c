@@ -957,6 +957,92 @@ newanim:
 	}
 }
 
+//TMF7 BEGIN GHOST MODE
+
+//keeps the viewport behind the player according to its size (which may vary depending on host size)
+void ThirdPerson( edict_t *ent ) {
+
+	vec3_t o, ownerv, goal;
+	trace_t trace;
+	int i;
+	vec3_t angles, forward;
+	edict_t *host, *target;
+
+	float cameraDistance, cameraHeight;
+
+	///////////////////////////////////////////////////////////////////
+	// put an if statement in here that checks if third person is enabled, 
+	// then just return without affecting viewport
+	//////////////////////////////////////////////////////////////
+
+	host = ent->client->host;
+
+	VectorCopy(ent->s.origin, ownerv);
+	ownerv[2] += ent->viewheight;
+	VectorCopy(ent->client->v_angle, angles);
+
+	if (angles[PITCH] > 56)
+		angles[PITCH] = 56;
+	AngleVectors (angles, forward, NULL, NULL);
+	VectorNormalize(forward);
+
+	if ( host )	
+		target = host;
+	else
+		target = ent;
+
+	// viewport position behind and above
+	cameraDistance = (target->mins[0] - target->maxs[0]) * 2;
+	cameraHeight = (target->maxs[2] + target->mins[2]);
+	VectorMA(ownerv, cameraDistance, forward, o); 
+	o[2] = cameraHeight;
+
+	if (o[2] < ent->s.origin[2] + 20)
+		o[2] = ent->s.origin[2] + 20;
+
+	// jump animation lifts
+	if (!ent->groundentity)
+		o[2] += 16;
+
+	trace = gi.trace(ownerv, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	VectorCopy(trace.endpos, goal);
+
+	VectorMA(goal, 2, forward, goal);
+	
+	// pad for floors and ceilings
+	VectorCopy(goal, o);
+	o[2] += 6;
+	trace = gi.trace(goal, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	if (trace.fraction < 1) {
+		VectorCopy(trace.endpos, goal);
+		goal[2] -= 6;
+	}
+
+	VectorCopy(goal, o);
+	o[2] -= 6;
+	trace = gi.trace(goal, vec3_origin, vec3_origin, o, ent, MASK_SOLID);
+	if (trace.fraction < 1) {
+		VectorCopy(trace.endpos, goal);
+		goal[2] += 6;
+	}
+	
+	ent->client->ps.pmove.origin[0] =  goal[0]*8.0;
+	ent->client->ps.pmove.origin[1] =  goal[1]*8.0;
+	ent->client->ps.pmove.origin[2] =  goal[2]*8.0;
+
+	gi.dprintf("ENTO  = %s\nPMOVE = %i %i %i\n\n", vtos(ent->s.origin), ent->client->ps.pmove.origin[0], ent->client->ps.pmove.origin[1], ent->client->ps.pmove.origin[2] );
+
+	//necessary?
+	for (i=0 ; i<3 ; i++)						//TMF7 player movement direction, reative to the target CLIENT
+		 ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->v_angle[i] - ent->client->resp.cmd_angles[i]);
+
+	VectorCopy(ent->client->v_angle, ent->client->ps.viewangles);	//TMF7 where the player looks
+	VectorCopy(ent->client->v_angle, ent->client->v_angle);
+
+	gi.linkentity(ent);
+
+}
+// TMF7 END GHOST MODE
 
 /*
 =================
@@ -991,9 +1077,7 @@ void ClientEndServerFrame (edict_t *ent)
 		current_client->ps.pmove.velocity[i] = ent->velocity[i]*8.0;
 	}
 
-	current_client->ps.pmove.origin[0] =  (ent->s.origin[0]-100.0)*8.0;			// TMF7 GHOST MODE ( third person test )
-	ent->s.origin[0] = (current_client->ps.pmove.origin[0]*0.125)+100.0;
-	gi.linkentity (ent);
+	ThirdPerson(ent);	// TMF7 GHOST MODE
 
 	//
 	// If the end of unit layout is displayed, don't give
@@ -1023,7 +1107,7 @@ void ClientEndServerFrame (edict_t *ent)
 		ent->s.angles[PITCH] = ent->client->v_angle[PITCH]/3;	
 	ent->s.angles[YAW] = ent->client->v_angle[YAW];		
 	ent->s.angles[ROLL] = 0;
-	ent->s.angles[ROLL] = SV_CalcRoll (ent->s.angles, ent->velocity)*4;	
+	ent->s.angles[ROLL] = SV_CalcRoll (ent->s.angles, ent->velocity)*4;			// TMF7 GHOST MODE ( vanilla commmented )
 
 	//
 	// calculate speed and cycle to be used for
@@ -1061,7 +1145,7 @@ void ClientEndServerFrame (edict_t *ent)
 	P_DamageFeedback (ent);
 
 	// determine the view offsets
-	SV_CalcViewOffset (ent);
+	SV_CalcViewOffset (ent);					// TMF7 GHOST MODE ( vanilla commmented )
 
 	// determine the gun offsets
 	SV_CalcGunOffset (ent);

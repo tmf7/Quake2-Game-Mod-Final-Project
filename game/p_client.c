@@ -503,19 +503,8 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 //TMF7 BEGIN GHOST MODE
 	edict_t *husk = self->client->player_husk;
-	edict_t *host = self->client->host;
-
-	//drop the host
-	if ( host ) {
-		self->client->hostmode = false;
-		self->client->ghostmode = true;
-		self->client->host = NULL;
-		UpdateChaseCam( self );		//TMF7 THIRD PERSON	( ensure the host is fully dropped )
-	}
-
-	self->client->hostmode = false;
-	self->client->ghostmode = false;
-
+	
+	DropHost(self, HOST_HUSK_DEATH);
 	//pull back to the husk
 	if ( husk && husk->classname && !Q_strcasecmp( husk->classname, "player_husk" ) && self->husktouch ) {
 		self->husktouch( self, husk ); 
@@ -1192,6 +1181,7 @@ void PutClientInServer (edict_t *ent)
 	ent->deadflag = DEAD_NO;
 	ent->air_finished = level.time + 12;
 	ent->clipmask = MASK_PLAYERSOLID;
+	//client->ps.fov = atoi(Info_ValueForKey(client->pers.userinfo, "fov"));		// userinfo to set the skin because it works fine on death respawn
 	ent->model = "players/male/tris.md2";
 	ent->pain = player_pain;
 	ent->die = player_die;
@@ -1244,7 +1234,7 @@ void PutClientInServer (edict_t *ent)
 			client->ps.fov = 160;
 	}
 
-	client->ps.gunindex = gi.modelindex(client->pers.weapon->view_model);
+	client->ps.gunindex = 0; //gi.modelindex(client->pers.weapon->view_model);		// TMF7 GHOST MODE ( vanilla commented )
 
 	// clear entity state values
 	ent->s.effects = 0;
@@ -1639,49 +1629,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 
 	pm_passent = ent;
 
-//TMF7 BEGIN GHOST MODE 
-
-	// the placement of these two needs to be above the normal pm stuff it looks like)
-	// otherwise game crashes when **host dies on its own**)
-	
-	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
-	else { 
-		ent->svflags &= ~SVF_SOUL;
-
-		if ( ent->client->soul_abilities & DRAIN_LIFE ) {
-			ent->client->soul_abilities &= ~DRAIN_LIFE;
-			gi.cprintf( ent, PRINT_HIGH, "Drain Life OFF\n" );
-		}
-	}
-
-	if ( client->soul_abilities & DETECT_LIFE ) { detect_life ( ent ); }
-
-	if ( client->hostmode ) {		// the host may be null goint into this check, should be okay
-
-		//pm needs to be processed for proper host_target positioning
-
-		pm.s = client->ps.pmove;
-		pm.cmd = *ucmd;
-
-		// get the validated move info based on key presses
-		// used to set host yaw, "v_angle" and currentmove
-		gi.Pmove (&pm);
-
-		VectorCopy (pm.viewangles, client->v_angle);
-		VectorCopy (pm.viewangles, client->ps.viewangles);
-
-		client->host->possesed_think( ent, client->host, &pm );
-	}
-
-	if ( client->chase_target ) { UpdateChaseCam( ent ); }		// takes care of player's gi.linkentity (ent);
-	
-	if ( client->numOrbitingSouls ) { UpdateSoulShield( ent ); }
-
-	// actively update readouts
-//	if ( ent->client->showcollection )	{ SoulCollection( ent ); }
-//	if ( ent->client->showabilities )	{ SoulAbilities( ent );  }
-//TMF7 END GHOST MODE
-
 	if (ent->client->chase_target) {			//TMF7 vanilla chasecam stuff (this prevents normal pm processing)
 
 		client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
@@ -1836,6 +1783,27 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		if (other->inuse && other->client->chase_target == ent)
 			UpdateChaseCam(other);
 	}
+
+//TMF7 BEGIN GHOST MODE 
+
+	if ( client->ghostmode )	{ ghostmode_protocols( ent ); }
+	else { 
+		ent->svflags &= ~SVF_SOUL;
+
+		if ( ent->client->soul_abilities & DRAIN_LIFE ) {
+			ent->client->soul_abilities &= ~DRAIN_LIFE;
+			gi.cprintf( ent, PRINT_HIGH, "Drain Life OFF\n" );
+		}
+	}
+
+	if ( client->soul_abilities & DETECT_LIFE ) { detect_life ( ent ); }
+
+	if ( client->hostmode ) { client->host->possesed_think( ent, client->host, &pm ); }
+
+	if ( client->numOrbitingSouls ) { UpdateSoulShield( ent ); }
+
+//TMF7 END GHOST MODE
+
 }
 
 

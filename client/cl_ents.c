@@ -1037,7 +1037,7 @@ void CL_AddPacketEntities (frame_t *frame)
 			else if (effects & EF_TRACKERTRAIL)					//PGM
 				V_AddLight (ent.origin, 225, -1.0, -1.0, -1.0);	//PGM
 
-			continue;
+		//	continue;
 		}
 
 		// if set to invisible, skip
