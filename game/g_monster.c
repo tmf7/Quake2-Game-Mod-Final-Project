@@ -457,7 +457,7 @@ void monster_think (edict_t *self)
 			self->ideal_yaw = vectoyaw(owner_vec);
 			M_ChangeYaw( self );
 		}
-	}
+	} 
 //TMF7 END GHOST MODE
 
 	M_MoveFrame (self);			//TMF7 this resolves the monsterinfo.currentmove aifunc and thinkfunc

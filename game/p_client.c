@@ -1635,12 +1635,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
 		client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
-	} else {
+	} else {	
 
 		// set up for pmove
 		memset (&pm, 0, sizeof(pm));
 
-		if (ent->movetype == MOVETYPE_NOCLIP)
+		if (ent->movetype == MOVETYPE_NOCLIP )
 			client->ps.pmove.pm_type = PM_SPECTATOR;
 		else if (ent->s.modelindex != 255)
 			client->ps.pmove.pm_type = PM_GIB;
@@ -1649,7 +1649,11 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
 
-		client->ps.pmove.gravity = sv_gravity->value;
+		if ( !client->hostmode )								// TMF7 GHOST MODE ( async flyer fall-loop origin hack )
+			client->ps.pmove.gravity = sv_gravity->value;
+		else
+			client->ps.pmove.gravity = 0;
+
 		pm.s = client->ps.pmove;
 
 		for (i=0 ; i<3 ; i++)
@@ -1675,7 +1679,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 		// save results of pmove
 		client->ps.pmove = pm.s;
 		client->old_pmove = pm.s;
-
+		
+		
 		for (i=0 ; i<3 ; i++)
 		{
 			ent->s.origin[i] = pm.s.origin[i]*0.125;
@@ -1795,7 +1800,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 			gi.cprintf( ent, PRINT_HIGH, "Drain Life OFF\n" );
 		}
 	}
-
+	
 	if ( client->soul_abilities & DETECT_LIFE ) { detect_life ( ent ); }
 
 	if ( client->hostmode ) { client->host->possesed_think( ent, client->host, &pm ); }
@@ -1803,7 +1808,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)		//TMF7 player command handling
 	if ( client->numOrbitingSouls ) { UpdateSoulShield( ent ); }
 
 //TMF7 END GHOST MODE
-
 }
 
 

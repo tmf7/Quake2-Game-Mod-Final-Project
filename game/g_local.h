@@ -842,6 +842,7 @@ void InitClientPersistant (gclient_t *client);
 void InitClientResp (gclient_t *client);
 void InitBodyQue (void);
 void ClientBeginServerFrame (edict_t *ent);
+trace_t	PM_trace (vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);	// TMF7 GHOST MODE ( third person )
 
 //
 // g_player.c

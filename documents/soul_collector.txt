@@ -1,22 +1,14 @@
 ON DECK:
 
--> third person cam fidgets up and down rapidly
-	--> commenting out ThirdPerson fixes self-vibration, but still vibrates upon host possession
-	--> flipper and sometimes flyer/etc causes continuous doward motion (then snap up to above)
+-> flyer just pivots in place when close-ish to ground in hostmode, but moves away fine if released unharmed
 
 -> when changing areas drop the husk, host, and follower
-
--> fly/swim needs an ENEMY to do a vertical move up/down, CHANGE THAT ( especially for uberhost/followers )
-	--> write a new M_WalkMove that takes a vec3_t instead of just yaw and pass that to SV_MoveStep to create the new potential origin
-	--> check for FL_FLY|FL_SWIM ( and groundEntity ) and clamp accordingly
 
 -> slightly adjust each vertical pixel count for the soul abilities in host mode (last one overlaps just a bit)
 
 -> soul abilities and collection NOT PERSISTANT between areas/levels (fix that)
 
 -> soul abilities etc not SAVED ( in save.c )
-
---> make installation README ( not a batch )
 
 ___________________________
 TODO:
@@ -32,9 +24,7 @@ TODO:
 	--> make non-ghost clients that approach each other get pushed back and svc_temp_entity an explosion in-between ( no touching )
 	--> check win-condition and end game
 	
--> give drain life an effect in 3rd person ( so its obvious )
-
--> test co-op for ent visible ( hud stuff, ghost stuff ), and if only the user can see the detect-life lines
+-> test co-op for ent visible ( hud stuff, ghost stuff, print stuff ), and if only the user can see the detect-life lines
 
 -> husk holds a weapon (ideally that looks like the players current weapon)...meh ( stuck on generic weapon...but works in coop...WHAT? )
 	--> REASONING: the player doesn't have a per-weapon worldmodel in first person
@@ -83,4 +73,18 @@ cheatcode: give souls ### ( sets the current pool_of_souls )
 _____________________________________________________________
 		// add a teleportation effect
 		self->s.event = EV_PLAYER_TELEPORT;
+
+______________________________________________________________
+FIXED BUG:
+
+-> third person cam fidgets up and down rapidly
+	--> Player camera figet was because ent->client->ps.pmove.gravity affected the pmove[z] after ThirdPerson call
+		---> setting pmove.gravit 0 in ThirdPerson fixes this
+	--> host camera figet was because of self->s.origin[2] = host->absmin[2] - self->mins[2]; in monster_think_possessed
+		---> using the host origin and mins explicitly ( instead of absmin )fixes this
+	--> flipper/flyer continuous drop then return to top caused by player origin continuously falling due to no groundentity yet following host origin
+		---> setting pmove.gravity = 0 for ClientThink in hostmode fixes this
+	--> All three of these solutions avoid the bigger issue of misaligned origins to begin with
+		---> the better soluitons would be to fix the player origin better in hostmode and do the ThirdPerson call AFTER ALL gravity is resolved
+	--> BONUS: doing a full pmove in ThirdPerson actually keeps the camera in thirdperson upon player death; NOT forces pmove back to first person
 

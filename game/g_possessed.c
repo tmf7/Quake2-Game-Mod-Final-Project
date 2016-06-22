@@ -469,13 +469,12 @@ void monster_think_possesed( edict_t *self, edict_t *host, const pmove_t *pm )
 	// if host->owner != self, then self will get stuck
 	// x and y match fine, but z must be checked because not all hosts origins are created at BBOX center
 	// just align the BBOX bottoms
-	self->s.origin[0] = self->client->host->s.origin[0];
-	self->s.origin[1] = self->client->host->s.origin[1];
+	self->s.origin[0] = host->s.origin[0];
+	self->s.origin[1] = host->s.origin[1];
 
 	//essenstially absmin[2] - mins[2], except using absmin[2] causes vertical shake
-	self->s.origin[2] = (self->client->host->mins[2] + self->client->host->s.origin[2]) - self->mins[2]; 
-	gi.linkentity(self);
-	
+	self->s.origin[2] = (host->mins[2] + host->s.origin[2]) - self->mins[2]; 
+
 	if ( (self->client->soul_abilities & UBERHOST) && host->hmove_list ) { 
 
 		self->client->orderIssued = false;
@@ -571,9 +570,12 @@ void TakeHost ( edict_t *self, edict_t *host, int take_style ) {
 	host->owner				= self;						// to prevent clipping
 	self->client->ghostmode = false;
 	self->client->hostmode	= true;
-//	self->client->ps.pmove.pm_type = PM_SPECTATOR;
+	
+	// prevent player CAMERA origin from continuously falling if host ( and therefore player ) has no groundentity normally
+	if ( host->flags & FL_FLY || host->flags & FL_SWIM ) 
+		self->client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
 
-	// hide the player model
+	// hide the player model from view and interaction
 	self->svflags			= SVF_NOCLIENT;
 
 	host->possesed_think = monster_think_possesed;		// should this be left hanging when host is dropped? shouldn't matter
@@ -622,19 +624,23 @@ void DropHost ( edict_t *self, int drop_style )
 		case HOST_HUSK_DEATH: { gi.centerprintf( self, "YOU DIED\n" ); break; }
 	}
 
-	if ( self->client->host->host_target )	{ G_FreeEdict( self->client->host->host_target ); }
+	if ( host->host_target )	{ G_FreeEdict( host->host_target ); }
 	if ( self->client->host_follower )		{ DropFollower( self ); }
 
 	//prevent NULL-enemy crash mid-fire in uberhost mode
-	if ( self->client->host->deadflag == DEAD_NO ) {
+	if ( host->deadflag == DEAD_NO ) {
 		
-		perform_move = find_host_move ( self->client->host, "stand1" ); // or try "stand2"
-		if ( perform_move && perform_move->hmove ) { perform_move->hmove( self->client->host ); }
+		perform_move = find_host_move ( host, "stand1" ); // or try "stand2"
+		if ( perform_move && perform_move->hmove ) { perform_move->hmove( host ); }
 	}
 
 	// retain ownership for the duration of the cooldown (to avoid getting stuck)
 	//self->client->host->owner			= NULL;
 	self->client->escape_host			= host;
+
+	// prevent player CAMERA origin from continuously falling if host ( and therefore player ) has no groundentity normally
+	if ( host->flags & FL_FLY || host->flags & FL_SWIM ) 
+		self->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
 	self->client->host->s.angles[ROLL]	= 0;
 	self->client->host->s.angles[PITCH] = 0;
@@ -643,7 +649,6 @@ void DropHost ( edict_t *self, int drop_style )
 	self->client->hostmode				= false;
 	self->client->ghostmode				= true;
 	self->client->nextPossessTime		= level.time + 3.0f;
-//	self->client->ps.pmove.pm_type		= PM_NORMAL;
 
 	// show the player model again
 	self->svflags						= 0;
@@ -1244,7 +1249,7 @@ void detect_life ( edict_t *self ) {
 		if ( other == self )
 		{ continue; }
 
-		if ( !(other->svflags & SVF_MONSTER) || (other->client) )
+		if ( !(other->svflags & SVF_MONSTER) || other == self || (self->client->hostmode && other == self->client->host) )
 		{ continue; }
 
 		if ( other->deadflag != DEAD_NO )
@@ -1257,10 +1262,10 @@ void detect_life ( edict_t *self ) {
 			gi.WriteByte (TE_BFG_LASER);
 			gi.WritePosition (self->s.origin);
 			gi.WritePosition (life_point);
-			//gi.multicast (self->s.origin, MULTICAST_PHS);
 			gi.unicast( self, true );
 		}
 	}
+	gi.dprintf("DETECT ORIGIN = %s\n", vtos(self->s.origin));	//TMF7 debug
 }
 
 void player_husk_touch ( edict_t *self, edict_t *other ) {
@@ -2034,7 +2039,7 @@ newTransformAttempt:
 						newClassname = trans->host_class;
 						VectorCopy( neworg, host->s.origin );
 
-						if (lift)
+					//	if (lift)	// always check for drop
 							host->groundentity = NULL;
 
 						gi.linkentity( host );
@@ -2244,14 +2249,13 @@ void SoulAbilities( edict_t *ent )
 														strcat( string, "xv 56 yv 88 string2 \"      f return to body\" "	   );	
 														strcat( string, "xv 56 yv 96 string2 \"      v drain life toggle\" "   );
 		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 104 string2 \"      n detect life toggle\" " ); }
-		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 112 string2 \"      m ghost fly\" "		   );
-														strcat( string, "xv 56 yv 120 string2 \"      y shield of souls\" "	   ); }
-														strcat( string, "xv 56 yv 128 string2 \"    ---touch---\" "			   );
-		if ( ent->client->soul_collector_level >= 2 ) { strcat( string, "xv 56 yv 136 string2 \"proximity possession\" "	   ); }
-														strcat( string, "xv 56 yv 144 string2 \"proximity drain life\" "	   );
-														strcat( string, "xv 56 yv 152 string2 \"    ---passive---\" "		   );
-		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 160 string2 \"pull nearby souls\" "		   ); }
-		//												strcat( string, "xv 56 yv 168 string2 \"ghost-walk time: ###/###\" " ); // CHANGE 
+		if ( ent->client->soul_collector_level >= 4 ) { strcat( string, "xv 56 yv 112 string2 \"      y shield of souls\" "	   ); }
+														strcat( string, "xv 56 yv 120 string2 \"    ---touch---\" "			   );
+		if ( ent->client->soul_collector_level >= 2 ) { strcat( string, "xv 56 yv 128 string2 \"proximity possession\" "	   ); }
+														strcat( string, "xv 56 yv 136 string2 \"proximity drain life\" "	   );
+														strcat( string, "xv 56 yv 144 string2 \"    ---passive---\" "		   );
+		if ( ent->client->soul_collector_level >= 3 ) { strcat( string, "xv 56 yv 152 string2 \"pull nearby souls\" "		   ); }
+		//												strcat( string, "xv 56 yv 160 string2 \"ghost-walk time: ###/###\" " ); // CHANGE 
 
 	} else if ( ent->client->hostmode ) {
 		// 9 or 13 lines

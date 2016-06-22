@@ -975,6 +975,7 @@ void ThirdPerson( edict_t *ent ) {
 	// then just return without affecting viewport
 	//////////////////////////////////////////////////////////////
 
+
 	host = ent->client->host;
 
 	VectorCopy(ent->s.origin, ownerv);
@@ -1011,8 +1012,9 @@ void ThirdPerson( edict_t *ent ) {
 	
 	// pad for floors and ceilings
 	VectorCopy(goal, o);
+	
 	o[2] += 6;
-	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_SOLID);
+	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_ALL);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal[2] -= 6;
@@ -1020,26 +1022,17 @@ void ThirdPerson( edict_t *ent ) {
 
 	VectorCopy(goal, o);
 	o[2] -= 6;
-	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_SOLID);
+	trace = gi.trace(goal, target->mins, target->maxs, o, ent, MASK_ALL);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal[2] += 6;
 	}
-	
-	ent->client->ps.pmove.origin[0] =  goal[0]*8.0;
-	ent->client->ps.pmove.origin[1] =  goal[1]*8.0;
-	ent->client->ps.pmove.origin[2] =  goal[2]*8.0;
 
-	//gi.dprintf("ENTO  = %s\nPMOVE = %i %i %i\n\n", vtos(ent->s.origin), ent->client->ps.pmove.origin[0], ent->client->ps.pmove.origin[1], ent->client->ps.pmove.origin[2] );
-
-	//necessary?
-	for (i=0 ; i<3 ; i++)						//TMF7 player movement direction, reative to the target CLIENT
-		 ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->v_angle[i] - ent->client->resp.cmd_angles[i]);
-
-	VectorCopy(ent->client->v_angle, ent->client->ps.viewangles);	//TMF7 where the player looks
+	ent->client->ps.pmove.gravity = 0;			// prevents camera fidget (because pmove is affected by gravity after ClientEndServerFrame)
+	for ( i = 0; i < 3; i++ )
+		ent->client->ps.pmove.origin[i] = goal[i]*8;
 
 	gi.linkentity(ent);
-
 }
 // TMF7 END GHOST MODE
 
@@ -1070,6 +1063,7 @@ void ClientEndServerFrame (edict_t *ent)
 	// behind the body position when pushed -- "sinking into plats"
 	//
 
+	gi.dprintf("ENTITY ORIGIN = %s\n", vtos(ent->s.origin));	//TMF7 debug
 	for (i=0 ; i<3 ; i++)
 	{
 		current_client->ps.pmove.origin[i] =  ent->s.origin[i]*8.0;
@@ -1144,7 +1138,7 @@ void ClientEndServerFrame (edict_t *ent)
 	P_DamageFeedback (ent);
 
 	// determine the view offsets
-	SV_CalcViewOffset (ent);					// TMF7 GHOST MODE ( vanilla commmented )
+	SV_CalcViewOffset (ent);
 
 	// determine the gun offsets
 	SV_CalcGunOffset (ent);
@@ -1185,5 +1179,13 @@ void ClientEndServerFrame (edict_t *ent)
 		DeathmatchScoreboardMessage (ent, ent->enemy);
 		gi.unicast (ent, false);
 	}
+
+// TMF7 GHOST MODE BEGIN
+	// if the collection or abilities are up, update it
+	else if ( ent->client->showabilities && !(level.framenum & 31) )
+		SoulAbilities(ent);
+	else if ( ent->client->showcollection && !(level.framenum & 31) )
+		SoulCollection(ent);
+// TMF7 GHOST MODE END
 }
 
