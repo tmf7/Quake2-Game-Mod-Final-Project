@@ -757,7 +757,7 @@ void set_host_target( edict_t *host, edict_t *other, vec3_t origin, qboolean sho
 
 		case RODEO_BENIGN: {
 
-			// move or spawn somthing for the host to chase
+			// move or spawn something for the host to chase
 			if ( host->host_target && !Q_strcasecmp( host->host_target->classname, "host_target" ) ) {
 
 				VectorCopy ( origin, host->host_target->s.origin );
@@ -1325,6 +1325,7 @@ void player_husk_touch ( edict_t *self, edict_t *other ) {
 		}
 
 		G_FreeEdict( other );
+		self->client->player_husk = NULL;		// DEBUG: TMF7 6/29/17 (testing bugfix for clients stealing eachothers husks)
 
 		// Force the sight_client back to the player 
 		// to avoid an empty pointer mid-frame 
@@ -1573,7 +1574,7 @@ void SP_ClientHusk ( edict_t *self ) {
 	husk->s.modelindex2 = self->s.modelindex2;				// custom gun model (change this to something else?)
 	husk->s.modelindex3 = self->s.modelindex3;				// ctf
 	husk->s.modelindex4 = self->s.modelindex4;				// derp
-	//husk->s.skinnum		= self->s.skinnum;
+	husk->s.skinnum		= self->s.skinnum;
 
 	husk->s.renderfx	= self->s.renderfx;	
 	husk->s.effects		= self->s.effects;	
@@ -2068,8 +2069,8 @@ newTransformAttempt:
 		host->think( host );
 	}
 	gi.sound (ent, CHAN_AUTO, gi.soundindex( "slighost/hosttransform.wav" ), 1, ATTN_NORM, 0);
-//	for ( i = 0; i < 5; i++)
-//			ThrowGib (host, "models/objects/gibs/sm_meat/tris.md2", 100, GIB_ORGANIC);
+	for ( i = 0; i < 5; i++)
+			ThrowGib (host, "models/objects/gibs/sm_meat/tris.md2", 100, GIB_ORGANIC);
 
 	TakeHost( ent, host, HOST_TRANSFORM );
 }
