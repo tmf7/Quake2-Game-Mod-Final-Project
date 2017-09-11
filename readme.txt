@@ -1,6 +1,7 @@
 
+All change locations found in "game" directory, and internally labelled with //TMF7
+
 Files Modified by Tom Freehill for the Soul Collector Mod:
-[ all change locations internally labelled with //TMF7 ]
 -----------------------------------------------------------
 g_local.h
 game.h
