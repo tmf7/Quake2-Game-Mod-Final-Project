@@ -10,7 +10,7 @@ Common terminology:
 -------------------
 "host" = the currently possessed monster
 "ghost" = the current state of the player as an undetectable/immortal entity
-"follower" = for any monster configured to follow/protectect the host
+"follower" = for any monster configured to follow/protect the host
 
 
 Files Modified by Tom Freehill for the Soul Collector Mod:
