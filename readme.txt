@@ -1,8 +1,21 @@
 
-All change locations found in "game" directory, and internally labelled with //TMF7
+--------------------------------------------
+All change internally labelled with //TMF7
+Use ctrl+f or cmd+f to search for my changes
+in the listed source files. 
+--------------------------------------------
+
+
+Common terminology:
+-------------------
+"host" = the currently possessed monster
+"ghost" = the current state of the player as an undetectable/immortal entity
+"follower" = for any monster configured to follow/protectect the host
+
 
 Files Modified by Tom Freehill for the Soul Collector Mod:
 -----------------------------------------------------------
+// "game" directory
 g_local.h
 game.h
 q_shared.h
@@ -15,7 +28,7 @@ g_monster.c
 g_possessed.c
 g_possessed.h
 g_save.c
-s_spawn.c
+g_spawn.c
 g_weapon.c
 g_boss32.c
 m_move.c
@@ -25,14 +38,23 @@ p_hud.c
 p_view.c
 p_weapon.c
 q_shared.c
+
+// "client" directory
 cl_input.c
 cl_scrn.c
 keys.c
+
+// "qcommon" directory
 pmove.c
+
+// "server" directory
 sv_ents.c
 sv_game.c
 sv_init.c
 sv_world.c
+
+// part of the engine configuration with the full game
+// this file registers the needed extra keyboard inputs
 Config.cfg
 
 
