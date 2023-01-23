@@ -31,7 +31,7 @@ There are four modes of play in Soul Collector, each granting unique and shared 
 
 ### New Abilities
 
-![SoulCollector_SkillTree](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_SkillTree.png)
+![SoulCollector_SkillTree](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_SkillTree.png)
 
 #### Level 1
 
@@ -102,7 +102,7 @@ There are several new context-sensitive control-scheme GUIs, as well as a new GU
 
 #### Corporeal Controls GUI
 
-![CorporealGUI_Low](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\CorporealGUI_Low.png) :arrow_right:       ![CorporealGUI_Low](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\CorporealGUI.png)  
+![CorporealGUI_Low](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/CorporealGUI_Low.png) :arrow_right:       ![CorporealGUI_Low](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/CorporealGUI.png)  
 
 *Note how the list of abilities becomes more complex as soul collector rank increases from 1 to 5*
 
@@ -110,7 +110,7 @@ There are several new context-sensitive control-scheme GUIs, as well as a new GU
 
 #### Ghost Controls GUI
 
-![GhostGUI_Low](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\GhostGUI_Low.png) :arrow_right:       ![GhostGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\GhostGUI.png)
+![GhostGUI_Low](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/GhostGUI_Low.png) :arrow_right:       ![GhostGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/GhostGUI.png)
 
 *Note how the list of abilities becomes more complex as soul collector rank increases from 1 to 5*
 
@@ -118,7 +118,7 @@ There are several new context-sensitive control-scheme GUIs, as well as a new GU
 
 #### Host (Rodeo) Controls GUI
 
-![RodeoHostGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\HostRodeoGUI_Low.png) :arrow_right:       ![RodeoHostGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\HostRodeoGUI.png)
+![RodeoHostGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/HostRodeoGUI_Low.png) :arrow_right:       ![RodeoHostGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/HostRodeoGUI.png)
 
 *Note how the list of abilities becomes more complex as soul collector rank increases from 2 to 5*
 
@@ -126,7 +126,7 @@ There are several new context-sensitive control-scheme GUIs, as well as a new GU
 
 #### Host (Uber) Controls GUI
 
-![UberHostGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\HostUberGUI_Low.png)  :arrow_right:       ![UberHostGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\HostUberGUI.png)
+![UberHostGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/HostUberGUI_Low.png)  :arrow_right:       ![UberHostGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/HostUberGUI.png)
 
 *Note how the list of abilities becomes more complex as soul collector rank increases from 3 to 5*
 
@@ -134,7 +134,7 @@ There are several new context-sensitive control-scheme GUIs, as well as a new GU
 
 #### Soul Collection GUI
 
-![CollectionGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollectionGUI_Low.png) :arrow_right:       ![CollectionGUI](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollectionGUI.png)
+![CollectionGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollectionGUI_Low.png) :arrow_right:       ![CollectionGUI](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollectionGUI.png)
 
 *Note how this list starts empty and becomes populated as each Strogg soul is collected*
 
@@ -169,7 +169,7 @@ There are three new cheat codes added to Quakes console command cheats. Open the
 
 5. Load a new game as normal, you'll know the mod is running when you begin play from a 3rd-person perspective and your soul collector rank popup is active. Press escape, or F7, to close the popup.
 
-   ![SoulCollector_Loaded](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_Loaded.png)
+   ![SoulCollector_Loaded](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_Loaded.png)
 
 
 
@@ -190,7 +190,7 @@ The keybindings listed here are in addition to Quake 2's vanilla keybindings. Be
 | n          | detect life toggle, when enabled draws a green line from the player's heart to the heart of all Strogg within a fixed radius of the player, even through solid objects |
 | y          | shield of souls, surrounds the player's body with souls only visible in the ghost plane which protect the player's body from a fixed amount of damage |
 
-![SoulCollector_BodyLevel5](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_BodyLevel5.png)
+![SoulCollector_BodyLevel5](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_BodyLevel5.png)
 
 
 
@@ -205,7 +205,7 @@ The keybindings listed here are in addition to Quake 2's vanilla keybindings. Be
 | n                     | detect life toggle, when enabled draws a green line from the player's heart to the heart of all Strogg within a fixed radius of the player, even through solid objects |
 | y                     | shield of souls, surrounds the player's body with souls only visible in the ghost plane which protect the player's body from a fixed amount of damage |
 
-![SoulCollector_SoulLevel5](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_GhostLevel5.png)
+![SoulCollector_SoulLevel5](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_GhostLevel5.png)
 
 
 
@@ -222,7 +222,7 @@ The keybindings listed here are in addition to Quake 2's vanilla keybindings. Be
 | alt + o               | upgrade host, changes the possessed Strogg (aka "host") into another Strogg one rank above its own. *Note: this action expends collected souls* |
 | y                     | shield of souls, surrounds the player's body with souls only visible in the ghost plane which protect the player's body from a fixed amount of damage |
 
-![SoulCollector_RodeoHostLevel5](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_RodeoHostLevel5.png)
+![SoulCollector_RodeoHostLevel5](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_RodeoHostLevel5.png)
 
 
 
@@ -240,7 +240,7 @@ The keybindings listed here are in addition to Quake 2's vanilla keybindings. Be
 | y                     | shield of souls, surrounds the player's body with souls only visible in the ghost plane which protect the player's body from a fixed amount of damage |
 | **HOST SPEAK**        | **SEE THE HOST SPEAK TABLE BELOW**                           |
 
-![SoulCollector_UberHostLevel5](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_UberHostLevel5.png)
+![SoulCollector_UberHostLevel5](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_UberHostLevel5.png)
 
 
 
@@ -253,7 +253,7 @@ The keybindings listed here are in addition to Quake 2's vanilla keybindings. Be
 | alt + mouse3                                          | shout an alert, the possessed Strogg (aka "host") will shout **"Look out!"** to all nearby Strogg and send them into an active seek-and-destroy state with nothing to chase or attack (just to mess with them) |
 | mouse3                                                | call for help, **if the possessed Strogg (aka "host") is being attacked** then the host will shout **"Help!"** and all nearby Strogg not attacking the host will target the host's enemy, chase and kill it, then resume their normal duties |
 
-![SoulCollector_Follower](C:\Users\Tom Freehill\Desktop\SoulCollector_Image\used\SoulCollector_Follower.png)
+![SoulCollector_Follower](https://github.com/tmf7/Quake2-Game-Mod-Final-Project/blob/soul_final/readme_images/SoulCollector_Follower.png)
 
 
 
